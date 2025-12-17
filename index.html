@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Report with Data Preview</title>
+    <style>
+        body { font-family: 'Kanit', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h1 { text-align: center; color: #1a73e8; margin-bottom: 30px; }
+        
+        /* Tab Styles */
+        .tabs { display: flex; background: #e8eaed; border-radius: 8px 8px 0 0; padding: 5px 5px 0 5px; gap: 5px; }
+        .tab-link { padding: 12px 20px; border: none; background: none; cursor: pointer; font-size: 15px; color: #5f6368; border-radius: 8px 8px 0 0; transition: 0.2s; }
+        .tab-link:hover { background: #d1d4d7; }
+        .tab-link.active { background: white; color: #1a73e8; font-weight: bold; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        
+        .tab-content { display: none; padding: 25px; border: 1px solid #e8eaed; border-top: none; border-radius: 0 0 8px 8px; }
+        .tab-content.active { display: block; }
+
+        /* Data Table Styles */
+        .table-container { overflow-x: auto; max-height: 500px; overflow-y: auto; border: 1px solid #ddd; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .data-table thead th { position: sticky; top: 0; background: #1a73e8; color: white; padding: 12px; text-align: left; }
+        .data-table td { padding: 10px; border-bottom: 1px solid #eee; }
+        .data-table tr:nth-child(even) { background-color: #f8f9fa; }
+        .data-table tr:hover { background-color: #f1f3f4; }
+
+        /* Metrics */
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .metric-card { background: #fff; border: 1px solid #e0e0e0; padding: 20px; border-radius: 10px; text-align: center; }
+        .metric-card h3 { margin: 0; font-size: 13px; color: #70757a; text-transform: uppercase; }
+        .metric-card p { margin: 8px 0 0; font-size: 22px; font-weight: bold; color: #202124; }
+
+        img { max-width: 100%; height: auto; display: block; margin: 20px auto; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Sales Performance Dashboard</h1>
+
+    <div class="tabs">
+        <button class="tab-link active" onclick="openTab(event, 'overview')">ภาพรวม (Overview)</button>
+        <button class="tab-link" onclick="openTab(event, 'data')">ข้อมูลดิบ (Raw Data)</button>
+        <button class="tab-link" onclick="openTab(event, 'charts')">กราฟวิเคราะห์ (Analysis)</button>
+    </div>
+
+    <div id="overview" class="tab-content active">
+        <div class="metrics-grid">
+            <div class="metric-card"><h3>ยอดขายรวม</h3><p>฿50,218,419</p></div>
+            <div class="metric-card"><h3>จำนวนบิล</h3><p>2,000</p></div>
+            <div class="metric-card"><h3>เฉลี่ยต่อบิล</h3><p>฿25,109</p></div>
+            <div class="metric-card"><h3>จำนวนลูกค้า</h3><p>876</p></div>
+        </div>
+        <div style="text-align: center;">
+            <p>ยินดีต้อนรับสู่หน้ารายงาน สรุปข้อมูลการขายประจำปี 2024</p>
+            
+        </div>
+    </div>
+
+    <div id="data" class="tab-content">
+        <h2>ตัวอย่างข้อมูลจาก Excel (50 แถวแรก)</h2>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Transaction_ID</th>
+                        <th>Date</th>
+                        <th>Customer_ID</th>
+                        <th>Product_Category</th>
+                        <th>Sales_Amount</th>
+                        <th>Region</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>TXN-00001</td><td>10/09/2024</td><td>C-0486</td><td>Fashion</td><td>38,926</td><td>Phuket</td></tr>
+                    <tr><td>TXN-00002</td><td>08/09/2024</td><td>C-0356</td><td>Sports</td><td>14,931</td><td>Chonburi</td></tr>
+                    <tr><td>TXN-00003</td><td>15/08/2024</td><td>C-0431</td><td>Electronics</td><td>17,885</td><td>Bangkok</td></tr>
+                    <tr><td>TXN-00004</td><td>12/02/2024</td><td>C-0455</td><td>Electronics</td><td>32,252</td><td>Khon Kaen</td></tr>
+                    <tr><td>TXN-00005</td><td>22/04/2024</td><td>C-0756</td><td>Electronics</td><td>48,574</td><td>Phuket</td></tr>
+                    </tbody>
+            </table>
+        </div>
+        <p style="font-size: 12px; color: #666; margin-top: 10px;">* แสดงผลเฉพาะ 50 รายการแรกเพื่อความรวดเร็ว</p>
+    </div>
+
+    <div id="charts" class="tab-content">
+        <h2>กราฟวิเคราะห์ข้อมูล</h2>
+        <img src="sales_by_category.png" alt="Sales by Category">
+        <img src="sales_by_region.png" alt="Sales by Region">
+        <img src="sales_trend.png" alt="Sales Trend">
+    </div>
+</div>
+
+<script>
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tab-link");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+</script>
+
+</body>
+</html>
