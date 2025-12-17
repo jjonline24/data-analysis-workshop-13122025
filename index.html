@@ -2198,17 +2198,6 @@
 
             ];
 
-            // สร้างส่วนที่เหลือของข้อมูล (จำลองเพื่อให้เห็นปริมาณ 2,000 แถว)
-            for(let i=21; i<=2000; i++) {
-                fullData.push([
-                    "TXN-" + String(i).padStart(5, '0'),
-                    "10/09/2024",
-                    "C-" + String(Math.floor(Math.random() * 1000)).padStart(4, '0'),
-                    ["Electronics", "Fashion", "Sports", "Beauty", "Home & Living"][Math.floor(Math.random() * 5)],
-                    Math.floor(Math.random() * 50000),
-                    ["Bangkok", "Phuket", "Chiang Mai", "Chonburi", "Khon Kaen"][Math.floor(Math.random() * 5)]
-                ]);
-            }
 
             dataTableInstance = $('#salesDataTable').DataTable({
                 data: fullData,
@@ -2235,4 +2224,5 @@
     </script>
 </body>
 </html>
+
 
