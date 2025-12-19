@@ -2573,6 +2573,7 @@
                 columnDefs: [
                     { targets: 4, render: $.fn.dataTable.render.number(',', '.', 0, '฿') }
                 ],
+            });
 
                 // 4. สร้างตารางที่ 2: หน้า Workshop 1 (#cleanedsalesDataTable)
             tableWorkshop1 = $('#cleanedsalesDataTable').DataTable({
@@ -2591,18 +2592,16 @@
                 columnDefs: [
                     { targets: 4, render: $.fn.dataTable.render.number(',', '.', 0, '฿') }
                 ]
-            });
                 initComplete: function() {
                     this.api().columns.adjust();
                 }
-                
-                    $(document).ready(function() {
 
             });
         });
     </script>
 </body>
 </html>
+
 
 
 
