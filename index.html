@@ -511,7 +511,9 @@
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
     <script>
-        let dataTableInstance;
+        // 1. ประกาศตัวแปรสำหรับเก็บตารางทั้ง 2 ตัว
+        let tableRaw;       // สำหรับหน้าข้อมูลดิบ
+        let tableWorkshop1; // สำหรับหน้า Workshop 1
 
         function switchContent(contentId) {
             // ซ่อนเนื้อหาทั้งหมด
@@ -527,15 +529,27 @@
             // แสดงเนื้อหาที่เลือก
             document.getElementById('content-' + contentId).classList.add('active');
             
-            // เพิ่ม active class ให้เมนูที่เลือก
-            event.currentTarget.classList.add('active');
+            // เพิ่ม active class ให้เมนูที่เลือก (แก้ไขเพื่อให้รองรับการคลิก)
+            if(event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
 
-            // ปรับขนาดตารางเมื่อสลับไปหน้าข้อมูลดิบ
-            if (contentId === 'raw-data' && dataTableInstance) {
+            // 2. ปรับขนาดตารางเมื่อสลับหน้า (ป้องกันหัวตารางเบี้ยว)
+            
+            // ถ้าเข้าหน้าข้อมูลดิบ และตารางสร้างเสร็จแล้ว ให้จัดระเบียบใหม่
+            if (contentId === 'raw-data' && tableRaw) {
                 setTimeout(() => {
-                    dataTableInstance.columns.adjust().draw();
+                    tableRaw.columns.adjust().draw();
                 }, 10);
             }
+
+            // ถ้าเข้าหน้า Workshop 1 และตารางสร้างเสร็จแล้ว ให้จัดระเบียบใหม่
+            if (contentId === 'workshop-1' && tableWorkshop1) {
+                setTimeout(() => {
+                    tableWorkshop1.columns.adjust().draw();
+                }, 10);
+            }
+        }
         }
 
         $(document).ready(function() {
@@ -2541,8 +2555,10 @@
     ["TXN-01999", "01/08/2024", "C-0368", "Electronics", 29987.0, "Bangkok"],
     ["TXN-02000", "04/10/2024", "C-0903", "Electronics", 49601.0, "Chonburi"]
             ];
-
-            dataTableInstance = $('#salesDataTable').DataTable({
+            // ถ้า Workshop 1 คือ "Cleanup Mission" คุณอาจจะสร้างตัวแปร cleanedData ที่กรองข้อมูลแล้วมาใส่ตรงนี้
+            const workshopData = fullData;
+            
+            tableRaw = $('#salesDataTable').DataTable({
                 data: fullData,
                 paging: false,
                 scrollY: '500px',
@@ -2558,6 +2574,25 @@
                 columnDefs: [
                     { targets: 4, render: $.fn.dataTable.render.number(',', '.', 0, '฿') }
                 ],
+
+                // 4. สร้างตารางที่ 2: หน้า Workshop 1 (#cleanedsalesDataTable)
+            tableWorkshop1 = $('#cleanedsalesDataTable').DataTable({
+                data: workshopData, // ใช้ข้อมูลชุด workshop
+                paging: false,
+                scrollY: '500px',
+                scrollCollapse: true,
+                autoWidth: false,
+                order: [[1, 'desc']], // เรียงตามวันที่
+                language: {
+                    search: "🔍 ค้นหา (Cleaned):",
+                    info: "รายการที่คลีนแล้ว _TOTAL_ รายการ",
+                    infoEmpty: "ไม่มีข้อมูล",
+                    zeroRecords: "ไม่พบข้อมูล"
+                },
+                columnDefs: [
+                    { targets: 4, render: $.fn.dataTable.render.number(',', '.', 0, '฿') }
+                ]
+            });
                 initComplete: function() {
                     this.api().columns.adjust();
                 }
@@ -4566,30 +4601,12 @@
     ["TXN-02000", "04/10/2024", "C-0903", "Electronics", 49601.0, "Chonburi"]
             ];
 
-            dataTableInstance = $('#cleanedsalesDataTable').DataTable({
-                data: fullData,
-                paging: false,
-                scrollY: '500px',
-                scrollCollapse: true,
-                autoWidth: false,
-                order: [[1, 'desc']],
-                language: {
-                    search: "🔍 ค้นหา:",
-                    info: "แสดงทั้งหมด _TOTAL_ รายการ",
-                    infoEmpty: "ไม่มีข้อมูล",
-                    zeroRecords: "ไม่พบข้อมูล"
-                },
-                columnDefs: [
-                    { targets: 4, render: $.fn.dataTable.render.number(',', '.', 0, '฿') }
-                ],
-                initComplete: function() {
-                    this.api().columns.adjust();
-                }
             });
         });
     </script>
 </body>
 </html>
+
 
 
 
