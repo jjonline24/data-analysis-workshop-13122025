@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Analysis: Weekday vs Weekend</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen p-6">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm">
+            <div>
+                <h1 class="text-2xl font-bold text-indigo-600">📊 ระบบวิเคราะห์ยอดขาย</h1>
+                <p class="text-slate-500 text-sm">เปรียบเทียบยอดขายเฉลี่ยระหว่าง "วันธรรมดา" และ "วันหยุด"</p>
+            </div>
+        </header>
+
+        <!-- Input Section -->
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-indigo-100">
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                📥 นำเข้าข้อมูล
+                <span class="text-xs font-normal text-gray-400">(รองรับ Date format: DD/MM/YYYY)</span>
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Option 1: Paste Text -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">วิธีที่ 1: วางข้อมูล CSV ที่นี่</label>
+                    <textarea id="csvTextInput" rows="5" class="w-full p-3 text-xs border rounded-lg focus:ring-2 focus:ring-indigo-500 font-mono bg-slate-50" placeholder="Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region..."></textarea>
+                    <button onclick="processFromText()" class="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full md:w-auto">
+                        วิเคราะห์ข้อมูลจากกล่องข้อความ
+                    </button>
+                </div>
+
+                <!-- Option 2: Upload File -->
+                <div class="border-l pl-0 md:pl-6 md:border-slate-200">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">วิธีที่ 2: อัปโหลดไฟล์ CSV</label>
+                    <div class="flex items-center justify-center w-full">
+                        <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                </svg>
+                                <p class="text-sm text-gray-500"><span class="font-semibold">คลิกเพื่ออัปโหลด</span></p>
+                                <p class="text-xs text-gray-500">.CSV File Only</p>
+                            </div>
+                            <input id="dropzone-file" type="file" class="hidden" accept=".csv" onchange="processFromFile(this)" />
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Content (Hidden by default) -->
+        <div id="dashboard" class="hidden space-y-6">
+            
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Weekday Card -->
+                <div class="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl shadow-sm border border-blue-100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-blue-600 font-semibold uppercase">วันธรรมดา (Weekday)</p>
+                            <p class="text-xs text-slate-400">Mon, Tue, Wed, Thu, Fri</p>
+                        </div>
+                        <div class="bg-blue-100 p-2 rounded-lg text-blue-600">🏢</div>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-3xl font-bold text-slate-800" id="weekday-avg">0.00</p>
+                        <p class="text-sm text-slate-500 mt-1">ยอดขายเฉลี่ย (Average Sales)</p>
+                    </div>
+                </div>
+
+                <!-- Weekend Card -->
+                <div class="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl shadow-sm border border-purple-100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-purple-600 font-semibold uppercase">วันหยุด (Weekend)</p>
+                            <p class="text-xs text-slate-400">Sat, Sun</p>
+                        </div>
+                        <div class="bg-purple-100 p-2 rounded-lg text-purple-600">🏖️</div>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-3xl font-bold text-slate-800" id="weekend-avg">0.00</p>
+                        <p class="text-sm text-slate-500 mt-1">ยอดขายเฉลี่ย (Average Sales)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <h3 class="font-bold text-slate-700 mb-4">กราฟเปรียบเทียบยอดขายเฉลี่ย</h3>
+                <div class="h-64 w-full">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-slate-700">ข้อมูลรายรายการ (เพิ่มคอลัมน์ใหม่แล้ว)</h3>
+                    <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded border border-green-400">
+                        Total Rows: <span id="total-rows">0</span>
+                    </span>
+                </div>
+                <div class="overflow-x-auto max-h-96">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                        <thead class="bg-slate-50 sticky top-0">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-medium text-slate-500">ID</th>
+                                <th class="px-4 py-3 text-left font-medium text-slate-500">Date</th>
+                                <th class="px-4 py-3 text-left font-medium text-indigo-600 bg-indigo-50">Day_Name</th>
+                                <th class="px-4 py-3 text-left font-medium text-indigo-600 bg-indigo-50">Is_Weekend</th>
+                                <th class="px-4 py-3 text-right font-medium text-slate-500">Sales Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody" class="divide-y divide-slate-200 bg-white">
+                            <!-- JS will populate -->
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-center text-xs text-gray-400 mt-2">แสดงผลสูงสุด 100 รายการแรกเพื่อความรวดเร็ว</p>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let chartInstance = null;
+
+        // Process from Text Area
+        function processFromText() {
+            const text = document.getElementById('csvTextInput').value;
+            if (!text.trim()) {
+                alert("กรุณาวางข้อมูล CSV ก่อนครับ");
+                return;
+            }
+            processData(text);
+        }
+
+        // Process from File Upload
+        function processFromFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                processData(e.target.result);
+            };
+            reader.readAsText(file);
+        }
+
+        function processData(csvData) {
+            const lines = csvData.split('\n').filter(line => line.trim() !== '');
+            if (lines.length < 2) return;
+
+            const headers = lines[0].split(',').map(h => h.trim());
+            const dateIndex = headers.findIndex(h => h.includes('Date'));
+            const salesIndex = headers.findIndex(h => h.includes('Sales_Amount') || h.includes('Sales'));
+
+            if (dateIndex === -1 || salesIndex === -1) {
+                alert("ไม่พบคอลัมน์ Date หรือ Sales_Amount ในข้อมูล");
+                return;
+            }
+
+            let weekdaySum = 0, weekdayCount = 0;
+            let weekendSum = 0, weekendCount = 0;
+            const processedRows = [];
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            // Loop starting from row 1 (skipping header)
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(',');
+                if (cols.length < headers.length) continue;
+
+                const dateStr = cols[dateIndex].trim(); // DD/MM/YYYY
+                const sales = parseFloat(cols[salesIndex].trim());
+
+                if (!dateStr || isNaN(sales)) continue;
+
+                // Create Date Object
+                const [day, month, year] = dateStr.split('/').map(Number);
+                const dateObj = new Date(year, month - 1, day);
+
+                // 1. Get Day Name
+                const dayIndex = dateObj.getDay(); // 0 = Sun, 6 = Sat
+                const dayName = dayNames[dayIndex];
+
+                // 2. Check Is_Weekend
+                const isWeekend = (dayIndex === 0 || dayIndex === 6);
+
+                // Stats Calculation
+                if (isWeekend) {
+                    weekendSum += sales;
+                    weekendCount++;
+                } else {
+                    weekdaySum += sales;
+                    weekdayCount++;
+                }
+
+                // Prepare row for table display
+                processedRows.push({
+                    id: cols[0],
+                    date: dateStr,
+                    dayName: dayName,
+                    isWeekend: isWeekend,
+                    sales: sales
+                });
+            }
+
+            // Averages
+            const avgWeekday = weekdayCount ? (weekdaySum / weekdayCount) : 0;
+            const avgWeekend = weekendCount ? (weekendSum / weekendCount) : 0;
+
+            updateUI(avgWeekday, avgWeekend, processedRows);
+        }
+
+        function updateUI(avgWeekday, avgWeekend, rows) {
+            document.getElementById('dashboard').classList.remove('hidden');
+            
+            // Format Numbers
+            const fmt = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' });
+            
+            document.getElementById('weekday-avg').innerText = fmt.format(avgWeekday);
+            document.getElementById('weekend-avg').innerText = fmt.format(avgWeekend);
+            document.getElementById('total-rows').innerText = rows.length.toLocaleString();
+
+            // Update Chart
+            updateChart(avgWeekday, avgWeekend);
+
+            // Update Table (Limit to first 100 for performance)
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+            
+            rows.slice(0, 100).forEach(row => {
+                const tr = document.createElement('tr');
+                const badgeColor = row.isWeekend ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800';
+                
+                tr.innerHTML = `
+                    <td class="px-4 py-3 whitespace-nowrap text-slate-600">${row.id}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-slate-600">${row.date}</td>
+                    <td class="px-4 py-3 whitespace-nowrap font-medium text-indigo-600">${row.dayName}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${badgeColor}">
+                            ${row.isWeekend}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-right font-mono text-slate-600">${row.sales.toLocaleString()}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateChart(weekday, weekend) {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['วันธรรมดา (Weekday)', 'วันหยุด (Weekend)'],
+                    datasets: [{
+                        label: 'Average Sales',
+                        data: [weekday, weekend],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)', // Blue
+                            'rgba(147, 51, 234, 0.7)'  // Purple
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(147, 51, 234, 1)'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + ' ฿';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
