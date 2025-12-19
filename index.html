@@ -366,10 +366,27 @@
             <div class="workshop-content">
                 <div class="workshop-icon">🎯</div>
                 <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 3</h2>
-                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 3 จะแสดงที่นี่</p>
+                <div id="workshop3-container" class="text-slate-500 max-w-md mx-auto">
+                    กำลังโหลดเนื้อหา...
+                </div>
             </div>
         </div>
-
+        <script>
+    // ฟังก์ชันสำหรับโหลดไฟล์ workshop3.html
+    fetch('workshop3.html')
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.text();
+        })
+        .then(html => {
+            // นำ HTML ที่ได้ไปใส่ใน div ที่เตรียมไว้
+            document.getElementById('workshop3-container').innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error loading the file:', error);
+            document.getElementById('workshop3-container').innerHTML = "ไม่สามารถโหลดเนื้อหาได้";
+        });
+</script>
         <div id="content-workshop-4" class="content-section">
             <div class="workshop-content">
                 <div class="workshop-icon">🎯</div>
@@ -2601,6 +2618,7 @@
     </script>
 </body>
 </html>
+
 
 
 
