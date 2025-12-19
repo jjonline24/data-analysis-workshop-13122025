@@ -6,7 +6,6 @@
     <title>Sales Performance Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
     
     <style>
@@ -14,14 +13,77 @@
             font-family: 'Kanit', sans-serif;
             background-color: #f8fafc;
         }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+            overflow-y: auto;
+            box-shadow: 4px 0 6px rgba(0,0,0,0.1);
         }
         
-        /* แก้ไขปัญหา Header กับ Data ไม่ตรงกัน */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+        }
+        
+        .menu-item {
+            padding: 14px 24px;
+            color: rgba(255,255,255,0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: #60a5fa;
+        }
+        
+        .menu-item.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-left-color: #3b82f6;
+            font-weight: 500;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            padding: 32px;
+            min-height: 100vh;
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* DataTable Styles */
         .dataTables_wrapper {
             width: 100%;
             margin: 0 auto;
@@ -31,7 +93,7 @@
             width: 100% !important;
             margin: 0 !important;
             border-collapse: collapse !important;
-            table-layout: fixed; /* บังคับให้ขนาดคอลัมน์คงที่ตามที่คำนวณ */
+            table-layout: fixed;
         }
 
         .dataTables_scrollHeadInner {
@@ -65,7 +127,6 @@
             box-sizing: border-box;
         }
 
-        /* ตกแต่ง Scrollbar */
         .dataTables_scrollBody::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -80,51 +141,148 @@
         .dataTables_scrollBody::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+        
+        .workshop-content {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .workshop-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-7xl mx-auto">
-        <!-- ส่วนหัว -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-            <div>
+<body>
+    <!-- Sidebar Menu -->
+    <div class="sidebar">
+        <div class="p-6 border-b border-white border-opacity-20">
+            <h1 class="text-2xl font-bold text-white">📊 Dashboard</h1>
+            <p class="text-sm text-blue-200 mt-1">Sales Analytics</p>
+        </div>
+        
+        <nav class="py-4">
+            <div class="menu-item active" onclick="switchContent('home')">
+                <span>🏠</span>
+                <span>หน้าแรก</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('raw-data')">
+                <span>📋</span>
+                <span>ข้อมูลดิบ</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-1')">
+                <span>📝</span>
+                <span>Workshop 1</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-2')">
+                <span>📝</span>
+                <span>Workshop 2</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-3')">
+                <span>📝</span>
+                <span>Workshop 3</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-4')">
+                <span>📝</span>
+                <span>Workshop 4</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-5')">
+                <span>📝</span>
+                <span>Workshop 5</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-6')">
+                <span>📝</span>
+                <span>Workshop 6</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-7')">
+                <span>📝</span>
+                <span>Workshop 7</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-8')">
+                <span>📝</span>
+                <span>Workshop 8</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-9')">
+                <span>📝</span>
+                <span>Workshop 9</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-10')">
+                <span>📝</span>
+                <span>Workshop 10</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-11')">
+                <span>📝</span>
+                <span>Workshop 11</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-12')">
+                <span>📝</span>
+                <span>Workshop 12</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-13')">
+                <span>📝</span>
+                <span>Workshop 13</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-14')">
+                <span>📝</span>
+                <span>Workshop 14</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-15')">
+                <span>📝</span>
+                <span>Workshop 15</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-16')">
+                <span>📝</span>
+                <span>Workshop 16</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-17')">
+                <span>📝</span>
+                <span>Workshop 17</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-18')">
+                <span>📝</span>
+                <span>Workshop 18</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-19')">
+                <span>📝</span>
+                <span>Workshop 19</span>
+            </div>
+            <div class="menu-item" onclick="switchContent('workshop-20')">
+                <span>📝</span>
+                <span>Workshop 20</span>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- หน้าแรก -->
+        <div id="content-home" class="content-section active">
+            <div class="mb-8">
                 <h1 class="text-3xl font-bold text-slate-800">Sales Performance Report</h1>
                 <p class="text-slate-500">รายงานสรุปผลยอดขายจากข้อมูลจริง 2,000 รายการ</p>
             </div>
-            <div class="flex gap-2">
-                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">โหลดข้อมูลสำเร็จ: 2,000 รายการ</span>
-            </div>
-        </div>
 
-        <!-- การ์ดสรุปยอด -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 text-center">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                <p class="text-slate-500 text-sm font-medium">ยอดขายรวมทั้งหมด</p>
-                <h2 class="text-2xl font-bold text-slate-800 mt-1">฿50,218,419</h2>
+            <!-- การ์ดสรุปยอด -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center">
+                    <p class="text-slate-500 text-sm font-medium">ยอดขายรวมทั้งหมด</p>
+                    <h2 class="text-2xl font-bold text-slate-800 mt-1">฿50,218,419</h2>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center">
+                    <p class="text-slate-500 text-sm font-medium">จำนวนบิล</p>
+                    <h2 class="text-2xl font-bold text-slate-800 mt-1">2,000</h2>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center">
+                    <p class="text-slate-500 text-sm font-medium">ยอดขายเฉลี่ย</p>
+                    <h2 class="text-2xl font-bold text-slate-800 mt-1">฿25,109</h2>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center">
+                    <p class="text-slate-500 text-sm font-medium">จำนวนลูกค้า</p>
+                    <h2 class="text-2xl font-bold text-slate-800 mt-1">876</h2>
+                </div>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                <p class="text-slate-500 text-sm font-medium">จำนวนบิล</p>
-                <h2 class="text-2xl font-bold text-slate-800 mt-1">2,000</h2>
-            </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                <p class="text-slate-500 text-sm font-medium">ยอดขายเฉลี่ย</p>
-                <h2 class="text-2xl font-bold text-slate-800 mt-1">฿25,109</h2>
-            </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                <p class="text-slate-500 text-sm font-medium">จำนวนลูกค้า</p>
-                <h2 class="text-2xl font-bold text-slate-800 mt-1">876</h2>
-            </div>
-        </div>
 
-        <!-- แท็บควบคุม -->
-        <div class="border-b border-slate-200 mb-6">
-            <nav class="flex space-x-8">
-                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn border-blue-500 text-blue-600 border-b-2 py-4 px-1 text-sm font-medium active">แดชบอร์ดสรุปผล</button>
-                <button onclick="switchTab('raw-data')" id="btn-raw-data" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 border-b-2 py-4 px-1 text-sm font-medium">ข้อมูลดิบ (แสดง 2,000 รายการ)</button>
-            </nav>
-        </div>
-
-        <!-- เนื้อหาแท็บ แดชบอร์ด -->
-        <div id="tab-dashboard" class="tab-content active">
+            <!-- กราฟ -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                     <h3 class="text-lg font-semibold text-slate-800 mb-4">ยอดขายตามหมวดหมู่</h3>
@@ -141,8 +299,8 @@
             </div>
         </div>
 
-        <!-- เนื้อหาแท็บ ข้อมูลดิบ -->
-        <div id="tab-raw-data" class="tab-content">
+        <!-- ข้อมูลดิบ -->
+        <div id="content-raw-data" class="content-section">
             <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                 <div class="mb-4">
                     <h3 class="text-lg font-semibold text-slate-800">รายการยอดขายทั้งหมด</h3>
@@ -160,31 +318,199 @@
                                 <th style="width: 15%">Region</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- ข้อมูลจะถูกใส่โดย JavaScript -->
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
         </div>
+
+        <!-- Workshop Pages -->
+        <div id="content-workshop-1" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 1</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 1 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-2" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 2</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 2 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-3" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 3</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 3 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-4" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 4</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 4 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-5" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 5</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 5 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-6" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 6</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 6 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-7" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 7</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 7 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-8" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 8</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 8 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-9" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 9</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 9 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-10" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 10</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 10 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-11" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 11</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 11 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-12" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 12</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 12 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-13" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 13</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 13 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-14" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 14</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 14 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-15" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 15</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 15 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-16" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 16</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 16 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-17" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 17</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 17 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-18" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 18</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 18 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-19" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 19</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 19 จะแสดงที่นี่</p>
+            </div>
+        </div>
+
+        <div id="content-workshop-20" class="content-section">
+            <div class="workshop-content">
+                <div class="workshop-icon">🎯</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Workshop 20</h2>
+                <p class="text-slate-500 max-w-md mx-auto">เนื้อหา Workshop 20 จะแสดงที่นี่</p>
+            </div>
+        </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
     <script>
         let dataTableInstance;
 
-        function switchTab(tabId) {
-            $('.tab-content').removeClass('active');
-            $('.tab-btn').removeClass('border-blue-500 text-blue-600').addClass('border-transparent text-slate-500');
+        function switchContent(contentId) {
+            // ซ่อนเนื้อหาทั้งหมด
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
             
-            $('#tab-' + tabId).addClass('active');
-            $('#btn-' + tabId).addClass('border-blue-500 text-blue-600').removeClass('border-transparent text-slate-500');
+            // ลบ active class จากเมนูทั้งหมด
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // แสดงเนื้อหาที่เลือก
+            document.getElementById('content-' + contentId).classList.add('active');
+            
+            // เพิ่ม active class ให้เมนูที่เลือก
+            event.currentTarget.classList.add('active');
 
-            if (tabId === 'raw-data' && dataTableInstance) {
-                // บังคับให้คำนวณความกว้างคอลัมน์ใหม่หลังจากแสดง Tab
+            // ปรับขนาดตารางเมื่อสลับไปหน้าข้อมูลดิบ
+            if (contentId === 'raw-data' && dataTableInstance) {
                 setTimeout(() => {
                     dataTableInstance.columns.adjust().draw();
                 }, 10);
@@ -192,10 +518,8 @@
         }
 
         $(document).ready(function() {
-            // ดึงข้อมูลจริงทั้งหมด 2,000 รายการ
-            // หมายเหตุ: ข้อมูลด้านล่างเป็นข้อมูลจริงที่ดึงจากไฟล์ของคุณ
             const fullData = [
-                ["TXN-00001", "10/09/2024", "C-0486", "Fashion", 38926.0, "Phuket"],
+    ["TXN-00001", "10/09/2024", "C-0486", "Fashion", 38926.0, "Phuket"],
     ["TXN-00002", "08/09/2024", "C-0356", "Sports", 14931.0, "Chonburi"],
     ["TXN-00003", "15/08/2024", "C-0431", "Electronics", 17885.0, "Bangkok"],
     ["TXN-00004", "12/02/2024", "C-0455", "Electronics", 32252.0, "Khon Kaen"],
@@ -2195,16 +2519,14 @@
     ["TXN-01998", "17/11/2024", "C-0019", "Sports", 42341.0, "Bangkok"],
     ["TXN-01999", "01/08/2024", "C-0368", "Electronics", 29987.0, "Bangkok"],
     ["TXN-02000", "04/10/2024", "C-0903", "Electronics", 49601.0, "Chonburi"]
-
             ];
-
 
             dataTableInstance = $('#salesDataTable').DataTable({
                 data: fullData,
                 paging: false,
                 scrollY: '500px',
                 scrollCollapse: true,
-                autoWidth: false, // ปิด autoWidth เพื่อใช้ CSS กำหนดเอง
+                autoWidth: false,
                 order: [[1, 'desc']],
                 language: {
                     search: "🔍 ค้นหา:",
@@ -2216,7 +2538,6 @@
                     { targets: 4, render: $.fn.dataTable.render.number(',', '.', 0, '฿') }
                 ],
                 initComplete: function() {
-                    // ปรับขนาดคอลัมน์หลังจากโหลดข้อมูลเสร็จ
                     this.api().columns.adjust();
                 }
             });
@@ -2224,5 +2545,3 @@
     </script>
 </body>
 </html>
-
-
