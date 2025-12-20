@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Analytics Dashboard</title>
+    
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Kanit', 'sans-serif'] },
+                    colors: {
+                        dark: {
+                            bg: '#0f172a',      // Slate 900
+                            card: '#1e293b',    // Slate 800
+                            hover: '#334155',   // Slate 700
+                            text: '#f1f5f9',    // Slate 100
+                            muted: '#94a3b8'    // Slate 400
+                        },
+                        brand: {
+                            primary: '#6366f1', // Indigo 500
+                            secondary: '#10b981' // Emerald 500
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #0f172a; color: #f1f5f9; }
+        
+        /* Print Styles */
+        @media print {
+            body { background-color: white; color: black; }
+            .no-print { display: none !important; }
+            .card { border: 1px solid #ddd; box-shadow: none; background-color: white; color: black; break-inside: avoid; }
+            canvas { max-height: 400px; }
+            h1, h2, h3, p { color: black !important; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-dark-card border-b border-slate-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="bg-brand-primary p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <span class="text-xl font-semibold tracking-wide">Sales Analytics Dashboard</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="window.print()" class="no-print flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-sm font-medium rounded-lg transition-colors text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        Print PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-7xl">
+        
+        <!-- File Upload Area -->
+        <div class="no-print mb-8 p-8 border-2 border-dashed border-slate-600 rounded-2xl bg-dark-card hover:border-brand-primary transition-colors text-center group cursor-pointer relative">
+            <input type="file" id="csvInput" multiple accept=".csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleFileUpload(this)">
+            <div class="space-y-3 pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-slate-400 group-hover:text-brand-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <h3 class="text-lg font-medium text-dark-text">ลากไฟล์ CSV มาวาง หรือ คลิกเพื่อเลือกไฟล์</h3>
+                <p class="text-dark-muted text-sm">รองรับการอัปโหลดหลายไฟล์พร้อมกัน (Multiple Files)</p>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid (Hidden initially) -->
+        <div id="dashboard-content" class="hidden space-y-6">
+            
+            <!-- Scorecards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Total Sales Card -->
+                <div class="card bg-dark-card p-6 rounded-2xl shadow-lg border border-slate-700/50 flex items-center justify-between">
+                    <div>
+                        <p class="text-dark-muted text-sm uppercase font-medium tracking-wider">Total Revenue</p>
+                        <h2 class="text-4xl font-bold text-brand-primary mt-2" id="total-sales">฿0</h2>
+                    </div>
+                    <div class="p-3 bg-indigo-500/10 rounded-xl">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Transaction Count Card -->
+                <div class="card bg-dark-card p-6 rounded-2xl shadow-lg border border-slate-700/50 flex items-center justify-between">
+                    <div>
+                        <p class="text-dark-muted text-sm uppercase font-medium tracking-wider">Total Transactions</p>
+                        <h2 class="text-4xl font-bold text-brand-secondary mt-2" id="txn-count">0</h2>
+                    </div>
+                    <div class="p-3 bg-emerald-500/10 rounded-xl">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-brand-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto-Summary Section -->
+            <div class="card bg-gradient-to-r from-slate-800 to-slate-900 p-6 rounded-2xl shadow-lg border-l-4 border-brand-primary">
+                <h3 class="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+                    ✨ AI Insight Summary
+                </h3>
+                <p id="auto-summary" class="text-slate-300 leading-relaxed font-light">
+                    กรุณาอัปโหลดข้อมูลเพื่อเริ่มการวิเคราะห์...
+                </p>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Bar Chart: Category -->
+                <div class="card bg-dark-card p-6 rounded-2xl shadow-lg border border-slate-700/50">
+                    <h3 class="text-lg font-semibold text-dark-text mb-6">ยอดขายตามหมวดหมู่ (Sales by Category)</h3>
+                    <div class="relative h-64">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Doughnut Chart: Region -->
+                <div class="card bg-dark-card p-6 rounded-2xl shadow-lg border border-slate-700/50">
+                    <h3 class="text-lg font-semibold text-dark-text mb-6">สัดส่วนตามภูมิภาค (Sales by Region)</h3>
+                    <div class="relative h-64 flex justify-center">
+                        <canvas id="regionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-6 text-dark-muted text-sm border-t border-slate-800 mt-8">
+        &copy; 2025 Sales Analytics Pro. Generated by Expert Web Developer AI.
+    </footer>
+
+    <script>
+        // Chart Instances
+        let categoryChartInst = null;
+        let regionChartInst = null;
+
+        // --- File Handler ---
+        function handleFileUpload(input) {
+            const files = input.files;
+            if (!files.length) return;
+
+            const allData = [];
+            let filesProcessed = 0;
+
+            // Loop through all selected files
+            Array.from(files).forEach(file => {
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        allData.push(...results.data);
+                        filesProcessed++;
+                        
+                        // When all files are processed
+                        if (filesProcessed === files.length) {
+                            processData(allData);
+                        }
+                    }
+                });
+            });
+        }
+
+        // --- Data Processing ---
+        function processData(data) {
+            // Variables for aggregation
+            let totalSales = 0;
+            const categoryStats = {};
+            const regionStats = {};
+
+            data.forEach(row => {
+                // Determine column names (handle case sensitivity somewhat)
+                const salesCol = Object.keys(row).find(k => k.toLowerCase().includes('sales'));
+                const catCol = Object.keys(row).find(k => k.toLowerCase().includes('category') || k.toLowerCase().includes('product'));
+                const regCol = Object.keys(row).find(k => k.toLowerCase().includes('region'));
+
+                if (!salesCol || !row[salesCol]) return;
+
+                const sales = parseFloat(row[salesCol].toString().replace(/,/g, ''));
+                if (isNaN(sales)) return;
+
+                const category = row[catCol] || 'Unknown';
+                const region = row[regCol] || 'Unknown';
+
+                // Aggregate
+                totalSales += sales;
+                categoryStats[category] = (categoryStats[category] || 0) + sales;
+                regionStats[region] = (regionStats[region] || 0) + sales;
+            });
+
+            updateDashboard(totalSales, data.length, categoryStats, regionStats);
+        }
+
+        // --- Update UI ---
+        function updateDashboard(totalSales, txnCount, catStats, regStats) {
+            // Show Dashboard
+            document.getElementById('dashboard-content').classList.remove('hidden');
+
+            // 1. Update Scorecards
+            const formatter = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 });
+            document.getElementById('total-sales').innerText = formatter.format(totalSales);
+            document.getElementById('txn-count').innerText = txnCount.toLocaleString();
+
+            // 2. Prepare Chart Data
+            // Sort Categories
+            const sortedCats = Object.entries(catStats).sort((a, b) => b[1] - a[1]);
+            const topCat = sortedCats.length > 0 ? sortedCats[0] : ['-', 0];
+
+            // 3. Generate Summary
+            const summaryHTML = `
+                จากข้อมูลทั้งหมด <strong>${txnCount.toLocaleString()} รายการ</strong> พบว่ายอดขายรวมอยู่ที่ <strong class="text-brand-secondary">${formatter.format(totalSales)}</strong> 
+                โดยสินค้าที่ทำยอดขายสูงสุดคือ <strong class="text-brand-primary">${topCat[0]}</strong> 
+                ซึ่งมียอดขายรวม ${formatter.format(topCat[1])} คิดเป็นสัดส่วน ${((topCat[1]/totalSales)*100).toFixed(1)}% ของรายได้ทั้งหมด
+            `;
+            document.getElementById('auto-summary').innerHTML = summaryHTML;
+
+            // 4. Render Charts
+            renderCharts(sortedCats, regStats);
+        }
+
+        function renderCharts(catDataArray, regDataObj) {
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.borderColor = '#334155';
+
+            // --- Bar Chart (Category) ---
+            const ctxCat = document.getElementById('categoryChart').getContext('2d');
+            if (categoryChartInst) categoryChartInst.destroy();
+
+            categoryChartInst = new Chart(ctxCat, {
+                type: 'bar',
+                data: {
+                    labels: catDataArray.map(d => d[0]),
+                    datasets: [{
+                        label: 'Total Sales',
+                        data: catDataArray.map(d => d[1]),
+                        backgroundColor: '#6366f1',
+                        borderRadius: 6,
+                        hoverBackgroundColor: '#818cf8'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#1e293b' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // --- Doughnut Chart (Region) ---
+            const ctxReg = document.getElementById('regionChart').getContext('2d');
+            if (regionChartInst) regionChartInst.destroy();
+
+            const regLabels = Object.keys(regDataObj);
+            const regValues = Object.values(regDataObj);
+            const colors = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'];
+
+            regionChartInst = new Chart(ctxReg, {
+                type: 'doughnut',
+                data: {
+                    labels: regLabels,
+                    datasets: [{
+                        data: regValues,
+                        backgroundColor: colors,
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12 } }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+    </script>
+</body>
+</html>
