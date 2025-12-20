@@ -1,0 +1,2399 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Forecasting (Linear Regression)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen p-6">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm">
+            <div>
+                <h1 class="text-2xl font-bold text-indigo-600">📈 Sales Forecasting System</h1>
+                <p class="text-slate-500 text-sm">พยากรณ์ยอดขายล่วงหน้า 3 เดือน ด้วยวิธี Linear Regression</p>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <span class="w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
+                    พร้อมใช้งาน (Auto-loaded)
+                </span>
+            </div>
+        </header>
+
+        <!-- Input Section -->
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-indigo-100">
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                📥 นำเข้าข้อมูล (Sales Data)
+                <span class="text-xs font-normal text-gray-400">(รองรับ Date format: DD/MM/YYYY, YYYY-MM-DD)</span>
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Option 1: Paste Text -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">วิธีที่ 1: วางข้อมูล CSV ที่นี่</label>
+                    <textarea id="csvTextInput" rows="3" class="w-full p-3 text-xs border rounded-lg focus:ring-2 focus:ring-indigo-500 font-mono bg-slate-50" placeholder="Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region..."></textarea>
+                    <button onclick="processFromText()" class="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full md:w-auto">
+                        คำนวณการพยากรณ์
+                    </button>
+                </div>
+
+                <!-- Option 2: Upload File -->
+                <div class="border-l pl-0 md:pl-6 md:border-slate-200">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">วิธีที่ 2: อัปโหลดไฟล์ CSV</label>
+                    <div class="flex items-center justify-center w-full">
+                        <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                </svg>
+                                <p class="text-sm text-gray-500"><span class="font-semibold">คลิกเพื่ออัปโหลด</span></p>
+                                <p class="text-xs text-gray-500">.CSV File Only</p>
+                            </div>
+                            <input id="dropzone-file" type="file" class="hidden" accept=".csv" onchange="processFromFile(this)" />
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Content -->
+        <div id="dashboard" class="hidden space-y-6">
+            
+            <!-- Forecast Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Month +1 -->
+                <div class="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl shadow-sm border border-blue-200 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10">
+                        <svg class="w-16 h-16 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path></svg>
+                    </div>
+                    <p class="text-sm text-blue-600 font-semibold uppercase mb-1" id="label-m1">Next Month</p>
+                    <p class="text-3xl font-bold text-slate-800" id="val-m1">-</p>
+                    <p class="text-xs text-slate-500 mt-2">คาดการณ์ยอดขาย</p>
+                </div>
+
+                <!-- Month +2 -->
+                <div class="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-xl shadow-sm border border-indigo-200 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10">
+                        <svg class="w-16 h-16 text-indigo-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
+                    </div>
+                    <p class="text-sm text-indigo-600 font-semibold uppercase mb-1" id="label-m2">Month +2</p>
+                    <p class="text-3xl font-bold text-slate-800" id="val-m2">-</p>
+                    <p class="text-xs text-slate-500 mt-2">คาดการณ์ยอดขาย</p>
+                </div>
+
+                <!-- Month +3 -->
+                <div class="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl shadow-sm border border-purple-200 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10">
+                        <svg class="w-16 h-16 text-purple-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                    </div>
+                    <p class="text-sm text-purple-600 font-semibold uppercase mb-1" id="label-m3">Month +3</p>
+                    <p class="text-3xl font-bold text-slate-800" id="val-m3">-</p>
+                    <p class="text-xs text-slate-500 mt-2">คาดการณ์ยอดขาย</p>
+                </div>
+            </div>
+
+            <!-- Chart Section -->
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-slate-700">แนวโน้มยอดขายจริง & การพยากรณ์ (Actual vs Forecast)</h3>
+                    <div class="text-xs flex gap-3">
+                        <span class="flex items-center gap-1"><span class="w-3 h-1 bg-blue-500"></span> Actual</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-1 border-t-2 border-dashed border-red-500"></span> Forecast</span>
+                    </div>
+                </div>
+                <div class="h-96 w-full">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Historical Data Table -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <h3 class="font-bold text-slate-700 mb-4">ข้อมูลยอดขายรายเดือนย้อนหลัง (Historical Monthly Sales)</h3>
+                <div class="overflow-x-auto max-h-96 rounded border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                        <thead class="bg-slate-50 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold text-slate-600 text-xs">Month (YYYY-MM)</th>
+                                <th class="px-4 py-3 text-right font-semibold text-slate-600 text-xs">Total Sales (THB)</th>
+                                <th class="px-4 py-3 text-right font-semibold text-slate-600 text-xs">Growth Rate (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody" class="divide-y divide-slate-200 bg-white"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let forecastChart = null;
+
+        // --- HELPER: Parse Date ---
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            const dmy = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (dmy) return new Date(dmy[3], dmy[2] - 1, dmy[1]);
+            const d = new Date(dateStr);
+            if (!isNaN(d.getTime())) return d;
+            return null;
+        }
+
+        // --- SAMPLE DATA ---
+        const integratedData = `
+Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
+TXN-00001,10/09/2024,C-0486,Fashion,38926.0,Phuket
+TXN-00002,08/09/2024,C-0356,Sports,14931.0,Chonburi
+TXN-00003,15/08/2024,C-0431,Electronics,17885.0,Bangkok
+TXN-00004,12/02/2024,C-0455,Electronics,32252.0,Khon Kaen
+TXN-00005,22/04/2024,C-0756,Electronics,48574.0,Phuket
+TXN-00006,20/05/2024,C-0661,Beauty,9137.0,Bangkok
+TXN-00007,27/05/2024,C-0022,Home & Living,6313.0,Khon Kaen
+TXN-00008,22/08/2024,C-0299,Electronics,47901.0,Chiang Mai
+TXN-00009,10/09/2024,C-0194,Sports,709.0,Chonburi
+TXN-00010,27/02/2024,C-0065,Fashion,32657.0,Chiang Mai
+TXN-00011,17/05/2024,C-0023,Sports,14167.0,Bangkok
+TXN-00012,06/07/2024,C-0893,Electronics,3043.0,Chiang Mai
+TXN-00013,22/01/2024,C-0822,Beauty,17740.0,Chiang Mai
+TXN-00014,13/08/2024,C-0238,Electronics,41854.0,Bangkok
+TXN-00015,05/08/2024,C-0855,Sports,42293.0,Khon Kaen
+TXN-00016,30/11/2024,C-0971,Electronics,35264.0,Chiang Mai
+TXN-00017,01/06/2024,C-0533,Electronics,12300.0,Phuket
+TXN-00018,17/01/2024,C-0661,Fashion,15697.0,Bangkok
+TXN-00019,27/06/2024,C-0344,Fashion,44276.0,Bangkok
+TXN-00020,14/02/2024,C-0422,Fashion,41789.0,Khon Kaen
+TXN-00021,01/03/2024,C-0593,Beauty,23904.0,Phuket
+TXN-00022,01/05/2024,C-0352,Beauty,19860.0,Chiang Mai
+TXN-00023,28/10/2024,C-0672,Electronics,7864.0,Chonburi
+TXN-00024,29/12/2024,C-0662,Home & Living,49977.0,Bangkok
+TXN-00025,07/08/2024,C-0806,Fashion,27998.0,Bangkok
+TXN-00026,12/03/2024,C-0335,Fashion,21825.0,Bangkok
+TXN-00027,15/04/2024,C-0498,Beauty,28343.0,Chiang Mai
+TXN-00028,18/10/2024,C-0608,Electronics,30956.0,Bangkok
+TXN-00029,23/05/2024,C-0682,Beauty,43793.0,Bangkok
+TXN-00030,27/03/2024,C-0714,Sports,46176.0,Chiang Mai
+TXN-00031,26/12/2024,C-0543,Home & Living,8892.0,Chonburi
+TXN-00032,20/10/2024,C-0863,Beauty,32202.0,Chonburi
+TXN-00033,20/09/2024,C-0562,Fashion,32558.0,Bangkok
+TXN-00034,13/12/2024,C-0456,Sports,45537.0,Phuket
+TXN-00035,10/03/2024,C-0469,Fashion,19566.0,Phuket
+TXN-00036,29/07/2024,C-0312,Beauty,14597.0,Chiang Mai
+TXN-00037,21/05/2024,C-0581,Beauty,27304.0,Bangkok
+TXN-00038,05/03/2024,C-0136,Sports,21680.0,Chiang Mai
+TXN-00039,08/03/2024,C-0920,Home & Living,21315.0,Chiang Mai
+TXN-00040,30/12/2024,C-0809,Beauty,29463.0,Bangkok
+TXN-00041,06/05/2024,C-0314,Electronics,17585.0,Bangkok
+TXN-00042,12/12/2024,C-0176,Sports,18084.0,Khon Kaen
+TXN-00043,13/03/2024,C-0809,Electronics,14848.0,Chonburi
+TXN-00044,17/05/2024,C-0267,Beauty,3490.0,Phuket
+TXN-00045,11/07/2024,C-0233,Fashion,27357.0,Phuket
+TXN-00046,20/11/2024,C-0496,Beauty,11414.0,Bangkok
+TXN-00047,17/02/2024,C-0381,Fashion,41478.0,Chiang Mai
+TXN-00048,22/05/2024,C-0995,Electronics,40693.0,Phuket
+TXN-00049,07/07/2024,C-0296,Sports,8968.0,Phuket
+TXN-00050,06/09/2024,C-0789,Beauty,1805.0,Chonburi
+TXN-00051,02/01/2024,C-0866,Sports,1883.0,Bangkok
+TXN-00052,17/02/2024,C-0049,Home & Living,6414.0,Bangkok
+TXN-00053,22/08/2024,C-0152,Electronics,22342.0,Phuket
+TXN-00054,23/12/2024,C-0362,Sports,36734.0,Khon Kaen
+TXN-00055,02/02/2024,C-0292,Fashion,3725.0,Phuket
+TXN-00056,22/07/2024,C-0467,Beauty,24230.0,Bangkok
+TXN-00057,07/08/2024,C-0980,Sports,10788.0,Bangkok
+TXN-00058,10/09/2024,C-0171,Sports,26421.0,Chiang Mai
+TXN-00059,25/05/2024,C-0634,Home & Living,15529.0,Bangkok
+TXN-00060,22/10/2024,C-0947,Beauty,11077.0,Bangkok
+TXN-00061,05/09/2024,C-0165,Home & Living,22225.0,Chonburi
+TXN-00062,15/12/2024,C-0729,Sports,36738.0,Chiang Mai
+TXN-00063,24/01/2024,C-0549,Fashion,1393.0,Bangkok
+TXN-00064,23/08/2024,C-0293,Sports,1812.0,Chonburi
+TXN-00065,21/03/2024,C-0187,Electronics,35008.0,Bangkok
+TXN-00066,01/01/2024,C-0997,Home & Living,26579.0,Chonburi
+TXN-00067,07/08/2024,C-0180,Fashion,3271.0,Bangkok
+TXN-00068,18/12/2024,C-0860,Sports,20256.0,Bangkok
+TXN-00069,28/11/2024,C-0726,Fashion,41889.0,Phuket
+TXN-00070,20/05/2024,C-0710,Home & Living,16707.0,Chonburi
+TXN-00071,03/07/2024,C-0927,Sports,49646.0,Chiang Mai
+TXN-00072,09/07/2024,C-0683,Electronics,25263.0,Chiang Mai
+TXN-00073,28/11/2024,C-0814,Home & Living,9097.0,Chiang Mai
+TXN-00074,21/07/2024,C-0158,Home & Living,18194.0,Bangkok
+TXN-00075,24/12/2024,C-0166,Electronics,5515.0,Phuket
+TXN-00076,07/08/2024,C-0244,Sports,47824.0,Bangkok
+TXN-00077,26/12/2024,C-0120,Beauty,48514.0,Phuket
+TXN-00078,19/04/2024,C-0043,Fashion,1466.0,Chonburi
+TXN-00079,08/03/2024,C-0325,Sports,36000.0,Phuket
+TXN-00080,22/09/2024,C-0589,Sports,10451.0,Chiang Mai
+TXN-00081,05/01/2024,C-0130,Fashion,39047.0,Phuket
+TXN-00082,24/06/2024,C-0452,Home & Living,13232.0,Bangkok
+TXN-00083,04/08/2024,C-0267,Sports,20959.0,Bangkok
+TXN-00084,01/09/2024,C-0379,Beauty,28362.0,Chiang Mai
+TXN-00085,15/07/2024,C-0189,Fashion,2035.0,Chonburi
+TXN-00086,22/02/2024,C-0211,Sports,30574.0,Phuket
+TXN-00087,07/07/2024,C-0576,Home & Living,17819.0,Phuket
+TXN-00088,11/03/2024,C-0725,Fashion,38261.0,Khon Kaen
+TXN-00089,09/03/2024,C-0036,Beauty,19586.0,Chiang Mai
+TXN-00090,12/12/2024,C-0682,Electronics,15065.0,Chonburi
+TXN-00091,28/09/2024,C-0325,Fashion,37265.0,Bangkok
+TXN-00092,08/11/2024,C-0353,Beauty,19139.0,Chonburi
+TXN-00093,13/08/2024,C-0152,Sports,35444.0,Bangkok
+TXN-00094,19/04/2024,C-0382,Sports,25561.0,Khon Kaen
+TXN-00095,18/03/2024,C-0460,Beauty,24903.5,Bangkok
+TXN-00096,11/11/2024,C-0553,Sports,26297.0,Bangkok
+TXN-00097,21/04/2024,C-0999,Beauty,36320.0,Chonburi
+TXN-00098,21/02/2024,C-0167,Beauty,30139.0,Bangkok
+TXN-00099,04/03/2024,C-0547,Beauty,2131.0,Phuket
+TXN-00100,15/07/2024,C-0309,Fashion,15711.0,Khon Kaen
+TXN-00101,07/08/2024,C-0125,Beauty,31747.0,Bangkok
+TXN-00102,12/03/2024,C-0943,Fashion,42627.0,Chonburi
+TXN-00103,26/11/2024,C-0026,Sports,9922.0,Khon Kaen
+TXN-00104,10/10/2024,C-0415,Electronics,5981.0,Bangkok
+TXN-00105,07/11/2024,C-0954,Beauty,11592.0,Phuket
+TXN-00106,19/12/2024,C-0512,Fashion,32600.0,Bangkok
+TXN-00107,03/12/2024,C-0787,Home & Living,5997.0,Phuket
+TXN-00108,15/04/2024,C-0149,Electronics,40902.0,Chonburi
+TXN-00109,17/09/2024,C-0971,Beauty,34801.0,Chonburi
+TXN-00110,19/07/2024,C-0470,Home & Living,37635.0,Khon Kaen
+TXN-00111,28/01/2024,C-0951,Electronics,4362.0,Bangkok
+TXN-00112,02/05/2024,C-0328,Electronics,17016.0,Chiang Mai
+TXN-00113,27/02/2024,C-0160,Home & Living,49030.0,Phuket
+TXN-00114,22/11/2024,C-0005,Beauty,10370.0,Bangkok
+TXN-00115,27/09/2024,C-0994,Fashion,45654.0,Chonburi
+TXN-00116,07/01/2024,C-0757,Sports,27142.0,Chiang Mai
+TXN-00117,11/06/2024,C-0560,Home & Living,18073.0,Chiang Mai
+TXN-00118,18/10/2024,C-1000,Fashion,49982.0,Khon Kaen
+TXN-00119,06/10/2024,C-0520,Beauty,32529.0,Chiang Mai
+TXN-00120,29/08/2024,C-0340,Unknown,21013.0,Phuket
+TXN-00121,07/02/2024,C-0663,Electronics,15949.0,Chiang Mai
+TXN-00122,04/02/2024,C-0723,Beauty,46956.0,Chiang Mai
+TXN-00123,20/04/2024,C-0303,Home & Living,36859.0,Chiang Mai
+TXN-00124,31/01/2024,C-0486,Home & Living,48542.0,Chiang Mai
+TXN-00125,22/07/2024,C-0918,Beauty,7384.0,Bangkok
+TXN-00126,17/11/2024,C-0297,Sports,5579.0,Chonburi
+TXN-00127,31/07/2024,C-0993,Fashion,1392.0,Bangkok
+TXN-00128,24/07/2024,C-0967,Beauty,49530.0,Chiang Mai
+TXN-00129,01/10/2024,C-0773,Beauty,13434.0,Chonburi
+TXN-00130,19/03/2024,C-0588,Home & Living,7949.0,Chonburi
+TXN-00131,07/06/2024,C-0683,Sports,28299.0,Phuket
+TXN-00132,14/04/2024,C-0151,Beauty,41536.0,Phuket
+TXN-00133,20/03/2024,C-0819,Beauty,32428.0,Bangkok
+TXN-00134,19/07/2024,C-0579,Electronics,36353.0,Bangkok
+TXN-00135,28/11/2024,C-0747,Beauty,1106.0,Phuket
+TXN-00136,03/02/2024,C-0929,Electronics,29039.0,Phuket
+TXN-00137,11/08/2024,C-0945,Electronics,47682.0,Chonburi
+TXN-00138,02/05/2024,C-0453,Home & Living,44847.0,Phuket
+TXN-00139,14/02/2024,C-0347,Electronics,21627.0,Chonburi
+TXN-00140,29/02/2024,C-0706,Electronics,24855.0,Chonburi
+TXN-00141,07/11/2024,C-0116,Sports,11375.0,Khon Kaen
+TXN-00142,07/12/2024,C-0750,Electronics,34791.0,Khon Kaen
+TXN-00143,30/03/2024,C-0491,Sports,40739.0,Bangkok
+TXN-00144,28/12/2024,C-0922,Beauty,24830.0,Bangkok
+TXN-00145,06/01/2024,C-0042,Electronics,16965.0,Chiang Mai
+TXN-00146,26/06/2024,C-0143,Sports,14303.0,Chonburi
+TXN-00147,12/05/2024,C-0695,Electronics,49439.0,Bangkok
+TXN-00148,05/03/2024,C-0565,Fashion,9369.0,Phuket
+TXN-00149,17/05/2024,C-0120,Sports,47363.0,Chonburi
+TXN-00150,01/03/2024,C-0316,Sports,1143.0,Chiang Mai
+TXN-00151,16/01/2024,C-0026,Beauty,12245.0,Bangkok
+TXN-00152,07/08/2024,C-0412,Beauty,4894.0,Bangkok
+TXN-00153,02/02/2024,C-0633,Electronics,867.0,Chonburi
+TXN-00154,22/10/2024,C-0862,Fashion,12799.0,Chonburi
+TXN-00155,11/09/2024,C-0226,Sports,6650.0,Chonburi
+TXN-00156,03/07/2024,C-0457,Home & Living,22194.0,Chiang Mai
+TXN-00157,17/10/2024,C-0366,Electronics,41458.0,Phuket
+TXN-00158,21/03/2024,C-0095,Home & Living,10753.0,Phuket
+TXN-00159,22/02/2024,C-0335,Home & Living,42203.0,Khon Kaen
+TXN-00160,11/12/2024,C-0057,Fashion,15313.0,Khon Kaen
+TXN-00161,26/04/2024,C-0623,Beauty,1425.0,Khon Kaen
+TXN-00162,02/01/2024,C-0657,Electronics,18494.0,Chiang Mai
+TXN-00163,07/01/2024,C-0200,Home & Living,28429.0,Phuket
+TXN-00164,29/08/2024,C-0598,Electronics,20537.0,Chiang Mai
+TXN-00165,17/03/2024,C-0540,Electronics,26928.0,Phuket
+TXN-00166,19/01/2024,C-0228,Beauty,37273.0,Phuket
+TXN-00167,31/12/2024,C-0801,Home & Living,43712.0,Bangkok
+TXN-00168,02/08/2024,C-0959,Electronics,39339.0,Bangkok
+TXN-00169,07/05/2024,C-0786,Fashion,48384.0,Bangkok
+TXN-00170,12/06/2024,C-0285,Sports,12186.0,Bangkok
+TXN-00171,09/02/2024,C-0201,Sports,7205.0,Chonburi
+TXN-00172,02/03/2024,C-0024,Beauty,34730.0,Bangkok
+TXN-00173,27/01/2024,C-0086,Home & Living,25596.0,Chonburi
+TXN-00174,21/09/2024,C-0552,Beauty,39308.0,Chiang Mai
+TXN-00175,24/07/2024,C-0870,Electronics,48817.0,Khon Kaen
+TXN-00176,26/08/2024,C-0457,Beauty,44310.0,Phuket
+TXN-00177,08/06/2024,C-0694,Electronics,14217.0,Chonburi
+TXN-00178,10/10/2024,C-0688,Sports,15693.0,Chiang Mai
+TXN-00179,07/07/2024,C-0981,Fashion,6485.0,Chiang Mai
+TXN-00180,15/10/2024,C-0090,Fashion,40799.0,Bangkok
+TXN-00181,14/11/2024,C-1000,Beauty,11301.0,Bangkok
+TXN-00182,07/07/2024,C-0525,Sports,516.0,Bangkok
+TXN-00183,09/09/2024,C-0404,Fashion,3920.0,Bangkok
+TXN-00184,10/04/2024,C-0200,Fashion,29315.0,Bangkok
+TXN-00185,06/10/2024,C-0503,Sports,31412.0,Phuket
+TXN-00186,05/05/2024,C-0326,Sports,33292.0,Bangkok
+TXN-00187,28/07/2024,C-0618,Electronics,16279.0,Chiang Mai
+TXN-00188,04/10/2024,C-0620,Sports,25227.0,Bangkok
+TXN-00189,21/12/2024,C-0524,Fashion,46784.0,Bangkok
+TXN-00190,20/06/2024,C-0967,Unknown,20931.0,Bangkok
+TXN-00191,02/12/2024,C-0058,Beauty,21273.0,Chiang Mai
+TXN-00192,06/06/2024,C-0931,Home & Living,40174.0,Chonburi
+TXN-00193,28/09/2024,C-0683,Beauty,11386.0,Khon Kaen
+TXN-00194,02/08/2024,C-0370,Fashion,18701.0,Chiang Mai
+TXN-00195,31/01/2024,C-0408,Sports,29155.0,Chiang Mai
+TXN-00196,13/03/2024,C-0152,Fashion,32618.0,Bangkok
+TXN-00197,17/02/2024,C-0734,Sports,16919.0,Chonburi
+TXN-00198,28/04/2024,C-0875,Electronics,37062.0,Khon Kaen
+TXN-00199,23/09/2024,C-0438,Electronics,43235.0,Bangkok
+TXN-00200,09/07/2024,C-0379,Sports,2157.0,Bangkok
+TXN-00201,13/02/2024,C-0396,Beauty,31044.0,Khon Kaen
+TXN-00202,15/09/2024,C-0382,Sports,23174.0,Chonburi
+TXN-00203,20/07/2024,C-0013,Home & Living,14510.0,Khon Kaen
+TXN-00204,17/10/2024,C-0292,Home & Living,13016.0,Chonburi
+TXN-00205,05/12/2024,C-0354,Beauty,12231.0,Phuket
+TXN-00206,01/05/2024,C-0360,Home & Living,1199.0,Bangkok
+TXN-00207,10/06/2024,C-0316,Beauty,24157.0,Phuket
+TXN-00208,20/07/2024,C-0457,Home & Living,867.0,Chonburi
+TXN-00209,16/06/2024,C-0896,Unknown,22025.0,Bangkok
+TXN-00210,19/05/2024,C-0575,Electronics,24674.0,Chonburi
+TXN-00211,13/04/2024,C-0090,Electronics,33451.0,Bangkok
+TXN-00212,26/10/2024,C-0221,Fashion,40265.0,Chiang Mai
+TXN-00213,24/02/2024,C-0746,Beauty,42916.0,Chiang Mai
+TXN-00214,26/08/2024,C-0910,Sports,31874.0,Chiang Mai
+TXN-00215,02/03/2024,C-0455,Electronics,46080.0,Chiang Mai
+TXN-00216,16/04/2024,C-0760,Beauty,18468.0,Bangkok
+TXN-00217,25/08/2024,C-0426,Home & Living,37998.0,Phuket
+TXN-00218,02/03/2024,C-0823,Beauty,47556.0,Phuket
+TXN-00219,17/12/2024,C-0454,Home & Living,40316.0,Bangkok
+TXN-00220,26/12/2024,C-0296,Electronics,32632.0,Chiang Mai
+TXN-00221,21/01/2024,C-0168,Home & Living,49647.0,Chiang Mai
+TXN-00222,16/06/2024,C-0826,Beauty,49690.0,Phuket
+TXN-00223,30/12/2024,C-0746,Unknown,7308.0,Bangkok
+TXN-00224,01/07/2024,C-0994,Home & Living,2389.0,Bangkok
+TXN-00225,26/01/2024,C-0920,Home & Living,47247.0,Chiang Mai
+TXN-00226,13/05/2024,C-0435,Sports,48747.0,Phuket
+TXN-00227,30/03/2024,C-0747,Fashion,9127.0,Bangkok
+TXN-00228,26/07/2024,C-0918,Beauty,8326.0,Phuket
+TXN-00229,11/10/2024,C-0425,Electronics,42277.0,Chonburi
+TXN-00230,07/05/2024,C-0143,Sports,21093.0,Bangkok
+TXN-00231,22/02/2024,C-0856,Fashion,36157.0,Bangkok
+TXN-00232,12/03/2024,C-0602,Beauty,13225.0,Chonburi
+TXN-00233,01/02/2024,C-0613,Home & Living,48829.0,Chiang Mai
+TXN-00234,23/04/2024,C-0089,Beauty,24903.5,Bangkok
+TXN-00235,24/07/2024,C-0148,Fashion,21240.0,Phuket
+TXN-00236,18/11/2024,C-0213,Sports,11589.0,Chonburi
+TXN-00237,13/02/2024,C-0311,Sports,38959.0,Bangkok
+TXN-00238,12/05/2024,C-0487,Electronics,24502.0,Chiang Mai
+TXN-00239,08/02/2024,C-0889,Electronics,44048.0,Bangkok
+TXN-00240,03/02/2024,C-0538,Sports,44259.0,Chonburi
+TXN-00241,26/11/2024,C-0344,Sports,4756.0,Chiang Mai
+TXN-00242,06/03/2024,C-0068,Home & Living,33367.0,Bangkok
+TXN-00243,18/06/2024,C-0956,Electronics,17974.0,Chonburi
+TXN-00244,24/08/2024,C-0984,Sports,29558.0,Bangkok
+TXN-00245,20/10/2024,C-0605,Sports,40380.0,Khon Kaen
+TXN-00246,21/07/2024,C-0775,Electronics,33626.0,Phuket
+TXN-00247,14/07/2024,C-0385,Electronics,42135.0,Bangkok
+TXN-00248,29/03/2024,C-0091,Home & Living,711.0,Chiang Mai
+TXN-00249,05/04/2024,C-0007,Beauty,37236.0,Chiang Mai
+TXN-00250,16/08/2024,C-0420,Sports,22877.0,Chonburi
+TXN-00251,18/01/2024,C-0655,Home & Living,46132.0,Chonburi
+TXN-00252,11/11/2024,C-0937,Electronics,30843.0,Chonburi
+TXN-00253,31/05/2024,C-0280,Fashion,6435.0,Chonburi
+TXN-00254,08/10/2024,C-0425,Beauty,6163.0,Phuket
+TXN-00255,14/02/2024,C-0180,Home & Living,39241.0,Chiang Mai
+TXN-00256,11/03/2024,C-0570,Unknown,1817.0,Chonburi
+TXN-00257,25/11/2024,C-0474,Electronics,1184.0,Chonburi
+TXN-00258,26/09/2024,C-0728,Electronics,25045.0,Phuket
+TXN-00259,05/10/2024,C-0582,Fashion,47966.0,Chiang Mai
+TXN-00260,14/07/2024,C-0774,Beauty,20670.0,Chiang Mai
+TXN-00261,02/07/2024,C-0937,Fashion,42594.0,Chonburi
+TXN-00262,05/09/2024,C-0141,Home & Living,13023.0,Chonburi
+TXN-00263,16/10/2024,C-0205,Electronics,48872.0,Phuket
+TXN-00264,17/07/2024,C-0191,Beauty,3995.0,Phuket
+TXN-00265,14/01/2024,C-0853,Sports,19313.0,Chiang Mai
+TXN-00266,22/04/2024,C-0391,Home & Living,9702.0,Chiang Mai
+TXN-00267,23/05/2024,C-0297,Fashion,27630.0,Chonburi
+TXN-00268,29/08/2024,C-0568,Fashion,12836.0,Khon Kaen
+TXN-00269,26/10/2024,C-0503,Electronics,13556.0,Chonburi
+TXN-00270,22/03/2024,C-0044,Sports,19828.0,Bangkok
+TXN-00271,02/12/2024,C-0843,Electronics,29309.0,Bangkok
+TXN-00272,30/09/2024,C-0847,Sports,32605.0,Bangkok
+TXN-00273,29/01/2024,C-0310,Electronics,24329.0,Phuket
+TXN-00274,22/04/2024,C-0855,Sports,42562.0,Chiang Mai
+TXN-00275,17/07/2024,C-0600,Electronics,41854.0,Chiang Mai
+TXN-00276,29/03/2024,C-0312,Beauty,11672.0,Bangkok
+TXN-00277,30/10/2024,C-0506,Electronics,38853.0,Phuket
+TXN-00278,23/12/2024,C-0573,Electronics,35755.0,Chonburi
+TXN-00279,29/10/2024,C-0758,Beauty,46518.0,Chonburi
+TXN-00280,24/12/2024,C-0475,Sports,42836.0,Bangkok
+TXN-00281,17/10/2024,C-0230,Electronics,19419.0,Bangkok
+TXN-00282,15/10/2024,C-0028,Electronics,46352.0,Khon Kaen
+TXN-00283,09/09/2024,C-0811,Home & Living,36650.0,Chonburi
+TXN-00284,30/03/2024,C-0003,Beauty,18125.0,Bangkok
+TXN-00285,16/02/2024,C-0158,Beauty,14309.0,Khon Kaen
+TXN-00286,04/11/2024,C-0269,Sports,31150.0,Khon Kaen
+TXN-00287,26/09/2024,C-0308,Sports,8056.0,Chiang Mai
+TXN-00288,18/06/2024,C-0979,Unknown,41860.0,Phuket
+TXN-00289,13/04/2024,C-0656,Beauty,9662.0,Phuket
+TXN-00290,23/06/2024,C-0855,Sports,21667.0,Bangkok
+TXN-00291,14/06/2024,C-0652,Electronics,25266.0,Chiang Mai
+TXN-00292,16/03/2024,C-0484,Home & Living,2718.0,Bangkok
+TXN-00293,13/03/2024,C-0128,Electronics,7355.0,Chonburi
+TXN-00294,26/09/2024,C-0670,Sports,1017.0,Chiang Mai
+TXN-00295,07/02/2024,C-0682,Sports,31662.0,Phuket
+TXN-00296,05/12/2024,C-0915,Fashion,42959.0,Chiang Mai
+TXN-00297,21/02/2024,C-0295,Fashion,12762.0,Chiang Mai
+TXN-00298,14/06/2024,C-0428,Home & Living,20572.0,Phuket
+TXN-00299,21/03/2024,C-0184,Beauty,36333.0,Phuket
+TXN-00300,11/08/2024,C-0504,Beauty,1925.0,Chiang Mai
+TXN-00301,06/09/2024,C-0929,Fashion,40910.0,Chonburi
+TXN-00302,30/03/2024,C-0705,Electronics,38246.0,Bangkok
+TXN-00303,14/10/2024,C-0661,Sports,48403.0,Bangkok
+TXN-00304,10/11/2024,C-0251,Home & Living,16463.0,Chonburi
+TXN-00305,24/04/2024,C-0030,Sports,24959.0,Khon Kaen
+TXN-00306,30/03/2024,C-0123,Fashion,32124.0,Chiang Mai
+TXN-00307,18/12/2024,C-0784,Sports,20172.0,Bangkok
+TXN-00308,31/03/2024,C-0284,Home & Living,15855.0,Bangkok
+TXN-00309,25/12/2024,C-0505,Sports,33724.0,Chiang Mai
+TXN-00310,19/07/2024,C-0994,Fashion,28411.0,Phuket
+TXN-00311,17/10/2024,C-0069,Sports,38346.0,Chonburi
+TXN-00312,04/11/2024,C-0614,Sports,2371.0,Chonburi
+TXN-00313,09/11/2024,C-0764,Beauty,11404.0,Khon Kaen
+TXN-00314,16/10/2024,C-0371,Fashion,39615.0,Chiang Mai
+TXN-00315,11/09/2024,C-0596,Fashion,34846.0,Bangkok
+TXN-00316,09/02/2024,C-0493,Home & Living,37723.0,Bangkok
+TXN-00317,12/06/2024,C-0580,Beauty,9012.0,Phuket
+TXN-00318,15/02/2024,C-0447,Beauty,4025.0,Bangkok
+TXN-00319,09/12/2024,C-0890,Home & Living,20768.0,Khon Kaen
+TXN-00320,20/06/2024,C-0265,Sports,9770.0,Bangkok
+TXN-00321,15/05/2024,C-0644,Sports,30562.0,Chiang Mai
+TXN-00322,20/12/2024,C-0703,Home & Living,30685.0,Bangkok
+TXN-00323,11/05/2024,C-0488,Beauty,24903.5,Bangkok
+TXN-00324,01/01/2024,C-0998,Electronics,11776.0,Chonburi
+TXN-00325,12/08/2024,C-0711,Electronics,5767.0,Bangkok
+TXN-00326,26/03/2024,C-0838,Fashion,13824.0,Phuket
+TXN-00327,09/09/2024,C-0123,Fashion,47956.0,Chiang Mai
+TXN-00328,28/06/2024,C-0383,Home & Living,45373.0,Chiang Mai
+TXN-00329,21/02/2024,C-0525,Beauty,25027.0,Bangkok
+TXN-00330,22/10/2024,C-0751,Fashion,24903.5,Bangkok
+TXN-00331,17/12/2024,C-0590,Electronics,7047.0,Chiang Mai
+TXN-00332,19/08/2024,C-0018,Electronics,45509.0,Phuket
+TXN-00333,18/01/2024,C-0866,Sports,14425.0,Bangkok
+TXN-00334,12/06/2024,C-0266,Home & Living,44306.0,Bangkok
+TXN-00335,23/02/2024,C-0167,Sports,30874.0,Bangkok
+TXN-00336,28/03/2024,C-0596,Home & Living,6779.0,Chonburi
+TXN-00337,23/03/2024,C-0060,Electronics,21363.0,Phuket
+TXN-00338,07/10/2024,C-0150,Home & Living,9250.0,Bangkok
+TXN-00339,17/02/2024,C-0328,Home & Living,21937.0,Phuket
+TXN-00340,10/11/2024,C-0473,Home & Living,44720.0,Chonburi
+TXN-00341,26/12/2024,C-0900,Fashion,28326.0,Bangkok
+TXN-00342,30/11/2024,C-0710,Electronics,35503.0,Chiang Mai
+TXN-00343,10/08/2024,C-0139,Home & Living,32501.0,Chiang Mai
+TXN-00344,21/02/2024,C-0366,Electronics,38932.0,Bangkok
+TXN-00345,07/04/2024,C-0168,Fashion,40380.0,Phuket
+TXN-00346,10/10/2024,C-0055,Electronics,15911.0,Bangkok
+TXN-00347,03/10/2024,C-0280,Fashion,22772.0,Phuket
+TXN-00348,24/05/2024,C-0370,Fashion,604.0,Khon Kaen
+TXN-00349,19/02/2024,C-0430,Home & Living,49762.0,Phuket
+TXN-00350,19/10/2024,C-0652,Sports,5563.0,Chonburi
+TXN-00351,08/09/2024,C-0934,Sports,9549.0,Chiang Mai
+TXN-00352,03/07/2024,C-0979,Electronics,3399.0,Chonburi
+TXN-00353,14/02/2024,C-0365,Fashion,29034.0,Khon Kaen
+TXN-00354,04/12/2024,C-0050,Fashion,25670.0,Phuket
+TXN-00355,02/09/2024,C-0297,Home & Living,28399.0,Bangkok
+TXN-00356,14/01/2024,C-0299,Beauty,20887.0,Bangkok
+TXN-00357,22/11/2024,C-0543,Fashion,32000.0,Bangkok
+TXN-00358,11/02/2024,C-0655,Sports,28138.0,Bangkok
+TXN-00359,29/02/2024,C-0959,Sports,26597.0,Bangkok
+TXN-00360,22/07/2024,C-0079,Fashion,7475.0,Chonburi
+TXN-00361,04/12/2024,C-0527,Electronics,5915.0,Bangkok
+TXN-00362,24/11/2024,C-0199,Home & Living,48516.0,Bangkok
+TXN-00363,04/04/2024,C-0785,Sports,27007.0,Bangkok
+TXN-00364,14/07/2024,C-0644,Beauty,1301.0,Chiang Mai
+TXN-00365,16/08/2024,C-0188,Electronics,8937.0,Chiang Mai
+TXN-00366,13/08/2024,C-0784,Sports,25665.0,Phuket
+TXN-00367,25/04/2024,C-0097,Sports,1259.0,Khon Kaen
+TXN-00368,15/10/2024,C-0614,Sports,44421.0,Khon Kaen
+TXN-00369,22/12/2024,C-0771,Sports,4072.0,Phuket
+TXN-00370,13/02/2024,C-0172,Home & Living,17450.0,Bangkok
+TXN-00371,04/10/2024,C-0557,Sports,8099.0,Phuket
+TXN-00372,28/10/2024,C-0331,Beauty,30008.0,Chonburi
+TXN-00373,01/02/2024,C-0894,Sports,31534.0,Phuket
+TXN-00374,24/09/2024,C-0324,Sports,35563.0,Bangkok
+TXN-00375,01/10/2024,C-0847,Fashion,7818.0,Phuket
+TXN-00376,31/08/2024,C-0866,Fashion,28291.0,Chonburi
+TXN-00377,30/04/2024,C-0702,Fashion,25631.0,Chonburi
+TXN-00378,10/02/2024,C-0820,Home & Living,5743.0,Chonburi
+TXN-00379,31/12/2024,C-0309,Beauty,22593.0,Khon Kaen
+TXN-00380,19/10/2024,C-0278,Home & Living,46870.0,Bangkok
+TXN-00381,19/10/2024,C-0702,Electronics,13450.0,Bangkok
+TXN-00382,13/11/2024,C-0715,Electronics,40773.0,Chiang Mai
+TXN-00383,17/08/2024,C-0705,Sports,30318.0,Chonburi
+TXN-00384,26/03/2024,C-0372,Sports,30958.0,Phuket
+TXN-00385,08/04/2024,C-0099,Sports,8465.0,Chonburi
+TXN-00386,04/08/2024,C-0548,Beauty,30662.0,Phuket
+TXN-00387,15/12/2024,C-0594,Beauty,39777.0,Chiang Mai
+TXN-00388,17/11/2024,C-0361,Beauty,17036.0,Bangkok
+TXN-00389,31/10/2024,C-0844,Beauty,44736.0,Chonburi
+TXN-00390,04/02/2024,C-0148,Beauty,2042.0,Bangkok
+TXN-00391,11/10/2024,C-0014,Electronics,12213.0,Bangkok
+TXN-00392,15/06/2024,C-0141,Electronics,27832.0,Bangkok
+TXN-00393,23/09/2024,C-0531,Sports,24903.5,Chonburi
+TXN-00394,07/01/2024,C-0289,Electronics,42179.0,Chiang Mai
+TXN-00395,15/11/2024,C-0382,Fashion,7819.0,Chiang Mai
+TXN-00396,02/08/2024,C-0798,Electronics,2899.0,Bangkok
+TXN-00397,17/03/2024,C-0497,Sports,26466.0,Chiang Mai
+TXN-00398,28/10/2024,C-0422,Fashion,6008.0,Chonburi
+TXN-00399,21/02/2024,C-0349,Home & Living,8761.0,Chonburi
+TXN-00400,15/10/2024,C-0944,Home & Living,41979.0,Khon Kaen
+TXN-00401,26/05/2024,C-0933,Sports,18502.0,Bangkok
+TXN-00402,25/06/2024,C-0167,Sports,30517.0,Chonburi
+TXN-00403,15/05/2024,C-0105,Electronics,16497.0,Khon Kaen
+TXN-00404,05/09/2024,C-0224,Home & Living,48517.0,Chiang Mai
+TXN-00405,30/08/2024,C-0159,Beauty,37794.0,Chonburi
+TXN-00406,21/05/2024,C-0516,Sports,5515.0,Chonburi
+TXN-00407,12/11/2024,C-0227,Electronics,3009.0,Bangkok
+TXN-00408,21/12/2024,C-0852,Sports,47935.0,Khon Kaen
+TXN-00409,21/07/2024,C-0193,Fashion,7127.0,Chonburi
+TXN-00410,18/06/2024,C-0815,Fashion,48039.0,Chonburi
+TXN-00411,26/01/2024,C-0919,Fashion,42229.0,Bangkok
+TXN-00412,17/05/2024,C-0573,Sports,28190.0,Chonburi
+TXN-00413,11/01/2024,C-0629,Sports,12554.0,Bangkok
+TXN-00414,04/06/2024,C-0707,Beauty,17333.0,Phuket
+TXN-00415,08/09/2024,C-0852,Electronics,49172.0,Khon Kaen
+TXN-00416,16/12/2024,C-0976,Fashion,28905.0,Bangkok
+TXN-00417,26/04/2024,C-0539,Beauty,13059.0,Khon Kaen
+TXN-00418,14/08/2024,C-0867,Beauty,20370.0,Chiang Mai
+TXN-00419,13/06/2024,C-0545,Electronics,35834.0,Khon Kaen
+TXN-00420,01/08/2024,C-0730,Sports,16474.0,Bangkok
+TXN-00421,15/02/2024,C-0565,Home & Living,3700.0,Bangkok
+TXN-00422,18/04/2024,C-0720,Electronics,31493.0,Bangkok
+TXN-00423,27/07/2024,C-0775,Home & Living,29135.0,Bangkok
+TXN-00424,21/09/2024,C-0822,Beauty,45645.0,Chiang Mai
+TXN-00425,29/01/2024,C-0117,Beauty,18643.0,Chonburi
+TXN-00426,22/03/2024,C-0428,Sports,3497.0,Phuket
+TXN-00427,29/12/2024,C-0472,Sports,12379.0,Phuket
+TXN-00428,10/03/2024,C-0939,Electronics,18370.0,Bangkok
+TXN-00429,25/09/2024,C-0079,Fashion,24903.5,Bangkok
+TXN-00430,15/01/2024,C-0120,Home & Living,27653.0,Phuket
+TXN-00431,12/04/2024,C-0839,Sports,18507.0,Chonburi
+TXN-00432,07/05/2024,C-0135,Sports,39761.0,Chonburi
+TXN-00433,26/01/2024,C-0946,Beauty,42105.0,Bangkok
+TXN-00434,26/12/2024,C-0018,Beauty,15004.0,Chiang Mai
+TXN-00435,07/07/2024,C-0492,Beauty,46965.0,Chonburi
+TXN-00436,15/09/2024,C-0357,Electronics,4676.0,Khon Kaen
+TXN-00437,04/03/2024,C-0320,Beauty,48220.0,Phuket
+TXN-00438,03/05/2024,C-0708,Home & Living,30688.0,Phuket
+TXN-00439,31/10/2024,C-0372,Electronics,42100.0,Chonburi
+TXN-00440,30/08/2024,C-0143,Fashion,35984.0,Chiang Mai
+TXN-00441,28/06/2024,C-0837,Sports,37046.0,Khon Kaen
+TXN-00442,12/05/2024,C-0453,Fashion,24903.5,Bangkok
+TXN-00443,18/12/2024,C-0912,Beauty,23199.0,Phuket
+TXN-00444,15/01/2024,C-0612,Fashion,10446.0,Bangkok
+TXN-00445,24/03/2024,C-0536,Sports,49165.0,Phuket
+TXN-00446,19/04/2024,C-0782,Electronics,35380.0,Phuket
+TXN-00447,27/11/2024,C-0994,Electronics,44604.0,Khon Kaen
+TXN-00448,15/04/2024,C-0351,Beauty,26906.0,Bangkok
+TXN-00449,28/07/2024,C-0177,Electronics,37941.0,Bangkok
+TXN-00450,15/12/2024,C-0727,Beauty,41878.0,Chiang Mai
+TXN-00451,08/03/2024,C-0312,Electronics,23129.0,Bangkok
+TXN-00452,03/11/2024,C-0030,Fashion,49521.0,Khon Kaen
+TXN-00453,24/04/2024,C-0763,Fashion,24695.0,Chiang Mai
+TXN-00454,05/06/2024,C-0835,Beauty,49708.0,Bangkok
+TXN-00455,29/12/2024,C-0122,Sports,44704.0,Chiang Mai
+TXN-00456,04/08/2024,C-0228,Sports,10717.0,Phuket
+TXN-00457,27/06/2024,C-0132,Beauty,11427.0,Chonburi
+TXN-00458,21/04/2024,C-0878,Electronics,37520.0,Phuket
+TXN-00459,12/12/2024,C-0711,Beauty,2034.0,Chonburi
+TXN-00460,15/11/2024,C-0146,Beauty,19104.0,Chonburi
+TXN-00461,22/02/2024,C-0705,Fashion,32662.0,Bangkok
+TXN-00462,05/12/2024,C-0233,Sports,25094.0,Phuket
+TXN-00463,10/07/2024,C-0315,Beauty,9130.0,Bangkok
+TXN-00464,31/10/2024,C-0129,Electronics,8593.0,Khon Kaen
+TXN-00465,01/06/2024,C-0215,Home & Living,14806.0,Phuket
+TXN-00466,03/09/2024,C-0134,Beauty,7750.0,Bangkok
+TXN-00467,21/05/2024,C-0081,Home & Living,12206.0,Chiang Mai
+TXN-00468,21/05/2024,C-0436,Fashion,48633.0,Chonburi
+TXN-00469,30/12/2024,C-0708,Fashion,36549.0,Chonburi
+TXN-00470,29/11/2024,C-0782,Beauty,49735.0,Phuket
+TXN-00471,17/03/2024,C-0803,Fashion,39772.0,Phuket
+TXN-00472,03/05/2024,C-0115,Electronics,24301.0,Chiang Mai
+TXN-00473,03/11/2024,C-0080,Electronics,44031.0,Chiang Mai
+TXN-00474,12/06/2024,C-0020,Fashion,41992.0,Phuket
+TXN-00475,14/01/2024,C-0794,Sports,21325.0,Chiang Mai
+TXN-00476,31/05/2024,C-0496,Electronics,35398.0,Bangkok
+TXN-00477,02/08/2024,C-0776,Fashion,26974.0,Khon Kaen
+TXN-00478,19/01/2024,C-0442,Beauty,30903.0,Chiang Mai
+TXN-00479,19/10/2024,C-0044,Sports,29955.0,Chonburi
+TXN-00480,24/06/2024,C-0202,Home & Living,12140.0,Phuket
+TXN-00481,23/04/2024,C-0111,Electronics,718.0,Chiang Mai
+TXN-00482,22/11/2024,C-0034,Home & Living,22392.0,Chiang Mai
+TXN-00483,09/12/2024,C-0813,Fashion,43504.0,Bangkok
+TXN-00484,02/06/2024,C-0676,Sports,6943.0,Chiang Mai
+TXN-00485,02/12/2024,C-0526,Electronics,43301.0,Phuket
+TXN-00486,02/04/2024,C-0608,Beauty,27911.0,Phuket
+TXN-00487,29/08/2024,C-0061,Beauty,42208.0,Chiang Mai
+TXN-00488,12/05/2024,C-0481,Beauty,15192.0,Phuket
+TXN-00489,13/10/2024,C-0122,Home & Living,41127.0,Chiang Mai
+TXN-00490,03/04/2024,C-0931,Fashion,5776.0,Chiang Mai
+TXN-00491,20/06/2024,C-0260,Beauty,48482.0,Chonburi
+TXN-00492,23/04/2024,C-0045,Electronics,1996.0,Chonburi
+TXN-00493,06/06/2024,C-0068,Fashion,16880.0,Chiang Mai
+TXN-00494,18/06/2024,C-0309,Beauty,41492.0,Bangkok
+TXN-00495,26/10/2024,C-0684,Home & Living,6461.0,Chiang Mai
+TXN-00496,01/03/2024,C-0011,Fashion,1988.0,Bangkok
+TXN-00497,20/11/2024,C-0773,Sports,43368.0,Phuket
+TXN-00498,13/11/2024,C-0099,Home & Living,34010.0,Bangkok
+TXN-00499,09/04/2024,C-0802,Beauty,11076.0,Khon Kaen
+TXN-00500,14/12/2024,C-0127,Electronics,47886.0,Phuket
+TXN-00501,01/06/2024,C-0943,Fashion,11982.0,Chonburi
+TXN-00502,18/03/2024,C-0617,Fashion,47213.0,Bangkok
+TXN-00503,12/04/2024,C-0211,Electronics,21650.0,Chonburi
+TXN-00504,18/10/2024,C-0602,Sports,4747.0,Chiang Mai
+TXN-00505,22/08/2024,C-0923,Electronics,14066.0,Chiang Mai
+TXN-00506,02/04/2024,C-0205,Sports,30593.0,Phuket
+TXN-00507,06/09/2024,C-0190,Electronics,40034.0,Phuket
+TXN-00508,31/03/2024,C-0687,Home & Living,16352.0,Bangkok
+TXN-00509,30/01/2024,C-0360,Sports,30738.0,Phuket
+TXN-00510,20/05/2024,C-0030,Unknown,7784.0,Phuket
+TXN-00511,27/03/2024,C-0093,Fashion,22209.0,Phuket
+TXN-00512,22/03/2024,C-0150,Home & Living,10937.0,Khon Kaen
+TXN-00513,15/02/2024,C-0867,Fashion,47820.0,Chiang Mai
+TXN-00514,10/08/2024,C-0765,Beauty,951.0,Bangkok
+TXN-00515,25/07/2024,C-0965,Electronics,45197.0,Bangkok
+TXN-00516,01/09/2024,C-0285,Fashion,34563.0,Bangkok
+TXN-00517,20/01/2024,C-0972,Electronics,25752.0,Bangkok
+TXN-00518,10/07/2024,C-0594,Electronics,27834.0,Bangkok
+TXN-00519,13/06/2024,C-0357,Fashion,47422.0,Chiang Mai
+TXN-00520,28/09/2024,C-0361,Electronics,47410.0,Phuket
+TXN-00521,12/12/2024,C-0165,Electronics,42907.0,Bangkok
+TXN-00522,07/05/2024,C-0876,Home & Living,47342.0,Khon Kaen
+TXN-00523,25/06/2024,C-0513,Fashion,32010.0,Phuket
+TXN-00524,22/02/2024,C-0800,Sports,4418.0,Khon Kaen
+TXN-00525,28/10/2024,C-0747,Beauty,26609.0,Chonburi
+TXN-00526,03/02/2024,C-0628,Fashion,48023.0,Chiang Mai
+TXN-00527,01/06/2024,C-0248,Home & Living,24314.0,Chonburi
+TXN-00528,21/08/2024,C-0518,Beauty,34025.0,Chiang Mai
+TXN-00529,01/11/2024,C-0584,Electronics,29338.0,Khon Kaen
+TXN-00530,10/08/2024,C-0070,Beauty,8630.0,Chiang Mai
+TXN-00531,09/03/2024,C-0102,Home & Living,17703.0,Phuket
+TXN-00532,07/09/2024,C-0840,Home & Living,38498.0,Chiang Mai
+TXN-00533,06/04/2024,C-0593,Fashion,7825.0,Bangkok
+TXN-00534,25/07/2024,C-0782,Sports,24516.0,Bangkok
+TXN-00535,24/04/2024,C-0015,Electronics,22771.0,Bangkok
+TXN-00536,08/03/2024,C-0542,Sports,16429.0,Khon Kaen
+TXN-00537,12/01/2024,C-0223,Electronics,14268.0,Bangkok
+TXN-00538,27/03/2024,C-0733,Beauty,22128.0,Bangkok
+TXN-00539,30/12/2024,C-0197,Fashion,5354.0,Chiang Mai
+TXN-00540,20/01/2024,C-0988,Home & Living,46970.0,Khon Kaen
+TXN-00541,23/11/2024,C-0289,Beauty,16538.0,Bangkok
+TXN-00542,30/09/2024,C-0176,Electronics,22942.0,Chonburi
+TXN-00543,31/10/2024,C-0924,Sports,29642.0,Bangkok
+TXN-00544,04/12/2024,C-0773,Sports,30015.0,Bangkok
+TXN-00545,11/01/2024,C-0551,Fashion,37739.0,Bangkok
+TXN-00546,29/02/2024,C-0005,Electronics,2842.0,Bangkok
+TXN-00547,13/07/2024,C-0997,Sports,10200.0,Bangkok
+TXN-00548,09/05/2024,C-0743,Electronics,2200.0,Bangkok
+TXN-00549,19/03/2024,C-0102,Beauty,24804.0,Bangkok
+TXN-00550,17/12/2024,C-0947,Sports,47279.0,Chiang Mai
+TXN-00551,03/06/2024,C-0220,Fashion,47413.0,Chiang Mai
+TXN-00552,21/02/2024,C-0943,Home & Living,42042.0,Phuket
+TXN-00553,18/05/2024,C-0517,Beauty,47232.0,Chiang Mai
+TXN-00554,24/12/2024,C-0872,Electronics,19825.0,Chonburi
+TXN-00555,23/02/2024,C-0725,Sports,46052.0,Phuket
+TXN-00556,12/11/2024,C-0487,Beauty,40309.0,Phuket
+TXN-00557,28/02/2024,C-0376,Home & Living,25680.0,Chiang Mai
+TXN-00558,11/09/2024,C-0715,Home & Living,15436.0,Chonburi
+TXN-00559,12/04/2024,C-0604,Electronics,14371.0,Phuket
+TXN-00560,24/09/2024,C-0190,Beauty,10223.0,Chiang Mai
+TXN-00561,02/07/2024,C-0451,Home & Living,17501.0,Chiang Mai
+TXN-00562,31/05/2024,C-0690,Fashion,33831.0,Phuket
+TXN-00563,07/10/2024,C-0981,Home & Living,34370.0,Phuket
+TXN-00564,16/04/2024,C-0110,Fashion,41031.0,Bangkok
+TXN-00565,03/09/2024,C-0186,Fashion,23058.0,Chiang Mai
+TXN-00566,02/01/2024,C-0855,Fashion,38978.0,Chonburi
+TXN-00567,15/02/2024,C-0364,Beauty,21097.0,Bangkok
+TXN-00568,20/10/2024,C-0389,Fashion,25271.0,Bangkok
+TXN-00569,17/03/2024,C-0435,Electronics,32301.0,Khon Kaen
+TXN-00570,18/09/2024,C-0220,Beauty,34921.0,Chonburi
+TXN-00571,21/02/2024,C-0527,Fashion,32219.0,Phuket
+TXN-00572,25/11/2024,C-0234,Fashion,1432.0,Bangkok
+TXN-00573,31/05/2024,C-0418,Fashion,4743.0,Chonburi
+TXN-00574,26/01/2024,C-0116,Sports,20770.0,Bangkok
+TXN-00575,30/03/2024,C-0780,Fashion,10336.0,Chiang Mai
+TXN-00576,28/05/2024,C-0322,Electronics,48260.0,Bangkok
+TXN-00577,12/12/2024,C-0127,Beauty,43098.0,Chonburi
+TXN-00578,29/02/2024,C-0478,Fashion,33188.0,Phuket
+TXN-00579,24/01/2024,C-0113,Fashion,42353.0,Chonburi
+TXN-00580,11/03/2024,C-0533,Home & Living,49406.0,Bangkok
+TXN-00581,28/03/2024,C-0140,Beauty,34848.0,Phuket
+TXN-00582,12/08/2024,C-0508,Fashion,49086.0,Chonburi
+TXN-00583,17/05/2024,C-0781,Beauty,44031.0,Bangkok
+TXN-00584,17/02/2024,C-0370,Home & Living,41551.0,Bangkok
+TXN-00585,24/06/2024,C-0722,Fashion,22095.0,Chiang Mai
+TXN-00586,24/07/2024,C-0296,Beauty,18291.0,Phuket
+TXN-00587,21/08/2024,C-0571,Beauty,35545.0,Bangkok
+TXN-00588,16/07/2024,C-0740,Beauty,35740.0,Chiang Mai
+TXN-00589,01/09/2024,C-0042,Unknown,4168.0,Chiang Mai
+TXN-00590,28/11/2024,C-0085,Electronics,34771.0,Chonburi
+TXN-00591,26/03/2024,C-0336,Home & Living,17281.0,Chonburi
+TXN-00592,22/12/2024,C-0506,Fashion,12472.0,Bangkok
+TXN-00593,22/03/2024,C-0119,Fashion,43151.0,Bangkok
+TXN-00594,29/10/2024,C-0395,Beauty,15464.0,Bangkok
+TXN-00595,18/10/2024,C-0291,Home & Living,30388.0,Chonburi
+TXN-00596,02/04/2024,C-0468,Sports,40420.0,Bangkok
+TXN-00597,02/07/2024,C-0615,Home & Living,18684.0,Phuket
+TXN-00598,16/12/2024,C-0754,Beauty,12952.0,Chiang Mai
+TXN-00599,07/03/2024,C-0320,Fashion,4672.0,Phuket
+TXN-00600,06/09/2024,C-0704,Unknown,9186.0,Phuket
+TXN-00601,29/07/2024,C-1000,Home & Living,4488.0,Chonburi
+TXN-00602,02/02/2024,C-0862,Beauty,16486.0,Chonburi
+TXN-00603,09/06/2024,C-0455,Home & Living,38594.0,Chiang Mai
+TXN-00604,13/12/2024,C-0232,Home & Living,6940.0,Bangkok
+TXN-00605,22/10/2024,C-0568,Sports,3847.0,Chiang Mai
+TXN-00606,24/04/2024,C-0418,Electronics,42043.0,Chiang Mai
+TXN-00607,08/12/2024,C-0298,Electronics,31845.0,Chonburi
+TXN-00608,22/09/2024,C-0876,Sports,5964.0,Bangkok
+TXN-00609,24/12/2024,C-0439,Beauty,7045.0,Bangkok
+TXN-00610,09/08/2024,C-0194,Home & Living,14589.0,Chiang Mai
+TXN-00611,07/05/2024,C-0878,Beauty,20158.0,Phuket
+TXN-00612,05/12/2024,C-0072,Home & Living,38623.0,Chonburi
+TXN-00613,16/07/2024,C-0917,Beauty,7808.0,Khon Kaen
+TXN-00614,12/10/2024,C-0862,Fashion,29508.0,Chonburi
+TXN-00615,09/11/2024,C-0822,Electronics,13266.0,Chiang Mai
+TXN-00616,25/11/2024,C-0488,Home & Living,42110.0,Khon Kaen
+TXN-00617,15/09/2024,C-0962,Electronics,30401.0,Bangkok
+TXN-00618,10/09/2024,C-0696,Fashion,16998.0,Chonburi
+TXN-00619,08/02/2024,C-0377,Beauty,39910.0,Chonburi
+TXN-00620,13/06/2024,C-0184,Fashion,41861.0,Phuket
+TXN-00621,22/05/2024,C-0014,Sports,33745.0,Phuket
+TXN-00622,24/04/2024,C-0691,Fashion,19096.0,Chiang Mai
+TXN-00623,12/07/2024,C-0504,Unknown,20137.0,Phuket
+TXN-00624,30/04/2024,C-0689,Beauty,35377.0,Chonburi
+TXN-00625,15/08/2024,C-0108,Sports,18541.0,Phuket
+TXN-00626,17/08/2024,C-0406,Electronics,33468.0,Chonburi
+TXN-00627,12/09/2024,C-0449,Fashion,29338.0,Phuket
+TXN-00628,01/03/2024,C-0536,Fashion,12439.0,Chonburi
+TXN-00629,30/11/2024,C-0675,Home & Living,21419.0,Chiang Mai
+TXN-00630,25/07/2024,C-0693,Sports,33893.0,Bangkok
+TXN-00631,12/10/2024,C-0088,Beauty,11190.0,Bangkok
+TXN-00632,16/02/2024,C-0123,Beauty,28812.0,Chonburi
+TXN-00633,12/11/2024,C-0147,Electronics,6697.0,Bangkok
+TXN-00634,17/09/2024,C-0405,Sports,29545.0,Chiang Mai
+TXN-00635,01/12/2024,C-0411,Home & Living,45520.0,Bangkok
+TXN-00636,23/06/2024,C-0712,Home & Living,12470.0,Chonburi
+TXN-00637,28/01/2024,C-0605,Beauty,7624.0,Bangkok
+TXN-00638,20/08/2024,C-0105,Electronics,14473.0,Phuket
+TXN-00639,13/11/2024,C-0760,Beauty,20513.0,Chiang Mai
+TXN-00640,02/12/2024,C-0948,Unknown,35260.0,Chiang Mai
+TXN-00641,19/08/2024,C-0914,Beauty,45375.0,Chonburi
+TXN-00642,03/12/2024,C-0173,Home & Living,40445.0,Bangkok
+TXN-00643,23/06/2024,C-0067,Fashion,44532.0,Chiang Mai
+TXN-00644,20/11/2024,C-0373,Fashion,10749.0,Chiang Mai
+TXN-00645,29/05/2024,C-0999,Fashion,26467.0,Bangkok
+TXN-00646,10/07/2024,C-0204,Sports,10850.0,Chiang Mai
+TXN-00647,24/01/2024,C-0347,Beauty,10797.0,Bangkok
+TXN-00648,09/09/2024,C-0206,Fashion,34347.0,Bangkok
+TXN-00649,28/07/2024,C-0610,Electronics,43327.0,Phuket
+TXN-00650,08/11/2024,C-0865,Fashion,27822.0,Chiang Mai
+TXN-00651,02/03/2024,C-0414,Beauty,18154.0,Chonburi
+TXN-00652,20/07/2024,C-0126,Sports,17726.0,Phuket
+TXN-00653,07/04/2024,C-0239,Fashion,20397.0,Chonburi
+TXN-00654,25/02/2024,C-0859,Electronics,20569.0,Phuket
+TXN-00655,24/01/2024,C-0435,Home & Living,23695.0,Khon Kaen
+TXN-00656,10/12/2024,C-0743,Electronics,21166.0,Chiang Mai
+TXN-00657,18/08/2024,C-0512,Beauty,28372.0,Bangkok
+TXN-00658,28/10/2024,C-0286,Electronics,27836.0,Phuket
+TXN-00659,09/03/2024,C-0784,Unknown,24903.5,Phuket
+TXN-00660,03/01/2024,C-0731,Electronics,4124.0,Chonburi
+TXN-00661,25/01/2024,C-0785,Electronics,23674.0,Chiang Mai
+TXN-00662,09/08/2024,C-0596,Sports,9670.0,Bangkok
+TXN-00663,04/09/2024,C-0608,Beauty,18470.0,Chiang Mai
+TXN-00664,31/03/2024,C-0280,Home & Living,24903.5,Khon Kaen
+TXN-00665,29/03/2024,C-0775,Beauty,14171.0,Phuket
+TXN-00666,06/03/2024,C-0809,Sports,17272.0,Phuket
+TXN-00667,02/12/2024,C-0821,Home & Living,24976.0,Phuket
+TXN-00668,13/06/2024,C-0660,Home & Living,28516.0,Khon Kaen
+TXN-00669,15/07/2024,C-0966,Fashion,21844.0,Bangkok
+TXN-00670,07/11/2024,C-0410,Beauty,48932.0,Bangkok
+TXN-00671,07/05/2024,C-0365,Electronics,14588.0,Phuket
+TXN-00672,24/06/2024,C-0488,Home & Living,29342.0,Chonburi
+TXN-00673,19/08/2024,C-0683,Electronics,7501.0,Chonburi
+TXN-00674,11/03/2024,C-0618,Beauty,11013.0,Khon Kaen
+TXN-00675,24/12/2024,C-0973,Fashion,31936.0,Chiang Mai
+TXN-00676,19/09/2024,C-0415,Electronics,39358.0,Phuket
+TXN-00677,25/12/2024,C-0497,Home & Living,3514.0,Khon Kaen
+TXN-00678,09/06/2024,C-0524,Fashion,26063.0,Bangkok
+TXN-00679,10/10/2024,C-0286,Sports,46800.0,Bangkok
+TXN-00680,12/04/2024,C-0151,Beauty,18859.0,Khon Kaen
+TXN-00681,31/12/2024,C-0787,Fashion,38911.0,Chonburi
+TXN-00682,25/06/2024,C-0466,Unknown,7147.0,Bangkok
+TXN-00683,08/03/2024,C-0111,Home & Living,22958.0,Khon Kaen
+TXN-00684,28/11/2024,C-0126,Unknown,24712.0,Phuket
+TXN-00685,01/04/2024,C-0257,Electronics,19127.0,Chonburi
+TXN-00686,21/12/2024,C-0502,Home & Living,9300.0,Bangkok
+TXN-00687,29/12/2024,C-0510,Fashion,5348.0,Phuket
+TXN-00688,29/06/2024,C-0237,Beauty,48501.0,Bangkok
+TXN-00689,25/10/2024,C-0644,Electronics,10446.0,Chonburi
+TXN-00690,07/12/2024,C-0966,Beauty,39153.0,Bangkok
+TXN-00691,11/12/2024,C-0138,Electronics,13606.0,Chonburi
+TXN-00692,30/09/2024,C-0031,Home & Living,29221.0,Chonburi
+TXN-00693,04/08/2024,C-0102,Fashion,38034.0,Chonburi
+TXN-00694,24/09/2024,C-0756,Sports,43799.0,Khon Kaen
+TXN-00695,14/07/2024,C-0055,Sports,35301.0,Chonburi
+TXN-00696,09/12/2024,C-0851,Beauty,45691.0,Chiang Mai
+TXN-00697,16/05/2024,C-0070,Home & Living,4956.0,Bangkok
+TXN-00698,23/03/2024,C-0511,Sports,46326.0,Chonburi
+TXN-00699,15/12/2024,C-0695,Beauty,21075.0,Chonburi
+TXN-00700,01/02/2024,C-0028,Beauty,24173.0,Chiang Mai
+TXN-00701,31/05/2024,C-0996,Beauty,29718.0,Bangkok
+TXN-00702,04/10/2024,C-0184,Fashion,14577.0,Chiang Mai
+TXN-00703,19/08/2024,C-0392,Fashion,31192.0,Bangkok
+TXN-00704,11/12/2024,C-0620,Electronics,24237.0,Chonburi
+TXN-00705,24/04/2024,C-0696,Electronics,44911.0,Khon Kaen
+TXN-00706,14/10/2024,C-0335,Home & Living,17475.0,Chonburi
+TXN-00707,18/09/2024,C-0157,Home & Living,49498.0,Phuket
+TXN-00708,22/12/2024,C-0311,Home & Living,9692.0,Chonburi
+TXN-00709,06/12/2024,C-0637,Electronics,27420.0,Phuket
+TXN-00710,14/07/2024,C-0639,Sports,32373.0,Chonburi
+TXN-00711,16/12/2024,C-0099,Beauty,35129.0,Chiang Mai
+TXN-00712,09/10/2024,C-0779,Home & Living,34071.0,Khon Kaen
+TXN-00713,08/05/2024,C-0079,Sports,37574.0,Phuket
+TXN-00714,14/08/2024,C-0677,Sports,2602.0,Bangkok
+TXN-00715,20/11/2024,C-0770,Home & Living,21934.0,Khon Kaen
+TXN-00716,27/11/2024,C-0533,Beauty,32744.0,Khon Kaen
+TXN-00717,28/10/2024,C-0786,Sports,22372.0,Bangkok
+TXN-00718,04/11/2024,C-0505,Beauty,48631.0,Chiang Mai
+TXN-00719,09/04/2024,C-0812,Fashion,6538.0,Bangkok
+TXN-00720,31/03/2024,C-0478,Home & Living,7861.0,Phuket
+TXN-00721,08/02/2024,C-0207,Electronics,34152.0,Khon Kaen
+TXN-00722,29/03/2024,C-0301,Sports,6249.0,Chonburi
+TXN-00723,02/03/2024,C-0678,Electronics,31200.0,Chiang Mai
+TXN-00724,07/08/2024,C-0510,Fashion,13010.0,Chonburi
+TXN-00725,15/05/2024,C-0503,Beauty,45323.0,Bangkok
+TXN-00726,26/10/2024,C-0517,Electronics,18644.0,Khon Kaen
+TXN-00727,03/01/2024,C-0268,Sports,48926.0,Chiang Mai
+TXN-00728,29/12/2024,C-0556,Beauty,22155.0,Bangkok
+TXN-00729,21/01/2024,C-0352,Home & Living,42956.0,Bangkok
+TXN-00730,14/06/2024,C-0829,Fashion,30256.0,Chiang Mai
+TXN-00731,16/11/2024,C-0881,Sports,45889.0,Bangkok
+TXN-00732,04/12/2024,C-0554,Electronics,28837.0,Khon Kaen
+TXN-00733,20/10/2024,C-0560,Sports,26810.0,Chiang Mai
+TXN-00734,07/02/2024,C-0019,Home & Living,916.0,Phuket
+TXN-00735,11/06/2024,C-0976,Home & Living,26055.0,Phuket
+TXN-00736,04/04/2024,C-0783,Beauty,24903.5,Chiang Mai
+TXN-00737,15/09/2024,C-0033,Fashion,28493.0,Bangkok
+TXN-00738,05/10/2024,C-0441,Fashion,15107.0,Bangkok
+TXN-00739,17/02/2024,C-0902,Electronics,21905.0,Bangkok
+TXN-00740,19/04/2024,C-0937,Home & Living,43335.0,Bangkok
+TXN-00741,18/06/2024,C-0122,Electronics,38146.0,Phuket
+TXN-00742,21/04/2024,C-0393,Sports,47351.0,Chonburi
+TXN-00743,12/11/2024,C-0461,Fashion,10501.0,Chiang Mai
+TXN-00744,14/10/2024,C-0323,Beauty,10217.0,Khon Kaen
+TXN-00745,28/11/2024,C-0874,Home & Living,12400.0,Phuket
+TXN-00746,08/12/2024,C-0386,Fashion,35458.0,Khon Kaen
+TXN-00747,03/05/2024,C-0454,Fashion,3085.0,Bangkok
+TXN-00748,10/11/2024,C-0471,Electronics,35894.0,Bangkok
+TXN-00749,04/05/2024,C-0037,Fashion,5039.0,Khon Kaen
+TXN-00750,15/12/2024,C-0034,Beauty,21165.0,Khon Kaen
+TXN-00751,14/07/2024,C-0182,Fashion,43633.0,Chiang Mai
+TXN-00752,28/02/2024,C-0571,Sports,20352.0,Chiang Mai
+TXN-00753,03/10/2024,C-0676,Beauty,18265.0,Chonburi
+TXN-00754,13/01/2024,C-0882,Home & Living,14736.0,Bangkok
+TXN-00755,10/07/2024,C-0799,Beauty,2288.0,Bangkok
+TXN-00756,17/09/2024,C-0311,Home & Living,29312.0,Chonburi
+TXN-00757,23/01/2024,C-0906,Fashion,25083.0,Bangkok
+TXN-00758,29/11/2024,C-0724,Sports,49255.0,Bangkok
+TXN-00759,20/09/2024,C-0169,Fashion,14169.0,Chiang Mai
+TXN-00760,19/02/2024,C-0504,Sports,29782.0,Phuket
+TXN-00761,02/10/2024,C-0442,Electronics,13517.0,Bangkok
+TXN-00762,16/11/2024,C-0138,Home & Living,25436.0,Bangkok
+TXN-00763,09/12/2024,C-0320,Fashion,8669.0,Chiang Mai
+TXN-00764,19/04/2024,C-0733,Beauty,11975.0,Phuket
+TXN-00765,05/08/2024,C-0399,Home & Living,38399.0,Chonburi
+TXN-00766,15/04/2024,C-0500,Fashion,8475.0,Khon Kaen
+TXN-00767,25/12/2024,C-0783,Fashion,14238.0,Bangkok
+TXN-00768,10/08/2024,C-0113,Electronics,32554.0,Chiang Mai
+TXN-00769,06/02/2024,C-0583,Sports,23987.0,Chonburi
+TXN-00770,19/03/2024,C-0692,Fashion,21267.0,Phuket
+TXN-00771,18/06/2024,C-0503,Beauty,14284.0,Chonburi
+TXN-00772,07/02/2024,C-0676,Fashion,33720.0,Chonburi
+TXN-00773,08/05/2024,C-0568,Electronics,17230.0,Phuket
+TXN-00774,21/10/2024,C-0702,Beauty,30446.0,Bangkok
+TXN-00775,12/05/2024,C-0553,Electronics,24903.5,Bangkok
+TXN-00776,18/08/2024,C-0586,Sports,28026.0,Chiang Mai
+TXN-00777,09/08/2024,C-0482,Sports,7057.0,Phuket
+TXN-00778,18/07/2024,C-0488,Fashion,20814.0,Chiang Mai
+TXN-00779,30/09/2024,C-0576,Beauty,28952.0,Chonburi
+TXN-00780,12/11/2024,C-0875,Electronics,43229.0,Chiang Mai
+TXN-00781,26/10/2024,C-0161,Beauty,46454.0,Bangkok
+TXN-00782,07/02/2024,C-0519,Sports,42677.0,Chonburi
+TXN-00783,14/09/2024,C-0058,Beauty,31391.0,Khon Kaen
+TXN-00784,17/12/2024,C-0401,Electronics,24903.5,Chiang Mai
+TXN-00785,14/02/2024,C-0270,Beauty,48316.0,Khon Kaen
+TXN-00786,12/08/2024,C-0507,Beauty,21685.0,Chonburi
+TXN-00787,04/12/2024,C-0606,Electronics,16818.0,Chiang Mai
+TXN-00788,21/03/2024,C-0995,Electronics,1107.0,Bangkok
+TXN-00789,10/03/2024,C-0387,Sports,10707.0,Chonburi
+TXN-00790,06/10/2024,C-0632,Sports,31289.0,Phuket
+TXN-00791,20/11/2024,C-0693,Sports,4509.0,Chiang Mai
+TXN-00792,12/12/2024,C-0362,Electronics,14251.0,Khon Kaen
+TXN-00793,27/11/2024,C-0785,Fashion,43816.0,Chiang Mai
+TXN-00794,06/01/2024,C-0292,Beauty,40972.0,Phuket
+TXN-00795,11/10/2024,C-0329,Fashion,10820.0,Bangkok
+TXN-00796,22/01/2024,C-0063,Electronics,11945.0,Khon Kaen
+TXN-00797,01/11/2024,C-0029,Sports,10420.0,Chiang Mai
+TXN-00798,07/10/2024,C-0605,Electronics,44321.0,Bangkok
+TXN-00799,05/06/2024,C-0047,Sports,7669.0,Khon Kaen
+TXN-00800,25/06/2024,C-0132,Sports,2464.0,Phuket
+TXN-00801,26/11/2024,C-0858,Sports,20558.0,Phuket
+TXN-00802,13/03/2024,C-0376,Sports,24956.0,Phuket
+TXN-00803,23/04/2024,C-0358,Electronics,17878.0,Chiang Mai
+TXN-00804,09/05/2024,C-0829,Fashion,2366.0,Chonburi
+TXN-00805,02/04/2024,C-0760,Electronics,22230.0,Bangkok
+TXN-00806,17/10/2024,C-0598,Sports,31334.0,Phuket
+TXN-00807,08/10/2024,C-0028,Electronics,9959.0,Chonburi
+TXN-00808,08/10/2024,C-0784,Home & Living,3547.0,Chiang Mai
+TXN-00809,09/12/2024,C-0913,Fashion,39723.0,Chonburi
+TXN-00810,20/02/2024,C-0641,Fashion,11624.0,Phuket
+TXN-00811,24/10/2024,C-0350,Home & Living,1479.0,Chonburi
+TXN-00812,18/06/2024,C-0390,Electronics,15094.0,Bangkok
+TXN-00813,09/12/2024,C-0100,Electronics,4846.0,Bangkok
+TXN-00814,21/02/2024,C-0439,Home & Living,31674.0,Chiang Mai
+TXN-00815,05/02/2024,C-0354,Fashion,27702.0,Chonburi
+TXN-00816,11/06/2024,C-0366,Electronics,35674.0,Chiang Mai
+TXN-00817,17/06/2024,C-0422,Electronics,40035.0,Khon Kaen
+TXN-00818,05/06/2024,C-0360,Sports,547.0,Chonburi
+TXN-00819,19/03/2024,C-0058,Home & Living,31268.0,Chonburi
+TXN-00820,05/07/2024,C-0678,Beauty,17333.0,Khon Kaen
+TXN-00821,07/08/2024,C-0251,Beauty,43516.0,Phuket
+TXN-00822,09/06/2024,C-0254,Sports,40713.0,Chonburi
+TXN-00823,23/04/2024,C-0241,Home & Living,6817.0,Chonburi
+TXN-00824,24/11/2024,C-0664,Sports,49568.0,Phuket
+TXN-00825,03/07/2024,C-0320,Electronics,37936.0,Phuket
+TXN-00826,18/06/2024,C-0607,Electronics,14872.0,Chiang Mai
+TXN-00827,24/08/2024,C-0087,Fashion,9845.0,Phuket
+TXN-00828,05/06/2024,C-0933,Fashion,5886.0,Bangkok
+TXN-00829,25/02/2024,C-0705,Sports,47506.0,Phuket
+TXN-00830,06/11/2024,C-0068,Sports,40805.0,Bangkok
+TXN-00831,23/05/2024,C-0890,Fashion,15325.0,Bangkok
+TXN-00832,12/03/2024,C-0313,Beauty,48343.0,Phuket
+TXN-00833,10/04/2024,C-0118,Home & Living,22036.0,Bangkok
+TXN-00834,16/11/2024,C-0346,Fashion,30787.0,Chonburi
+TXN-00835,08/02/2024,C-0174,Electronics,34573.0,Bangkok
+TXN-00836,16/09/2024,C-0021,Beauty,17980.0,Bangkok
+TXN-00837,24/10/2024,C-0552,Fashion,9131.0,Chiang Mai
+TXN-00838,29/10/2024,C-0334,Electronics,25060.0,Khon Kaen
+TXN-00839,19/01/2024,C-0039,Home & Living,38469.0,Phuket
+TXN-00840,05/10/2024,C-0472,Fashion,2742.0,Chiang Mai
+TXN-00841,03/10/2024,C-0674,Sports,25733.0,Chonburi
+TXN-00842,17/03/2024,C-0885,Sports,13469.0,Bangkok
+TXN-00843,24/04/2024,C-0433,Beauty,1438.0,Chonburi
+TXN-00844,28/10/2024,C-0582,Home & Living,2735.0,Chonburi
+TXN-00845,28/05/2024,C-0528,Beauty,16086.0,Chonburi
+TXN-00846,13/09/2024,C-0924,Sports,21637.0,Khon Kaen
+TXN-00847,22/07/2024,C-0432,Home & Living,24903.5,Bangkok
+TXN-00848,06/01/2024,C-0274,Electronics,23037.0,Chonburi
+TXN-00849,10/11/2024,C-0021,Beauty,38327.0,Chonburi
+TXN-00850,20/09/2024,C-0713,Electronics,14579.0,Chonburi
+TXN-00851,22/03/2024,C-0481,Home & Living,17723.0,Bangkok
+TXN-00852,16/10/2024,C-0603,Fashion,8221.0,Chiang Mai
+TXN-00853,15/03/2024,C-0023,Fashion,43456.0,Bangkok
+TXN-00854,04/09/2024,C-0325,Electronics,22608.0,Chiang Mai
+TXN-00855,21/01/2024,C-0387,Fashion,12710.0,Chonburi
+TXN-00856,06/09/2024,C-0585,Electronics,32439.0,Khon Kaen
+TXN-00857,15/05/2024,C-0400,Electronics,30405.0,Khon Kaen
+TXN-00858,22/01/2024,C-0331,Home & Living,44278.0,Bangkok
+TXN-00859,22/09/2024,C-0587,Beauty,34517.0,Bangkok
+TXN-00860,03/07/2024,C-0101,Home & Living,24448.0,Bangkok
+TXN-00861,20/08/2024,C-0828,Home & Living,2165.0,Bangkok
+TXN-00862,21/01/2024,C-0501,Sports,8772.0,Chiang Mai
+TXN-00863,14/06/2024,C-0103,Electronics,30478.0,Khon Kaen
+TXN-00864,23/09/2024,C-0708,Beauty,8382.0,Phuket
+TXN-00865,20/05/2024,C-0692,Sports,19879.0,Bangkok
+TXN-00866,14/05/2024,C-0211,Beauty,23281.0,Chiang Mai
+TXN-00867,18/10/2024,C-0345,Fashion,29084.0,Khon Kaen
+TXN-00868,30/11/2024,C-0509,Sports,5937.0,Bangkok
+TXN-00869,27/10/2024,C-0515,Fashion,33577.0,Phuket
+TXN-00870,09/02/2024,C-0831,Sports,33982.0,Bangkok
+TXN-00871,11/07/2024,C-0784,Electronics,45102.0,Chiang Mai
+TXN-00872,24/04/2024,C-0684,Home & Living,1595.0,Chiang Mai
+TXN-00873,29/06/2024,C-0348,Fashion,49297.0,Chonburi
+TXN-00874,25/06/2024,C-0171,Beauty,39882.0,Phuket
+TXN-00875,03/09/2024,C-0630,Fashion,37389.0,Khon Kaen
+TXN-00876,04/01/2024,C-0307,Home & Living,34909.0,Bangkok
+TXN-00877,12/03/2024,C-0373,Sports,35440.0,Bangkok
+TXN-00878,27/04/2024,C-0993,Beauty,15601.0,Khon Kaen
+TXN-00879,25/11/2024,C-0447,Fashion,35291.0,Chiang Mai
+TXN-00880,17/03/2024,C-0207,Electronics,10903.0,Bangkok
+TXN-00881,04/07/2024,C-0509,Beauty,11355.0,Phuket
+TXN-00882,01/03/2024,C-0651,Electronics,41013.0,Chiang Mai
+TXN-00883,31/07/2024,C-0868,Electronics,49724.0,Chiang Mai
+TXN-00884,28/02/2024,C-0998,Electronics,35943.0,Phuket
+TXN-00885,02/09/2024,C-0807,Electronics,40455.0,Chiang Mai
+TXN-00886,29/10/2024,C-0078,Home & Living,13751.0,Phuket
+TXN-00887,29/07/2024,C-0861,Beauty,26771.0,Khon Kaen
+TXN-00888,23/01/2024,C-0871,Electronics,34693.0,Khon Kaen
+TXN-00889,30/10/2024,C-0549,Beauty,31730.0,Khon Kaen
+TXN-00890,18/11/2024,C-0220,Fashion,9420.0,Bangkok
+TXN-00891,20/10/2024,C-0295,Sports,20160.0,Chiang Mai
+TXN-00892,26/03/2024,C-0272,Sports,24903.5,Bangkok
+TXN-00893,02/04/2024,C-0049,Beauty,36922.0,Chonburi
+TXN-00894,26/07/2024,C-0305,Unknown,14180.0,Bangkok
+TXN-00895,15/10/2024,C-0588,Electronics,40681.0,Chonburi
+TXN-00896,04/12/2024,C-0412,Sports,4878.0,Bangkok
+TXN-00897,13/02/2024,C-0824,Fashion,27394.0,Chiang Mai
+TXN-00898,06/11/2024,C-0232,Sports,32018.0,Chonburi
+TXN-00899,03/09/2024,C-0640,Electronics,16390.0,Chonburi
+TXN-00900,29/07/2024,C-0761,Fashion,10949.0,Chiang Mai
+TXN-00901,25/10/2024,C-0981,Sports,26124.0,Khon Kaen
+TXN-00902,03/04/2024,C-0095,Fashion,16790.0,Chiang Mai
+TXN-00903,18/09/2024,C-0735,Fashion,5122.0,Bangkok
+TXN-00904,17/12/2024,C-0865,Electronics,18602.0,Khon Kaen
+TXN-00905,20/08/2024,C-0593,Beauty,26808.0,Chonburi
+TXN-00906,05/02/2024,C-0098,Electronics,48974.0,Chiang Mai
+TXN-00907,16/07/2024,C-0607,Fashion,44560.0,Chiang Mai
+TXN-00908,09/01/2024,C-0345,Electronics,29557.0,Chonburi
+TXN-00909,15/09/2024,C-0280,Beauty,18553.0,Chonburi
+TXN-00910,17/03/2024,C-0069,Fashion,1205.0,Phuket
+TXN-00911,31/03/2024,C-0581,Unknown,34619.0,Khon Kaen
+TXN-00912,10/11/2024,C-0821,Beauty,7224.0,Bangkok
+TXN-00913,29/09/2024,C-0544,Home & Living,39719.0,Chiang Mai
+TXN-00914,01/03/2024,C-0487,Sports,43781.0,Chonburi
+TXN-00915,03/12/2024,C-0438,Electronics,8683.0,Phuket
+TXN-00916,04/11/2024,C-0215,Sports,40479.0,Phuket
+TXN-00917,01/01/2024,C-0356,Electronics,5113.0,Bangkok
+TXN-00918,13/12/2024,C-0815,Sports,49930.0,Chiang Mai
+TXN-00919,24/09/2024,C-0079,Home & Living,22872.0,Khon Kaen
+TXN-00920,23/01/2024,C-0668,Electronics,3185.0,Bangkok
+TXN-00921,07/08/2024,C-0844,Fashion,17241.0,Bangkok
+TXN-00922,03/09/2024,C-0310,Electronics,31074.0,Chiang Mai
+TXN-00923,14/07/2024,C-0517,Beauty,11539.0,Chiang Mai
+TXN-00924,22/12/2024,C-0824,Sports,45814.0,Phuket
+TXN-00925,05/08/2024,C-0308,Fashion,32435.0,Chonburi
+TXN-00926,01/09/2024,C-0444,Beauty,15221.0,Khon Kaen
+TXN-00927,12/02/2024,C-0680,Unknown,6304.0,Chonburi
+TXN-00928,05/10/2024,C-0553,Home & Living,40038.0,Chonburi
+TXN-00929,06/04/2024,C-0321,Beauty,24260.0,Bangkok
+TXN-00930,04/01/2024,C-0205,Home & Living,44075.0,Bangkok
+TXN-00931,01/03/2024,C-0425,Fashion,46479.0,Bangkok
+TXN-00932,11/07/2024,C-0412,Home & Living,28134.0,Bangkok
+TXN-00933,18/12/2024,C-0258,Beauty,7393.0,Chiang Mai
+TXN-00934,28/07/2024,C-0640,Beauty,18863.0,Phuket
+TXN-00935,20/03/2024,C-0528,Home & Living,48501.0,Phuket
+TXN-00936,26/10/2024,C-0465,Electronics,16993.0,Bangkok
+TXN-00937,01/10/2024,C-0688,Fashion,22050.0,Chiang Mai
+TXN-00938,06/07/2024,C-0782,Home & Living,16965.0,Chonburi
+TXN-00939,14/12/2024,C-0561,Beauty,5945.0,Bangkok
+TXN-00940,14/04/2024,C-0185,Home & Living,24903.5,Chonburi
+TXN-00941,12/10/2024,C-0903,Fashion,32320.0,Khon Kaen
+TXN-00942,08/07/2024,C-0020,Beauty,32938.0,Phuket
+TXN-00943,04/09/2024,C-0643,Home & Living,28927.0,Phuket
+TXN-00944,06/06/2024,C-0721,Beauty,7313.0,Khon Kaen
+TXN-00945,27/12/2024,C-0529,Fashion,46934.0,Bangkok
+TXN-00946,11/03/2024,C-0884,Beauty,40256.0,Phuket
+TXN-00947,03/12/2024,C-0192,Beauty,25129.0,Khon Kaen
+TXN-00948,27/04/2024,C-0591,Electronics,44249.0,Khon Kaen
+TXN-00949,24/12/2024,C-0512,Fashion,39930.0,Khon Kaen
+TXN-00950,21/02/2024,C-0219,Sports,42618.0,Phuket
+TXN-00951,24/07/2024,C-0677,Unknown,38224.0,Chonburi
+TXN-00952,08/10/2024,C-0986,Electronics,16137.0,Chiang Mai
+TXN-00953,16/12/2024,C-0844,Home & Living,44580.0,Bangkok
+TXN-00954,23/03/2024,C-0761,Sports,40071.0,Chiang Mai
+TXN-00955,21/11/2024,C-0961,Beauty,26304.0,Khon Kaen
+TXN-00956,16/02/2024,C-0479,Home & Living,3112.0,Chonburi
+TXN-00957,29/08/2024,C-0275,Beauty,29351.0,Phuket
+TXN-00958,10/08/2024,C-0960,Fashion,38074.0,Bangkok
+TXN-00959,14/05/2024,C-0654,Fashion,2942.0,Chiang Mai
+TXN-00960,10/02/2024,C-0546,Electronics,41664.0,Khon Kaen
+TXN-00961,15/07/2024,C-0829,Fashion,28798.0,Bangkok
+TXN-00962,24/07/2024,C-0630,Beauty,2180.0,Chonburi
+TXN-00963,23/09/2024,C-0874,Electronics,12344.0,Bangkok
+TXN-00964,01/11/2024,C-0788,Sports,22058.0,Phuket
+TXN-00965,30/03/2024,C-0929,Fashion,27510.0,Chiang Mai
+TXN-00966,12/08/2024,C-0445,Sports,48279.0,Phuket
+TXN-00967,02/12/2024,C-0958,Fashion,17114.0,Chiang Mai
+TXN-00968,22/09/2024,C-0580,Fashion,45261.0,Bangkok
+TXN-00969,18/01/2024,C-0745,Home & Living,16798.0,Bangkok
+TXN-00970,18/09/2024,C-0642,Fashion,3632.0,Phuket
+TXN-00971,28/04/2024,C-0062,Sports,46316.0,Bangkok
+TXN-00972,11/12/2024,C-0535,Electronics,17747.0,Bangkok
+TXN-00973,02/05/2024,C-0206,Sports,11024.0,Phuket
+TXN-00974,21/03/2024,C-0374,Fashion,36366.0,Phuket
+TXN-00975,21/05/2024,C-0474,Beauty,49042.0,Bangkok
+TXN-00976,29/06/2024,C-0152,Sports,23341.0,Chiang Mai
+TXN-00977,26/07/2024,C-0247,Electronics,11775.0,Chiang Mai
+TXN-00978,22/09/2024,C-0155,Home & Living,6324.0,Phuket
+TXN-00979,26/12/2024,C-0765,Home & Living,40896.0,Khon Kaen
+TXN-00980,16/02/2024,C-0702,Fashion,15414.0,Chiang Mai
+TXN-00981,13/10/2024,C-0784,Electronics,20543.0,Phuket
+TXN-00982,27/06/2024,C-0308,Electronics,47813.0,Bangkok
+TXN-00983,21/05/2024,C-0865,Home & Living,27111.0,Chiang Mai
+TXN-00984,09/04/2024,C-0446,Beauty,33084.0,Bangkok
+TXN-00985,25/07/2024,C-0421,Sports,25580.0,Khon Kaen
+TXN-00986,13/05/2024,C-0327,Fashion,46859.0,Phuket
+TXN-00987,16/09/2024,C-0881,Beauty,22585.0,Chonburi
+TXN-00988,07/02/2024,C-0851,Home & Living,24188.0,Phuket
+TXN-00989,23/06/2024,C-0934,Electronics,11545.0,Phuket
+TXN-00990,19/09/2024,C-0066,Fashion,7805.0,Phuket
+TXN-00991,02/10/2024,C-0650,Home & Living,20850.0,Chonburi
+TXN-00992,21/10/2024,C-0209,Sports,46390.0,Chonburi
+TXN-00993,14/08/2024,C-0867,Home & Living,19912.0,Bangkok
+TXN-00994,15/10/2024,C-0423,Home & Living,35775.0,Chiang Mai
+TXN-00995,04/05/2024,C-0274,Beauty,41032.0,Phuket
+TXN-00996,22/08/2024,C-0844,Electronics,13516.0,Chonburi
+TXN-00997,27/10/2024,C-0294,Sports,47139.0,Phuket
+TXN-00998,03/09/2024,C-0662,Sports,43962.0,Chonburi
+TXN-00999,04/02/2024,C-0165,Fashion,17760.0,Khon Kaen
+TXN-01000,22/04/2024,C-0263,Beauty,22792.0,Chiang Mai
+TXN-01001,27/04/2024,C-0704,Electronics,26501.0,Bangkok
+TXN-01002,30/07/2024,C-0616,Sports,25747.0,Phuket
+TXN-01003,21/09/2024,C-0242,Beauty,48753.0,Chonburi
+TXN-01004,24/12/2024,C-0416,Fashion,19761.0,Chiang Mai
+TXN-01005,07/05/2024,C-0245,Fashion,5887.0,Chonburi
+TXN-01006,23/07/2024,C-0117,Fashion,15234.0,Bangkok
+TXN-01007,24/06/2024,C-0154,Home & Living,3172.0,Chonburi
+TXN-01008,01/04/2024,C-0197,Sports,10658.0,Chonburi
+TXN-01009,30/06/2024,C-0029,Home & Living,18442.0,Khon Kaen
+TXN-01010,20/10/2024,C-0252,Electronics,15210.0,Bangkok
+TXN-01011,15/12/2024,C-0817,Electronics,14850.0,Khon Kaen
+TXN-01012,07/04/2024,C-0848,Sports,15300.0,Bangkok
+TXN-01013,12/04/2024,C-0318,Sports,14653.0,Chonburi
+TXN-01014,03/05/2024,C-0476,Fashion,19950.0,Bangkok
+TXN-01015,15/04/2024,C-0498,Fashion,1861.0,Phuket
+TXN-01016,07/05/2024,C-0574,Sports,32171.0,Chiang Mai
+TXN-01017,01/07/2024,C-0447,Fashion,27666.0,Chiang Mai
+TXN-01018,24/02/2024,C-0433,Beauty,37730.0,Chonburi
+TXN-01019,10/02/2024,C-0663,Sports,12693.0,Chiang Mai
+TXN-01020,05/12/2024,C-0928,Electronics,38569.0,Phuket
+TXN-01021,04/01/2024,C-0038,Sports,38213.0,Bangkok
+TXN-01022,04/10/2024,C-0207,Beauty,25869.0,Khon Kaen
+TXN-01023,03/09/2024,C-0164,Home & Living,46817.0,Phuket
+TXN-01024,10/06/2024,C-0280,Electronics,24353.0,Chiang Mai
+TXN-01025,21/10/2024,C-0140,Fashion,17772.0,Phuket
+TXN-01026,08/09/2024,C-0030,Electronics,24388.0,Chiang Mai
+TXN-01027,18/09/2024,C-0265,Sports,15881.0,Bangkok
+TXN-01028,23/04/2024,C-0809,Sports,23901.0,Chonburi
+TXN-01029,06/03/2024,C-0823,Fashion,45929.0,Phuket
+TXN-01030,04/08/2024,C-0285,Home & Living,46534.0,Bangkok
+TXN-01031,03/10/2024,C-0675,Fashion,35776.0,Phuket
+TXN-01032,26/06/2024,C-0564,Sports,6832.0,Phuket
+TXN-01033,17/12/2024,C-0181,Electronics,33756.0,Phuket
+TXN-01034,22/08/2024,C-0660,Home & Living,35585.0,Khon Kaen
+TXN-01035,23/12/2024,C-0873,Home & Living,40089.0,Phuket
+TXN-01036,10/06/2024,C-0044,Electronics,23328.0,Khon Kaen
+TXN-01037,07/01/2024,C-0987,Fashion,42768.0,Bangkok
+TXN-01038,13/07/2024,C-0740,Fashion,15177.0,Phuket
+TXN-01039,15/06/2024,C-0498,Electronics,38134.0,Chonburi
+TXN-01040,12/05/2024,C-0802,Sports,30662.0,Phuket
+TXN-01041,14/05/2024,C-0021,Home & Living,33080.0,Chiang Mai
+TXN-01042,29/08/2024,C-0057,Sports,4737.0,Khon Kaen
+TXN-01043,24/06/2024,C-0881,Fashion,11729.0,Phuket
+TXN-01044,12/09/2024,C-0919,Sports,29890.0,Phuket
+TXN-01045,02/08/2024,C-0086,Electronics,4271.0,Chiang Mai
+TXN-01046,09/07/2024,C-0322,Electronics,31736.0,Bangkok
+TXN-01047,24/07/2024,C-0617,Fashion,10191.0,Phuket
+TXN-01048,02/04/2024,C-0306,Home & Living,23726.0,Phuket
+TXN-01049,21/10/2024,C-0888,Electronics,47611.0,Chiang Mai
+TXN-01050,21/02/2024,C-0066,Sports,17015.0,Chonburi
+TXN-01051,30/04/2024,C-0923,Beauty,48194.0,Chonburi
+TXN-01052,14/07/2024,C-0979,Home & Living,39673.0,Bangkok
+TXN-01053,17/03/2024,C-0417,Sports,46651.0,Phuket
+TXN-01054,05/01/2024,C-0919,Beauty,9239.0,Phuket
+TXN-01055,12/09/2024,C-0373,Home & Living,14603.0,Phuket
+TXN-01056,18/11/2024,C-0688,Beauty,20804.0,Bangkok
+TXN-01057,10/06/2024,C-0674,Fashion,44715.0,Bangkok
+TXN-01058,02/06/2024,C-0907,Beauty,15741.0,Chiang Mai
+TXN-01059,17/10/2024,C-0093,Beauty,33789.0,Khon Kaen
+TXN-01060,20/02/2024,C-0407,Fashion,9952.0,Phuket
+TXN-01061,31/01/2024,C-0966,Fashion,45151.0,Khon Kaen
+TXN-01062,10/05/2024,C-0860,Beauty,944.0,Chiang Mai
+TXN-01063,18/11/2024,C-0742,Fashion,3971.0,Phuket
+TXN-01064,20/06/2024,C-0863,Electronics,23984.0,Phuket
+TXN-01065,03/07/2024,C-0144,Fashion,5153.0,Chonburi
+TXN-01066,11/05/2024,C-0242,Sports,35219.0,Chiang Mai
+TXN-01067,29/07/2024,C-0115,Fashion,11064.0,Chiang Mai
+TXN-01068,13/12/2024,C-0585,Fashion,16805.0,Bangkok
+TXN-01069,11/04/2024,C-0753,Beauty,12253.0,Phuket
+TXN-01070,28/11/2024,C-0513,Sports,2432.0,Chiang Mai
+TXN-01071,30/03/2024,C-0956,Electronics,32938.0,Bangkok
+TXN-01072,25/05/2024,C-0124,Beauty,22244.0,Chiang Mai
+TXN-01073,10/12/2024,C-0535,Electronics,26947.0,Phuket
+TXN-01074,16/08/2024,C-0681,Electronics,45415.0,Chonburi
+TXN-01075,14/07/2024,C-0849,Electronics,27210.0,Bangkok
+TXN-01076,25/08/2024,C-0595,Sports,31590.0,Bangkok
+TXN-01077,15/03/2024,C-0973,Unknown,22998.0,Bangkok
+TXN-01078,23/11/2024,C-0794,Electronics,20894.0,Bangkok
+TXN-01079,21/06/2024,C-0954,Home & Living,46851.0,Bangkok
+TXN-01080,09/11/2024,C-0538,Electronics,17015.0,Bangkok
+TXN-01081,06/02/2024,C-0258,Beauty,12595.0,Bangkok
+TXN-01082,24/06/2024,C-0509,Beauty,13646.0,Chiang Mai
+TXN-01083,11/06/2024,C-0906,Home & Living,42916.0,Bangkok
+TXN-01084,29/12/2024,C-0093,Fashion,22763.0,Phuket
+TXN-01085,26/11/2024,C-0244,Sports,6662.0,Chonburi
+TXN-01086,15/08/2024,C-0615,Sports,1836.0,Chiang Mai
+TXN-01087,04/07/2024,C-0126,Electronics,4491.0,Chiang Mai
+TXN-01088,23/09/2024,C-0792,Home & Living,4376.0,Khon Kaen
+TXN-01089,30/07/2024,C-0827,Beauty,6758.0,Chiang Mai
+TXN-01090,12/01/2024,C-0321,Fashion,35176.0,Chiang Mai
+TXN-01091,30/04/2024,C-0338,Beauty,24903.5,Chiang Mai
+TXN-01092,24/12/2024,C-0853,Home & Living,20571.0,Phuket
+TXN-01093,17/04/2024,C-0599,Fashion,37729.0,Bangkok
+TXN-01094,22/02/2024,C-0755,Beauty,5047.0,Bangkok
+TXN-01095,30/08/2024,C-0400,Electronics,12852.0,Chonburi
+TXN-01096,14/01/2024,C-0826,Electronics,33150.0,Bangkok
+TXN-01097,25/09/2024,C-0767,Home & Living,14811.0,Phuket
+TXN-01098,12/02/2024,C-0762,Sports,6854.0,Bangkok
+TXN-01099,12/11/2024,C-0242,Home & Living,10636.0,Bangkok
+TXN-01100,01/12/2024,C-0958,Electronics,38116.0,Bangkok
+TXN-01101,18/07/2024,C-0434,Sports,29381.0,Chiang Mai
+TXN-01102,06/05/2024,C-0224,Beauty,12132.0,Phuket
+TXN-01103,14/08/2024,C-0148,Sports,29670.0,Chonburi
+TXN-01104,08/03/2024,C-0110,Beauty,3041.0,Chonburi
+TXN-01105,28/03/2024,C-0180,Home & Living,8382.0,Chonburi
+TXN-01106,05/12/2024,C-0220,Home & Living,20925.0,Phuket
+TXN-01107,15/06/2024,C-0994,Electronics,7563.0,Chiang Mai
+TXN-01108,27/08/2024,C-0282,Beauty,12323.0,Phuket
+TXN-01109,03/10/2024,C-0451,Home & Living,11469.0,Phuket
+TXN-01110,07/10/2024,C-0419,Electronics,33114.0,Chonburi
+TXN-01111,23/12/2024,C-0261,Fashion,10674.0,Chonburi
+TXN-01112,29/10/2024,C-0884,Fashion,22611.0,Phuket
+TXN-01113,19/11/2024,C-0604,Beauty,43654.0,Chiang Mai
+TXN-01114,15/10/2024,C-0058,Beauty,25983.0,Chonburi
+TXN-01115,23/11/2024,C-0503,Electronics,8127.0,Chiang Mai
+TXN-01116,07/06/2024,C-0547,Home & Living,4790.0,Phuket
+TXN-01117,03/09/2024,C-0384,Home & Living,24466.0,Chiang Mai
+TXN-01118,15/02/2024,C-0717,Fashion,32662.0,Phuket
+TXN-01119,06/07/2024,C-0972,Home & Living,26995.0,Phuket
+TXN-01120,20/03/2024,C-0116,Beauty,4341.0,Chonburi
+TXN-01121,01/01/2024,C-0325,Beauty,31985.0,Phuket
+TXN-01122,10/03/2024,C-0559,Home & Living,43731.0,Chonburi
+TXN-01123,28/08/2024,C-0434,Fashion,39240.0,Bangkok
+TXN-01124,18/12/2024,C-0487,Sports,34568.0,Bangkok
+TXN-01125,01/09/2024,C-0700,Sports,43413.0,Bangkok
+TXN-01126,08/08/2024,C-0253,Sports,35059.0,Chiang Mai
+TXN-01127,01/11/2024,C-0987,Beauty,46519.0,Bangkok
+TXN-01128,04/01/2024,C-0285,Beauty,26333.0,Phuket
+TXN-01129,06/04/2024,C-0901,Fashion,42652.0,Bangkok
+TXN-01130,14/10/2024,C-0804,Fashion,21492.0,Chiang Mai
+TXN-01131,07/05/2024,C-0960,Fashion,13478.0,Bangkok
+TXN-01132,26/11/2024,C-0149,Electronics,41547.0,Bangkok
+TXN-01133,12/07/2024,C-0372,Beauty,29017.0,Chonburi
+TXN-01134,10/02/2024,C-0487,Electronics,32643.0,Bangkok
+TXN-01135,02/05/2024,C-0733,Home & Living,7336.0,Bangkok
+TXN-01136,09/11/2024,C-0377,Fashion,32226.0,Chonburi
+TXN-01137,16/12/2024,C-0842,Fashion,20547.0,Khon Kaen
+TXN-01138,28/11/2024,C-0316,Sports,19321.0,Bangkok
+TXN-01139,17/05/2024,C-0022,Beauty,46303.0,Bangkok
+TXN-01140,05/02/2024,C-0661,Fashion,3228.0,Bangkok
+TXN-01141,28/05/2024,C-0991,Fashion,6344.0,Chiang Mai
+TXN-01142,21/08/2024,C-0927,Fashion,39000.0,Bangkok
+TXN-01143,19/05/2024,C-0621,Electronics,37939.0,Phuket
+TXN-01144,08/09/2024,C-0036,Beauty,42504.0,Chonburi
+TXN-01145,10/01/2024,C-0862,Electronics,3642.0,Phuket
+TXN-01146,30/09/2024,C-0758,Electronics,3593.0,Phuket
+TXN-01147,22/02/2024,C-0679,Sports,25724.0,Bangkok
+TXN-01148,05/03/2024,C-0819,Electronics,35742.0,Bangkok
+TXN-01149,05/01/2024,C-0964,Fashion,45337.0,Chonburi
+TXN-01150,18/03/2024,C-0056,Electronics,48900.0,Chiang Mai
+TXN-01151,21/04/2024,C-0708,Unknown,12184.0,Khon Kaen
+TXN-01152,08/06/2024,C-0940,Beauty,45138.0,Bangkok
+TXN-01153,12/09/2024,C-0808,Fashion,14557.0,Phuket
+TXN-01154,25/08/2024,C-0688,Fashion,12670.0,Chonburi
+TXN-01155,17/01/2024,C-0246,Home & Living,47188.0,Phuket
+TXN-01156,15/03/2024,C-0260,Home & Living,47294.0,Khon Kaen
+TXN-01157,19/07/2024,C-0566,Electronics,14048.0,Bangkok
+TXN-01158,28/08/2024,C-0394,Fashion,40674.0,Bangkok
+TXN-01159,08/05/2024,C-0317,Electronics,24903.5,Bangkok
+TXN-01160,07/01/2024,C-0655,Fashion,14002.0,Bangkok
+TXN-01161,31/12/2024,C-0982,Electronics,8123.0,Chonburi
+TXN-01162,14/08/2024,C-0718,Beauty,810.0,Phuket
+TXN-01163,18/01/2024,C-0372,Beauty,43727.0,Chonburi
+TXN-01164,18/02/2024,C-0925,Home & Living,22176.0,Bangkok
+TXN-01165,16/04/2024,C-0832,Sports,26053.0,Bangkok
+TXN-01166,14/12/2024,C-0702,Fashion,24865.0,Phuket
+TXN-01167,14/06/2024,C-0125,Fashion,26842.0,Bangkok
+TXN-01168,22/01/2024,C-0548,Electronics,9784.0,Chiang Mai
+TXN-01169,08/10/2024,C-0888,Fashion,41247.0,Bangkok
+TXN-01170,09/05/2024,C-0243,Beauty,28211.0,Bangkok
+TXN-01171,01/06/2024,C-0879,Fashion,47041.0,Khon Kaen
+TXN-01172,27/01/2024,C-0454,Sports,41538.0,Khon Kaen
+TXN-01173,21/04/2024,C-0398,Electronics,43317.0,Bangkok
+TXN-01174,30/04/2024,C-0009,Beauty,18366.0,Chonburi
+TXN-01175,15/06/2024,C-0932,Beauty,1170.0,Chonburi
+TXN-01176,21/05/2024,C-0984,Fashion,27608.0,Phuket
+TXN-01177,21/07/2024,C-0403,Home & Living,12918.0,Chiang Mai
+TXN-01178,05/01/2024,C-0950,Fashion,32495.0,Chonburi
+TXN-01179,24/10/2024,C-0940,Electronics,1183.0,Bangkok
+TXN-01180,31/08/2024,C-0262,Sports,26417.0,Bangkok
+TXN-01181,20/03/2024,C-0309,Home & Living,29934.0,Chonburi
+TXN-01182,15/02/2024,C-0093,Home & Living,45687.0,Phuket
+TXN-01183,12/09/2024,C-0959,Electronics,42285.0,Phuket
+TXN-01184,12/11/2024,C-0843,Sports,10915.0,Phuket
+TXN-01185,16/11/2024,C-0775,Unknown,32516.0,Chiang Mai
+TXN-01186,01/07/2024,C-0242,Fashion,35688.0,Bangkok
+TXN-01187,25/12/2024,C-0305,Electronics,49002.0,Chonburi
+TXN-01188,24/02/2024,C-0216,Electronics,45123.0,Bangkok
+TXN-01189,29/04/2024,C-0881,Sports,46048.0,Chiang Mai
+TXN-01190,12/10/2024,C-0912,Beauty,35644.0,Bangkok
+TXN-01191,26/06/2024,C-0165,Home & Living,37862.0,Chonburi
+TXN-01192,12/08/2024,C-0938,Home & Living,8325.0,Phuket
+TXN-01193,11/01/2024,C-0450,Unknown,13746.0,Chiang Mai
+TXN-01194,02/07/2024,C-0647,Home & Living,36856.0,Phuket
+TXN-01195,08/05/2024,C-0325,Sports,13658.0,Phuket
+TXN-01196,05/09/2024,C-0901,Beauty,2839.0,Bangkok
+TXN-01197,13/10/2024,C-0832,Fashion,7665.0,Chonburi
+TXN-01198,22/12/2024,C-0786,Electronics,2992.0,Chonburi
+TXN-01199,17/10/2024,C-0660,Sports,12589.0,Phuket
+TXN-01200,27/06/2024,C-0417,Fashion,45956.0,Phuket
+TXN-01201,27/08/2024,C-0809,Beauty,16343.0,Chiang Mai
+TXN-01202,02/11/2024,C-0035,Electronics,24807.0,Chiang Mai
+TXN-01203,10/10/2024,C-0281,Fashion,9855.0,Khon Kaen
+TXN-01204,28/09/2024,C-0888,Electronics,3190.0,Phuket
+TXN-01205,31/05/2024,C-0083,Electronics,33505.0,Khon Kaen
+TXN-01206,04/10/2024,C-0843,Fashion,12884.0,Bangkok
+TXN-01207,01/01/2024,C-0799,Fashion,48007.0,Khon Kaen
+TXN-01208,16/09/2024,C-0964,Fashion,37776.0,Phuket
+TXN-01209,04/04/2024,C-0504,Sports,24903.5,Chiang Mai
+TXN-01210,13/11/2024,C-0483,Sports,16936.0,Bangkok
+TXN-01211,13/11/2024,C-0755,Home & Living,23445.0,Chonburi
+TXN-01212,02/02/2024,C-0423,Fashion,42714.0,Khon Kaen
+TXN-01213,02/10/2024,C-0949,Home & Living,25405.0,Phuket
+TXN-01214,07/04/2024,C-0862,Beauty,19623.0,Chiang Mai
+TXN-01215,11/09/2024,C-0341,Beauty,15261.0,Phuket
+TXN-01216,19/03/2024,C-0735,Sports,13236.0,Bangkok
+TXN-01217,14/06/2024,C-0433,Fashion,47763.0,Chonburi
+TXN-01218,13/06/2024,C-0898,Beauty,29370.0,Chonburi
+TXN-01219,24/09/2024,C-0941,Electronics,16607.0,Phuket
+TXN-01220,23/01/2024,C-0840,Home & Living,19361.0,Phuket
+TXN-01221,07/03/2024,C-0103,Electronics,9895.0,Chonburi
+TXN-01222,17/01/2024,C-0845,Beauty,21311.0,Chonburi
+TXN-01223,05/09/2024,C-0165,Home & Living,45376.0,Bangkok
+TXN-01224,17/01/2024,C-0716,Home & Living,34450.0,Chonburi
+TXN-01225,17/07/2024,C-0268,Home & Living,41039.0,Phuket
+TXN-01226,26/09/2024,C-0519,Fashion,47953.0,Bangkok
+TXN-01227,29/10/2024,C-0068,Beauty,24772.0,Khon Kaen
+TXN-01228,06/07/2024,C-0361,Beauty,7302.0,Bangkok
+TXN-01229,06/02/2024,C-0431,Beauty,886.0,Phuket
+TXN-01230,16/04/2024,C-0617,Fashion,37377.0,Bangkok
+TXN-01231,10/02/2024,C-0747,Sports,25896.0,Phuket
+TXN-01232,23/11/2024,C-0833,Home & Living,8340.0,Bangkok
+TXN-01233,12/10/2024,C-0561,Beauty,41675.0,Khon Kaen
+TXN-01234,31/07/2024,C-0756,Sports,36255.0,Chiang Mai
+TXN-01235,28/12/2024,C-0335,Fashion,43023.0,Chonburi
+TXN-01236,11/11/2024,C-0465,Sports,31723.0,Chonburi
+TXN-01237,21/01/2024,C-0712,Home & Living,42756.0,Chiang Mai
+TXN-01238,04/06/2024,C-0029,Beauty,45432.0,Chiang Mai
+TXN-01239,20/04/2024,C-0781,Home & Living,29969.0,Bangkok
+TXN-01240,19/02/2024,C-0054,Electronics,16075.0,Bangkok
+TXN-01241,28/04/2024,C-0657,Electronics,40647.0,Chonburi
+TXN-01242,07/04/2024,C-0657,Fashion,42226.0,Bangkok
+TXN-01243,02/12/2024,C-0189,Sports,10536.0,Phuket
+TXN-01244,16/11/2024,C-0646,Unknown,24101.0,Bangkok
+TXN-01245,12/10/2024,C-0455,Home & Living,19299.0,Bangkok
+TXN-01246,31/07/2024,C-0811,Sports,11926.0,Chonburi
+TXN-01247,22/11/2024,C-0657,Electronics,25957.0,Bangkok
+TXN-01248,11/12/2024,C-0140,Beauty,11006.0,Phuket
+TXN-01249,06/12/2024,C-0004,Home & Living,1872.0,Bangkok
+TXN-01250,23/02/2024,C-0411,Sports,20151.0,Khon Kaen
+TXN-01251,02/04/2024,C-0205,Beauty,30642.0,Bangkok
+TXN-01252,15/09/2024,C-0644,Fashion,35987.0,Bangkok
+TXN-01253,21/03/2024,C-0313,Beauty,26860.0,Phuket
+TXN-01254,03/11/2024,C-0322,Fashion,41558.0,Phuket
+TXN-01255,29/06/2024,C-0590,Electronics,27094.0,Chonburi
+TXN-01256,08/10/2024,C-0085,Sports,27876.0,Khon Kaen
+TXN-01257,15/06/2024,C-0114,Beauty,30142.0,Bangkok
+TXN-01258,30/07/2024,C-0162,Beauty,25956.0,Chiang Mai
+TXN-01259,08/08/2024,C-0256,Fashion,22638.0,Chiang Mai
+TXN-01260,14/06/2024,C-0529,Fashion,26641.0,Bangkok
+TXN-01261,15/10/2024,C-0731,Home & Living,35229.0,Chonburi
+TXN-01262,11/07/2024,C-0993,Sports,14718.0,Bangkok
+TXN-01263,10/05/2024,C-0787,Electronics,37749.0,Chonburi
+TXN-01264,19/08/2024,C-0851,Home & Living,48295.0,Chonburi
+TXN-01265,22/07/2024,C-0665,Beauty,41058.0,Phuket
+TXN-01266,18/01/2024,C-0782,Fashion,30867.0,Chonburi
+TXN-01267,01/11/2024,C-0134,Beauty,27252.0,Phuket
+TXN-01268,10/03/2024,C-0868,Fashion,20612.0,Phuket
+TXN-01269,03/06/2024,C-0609,Electronics,9762.0,Bangkok
+TXN-01270,23/04/2024,C-0703,Electronics,36074.0,Khon Kaen
+TXN-01271,10/06/2024,C-0421,Beauty,20181.0,Chiang Mai
+TXN-01272,19/12/2024,C-0812,Sports,41367.0,Bangkok
+TXN-01273,10/10/2024,C-0962,Home & Living,13568.0,Khon Kaen
+TXN-01274,19/10/2024,C-0328,Electronics,36655.0,Phuket
+TXN-01275,20/03/2024,C-0463,Beauty,43730.0,Phuket
+TXN-01276,23/08/2024,C-0490,Home & Living,34414.0,Phuket
+TXN-01277,11/03/2024,C-0895,Home & Living,29531.0,Phuket
+TXN-01278,25/10/2024,C-0753,Beauty,14030.0,Chonburi
+TXN-01279,11/05/2024,C-0137,Fashion,44212.0,Bangkok
+TXN-01280,17/02/2024,C-0267,Beauty,49388.0,Phuket
+TXN-01281,18/10/2024,C-0178,Sports,10714.0,Chiang Mai
+TXN-01282,09/02/2024,C-0704,Electronics,38187.0,Chonburi
+TXN-01283,04/09/2024,C-0608,Sports,13463.0,Bangkok
+TXN-01284,19/12/2024,C-0847,Sports,21241.0,Bangkok
+TXN-01285,18/02/2024,C-0336,Home & Living,48896.0,Bangkok
+TXN-01286,02/06/2024,C-0819,Home & Living,32395.0,Chonburi
+TXN-01287,22/10/2024,C-0289,Unknown,40629.0,Bangkok
+TXN-01288,29/01/2024,C-0204,Fashion,41662.0,Chonburi
+TXN-01289,20/06/2024,C-0087,Home & Living,44814.0,Khon Kaen
+TXN-01290,10/08/2024,C-0425,Beauty,4783.0,Khon Kaen
+TXN-01291,02/03/2024,C-0377,Electronics,1068.0,Khon Kaen
+TXN-01292,26/04/2024,C-0187,Fashion,3957.0,Khon Kaen
+TXN-01293,04/11/2024,C-0403,Sports,6394.0,Bangkok
+TXN-01294,20/11/2024,C-0898,Fashion,23876.0,Khon Kaen
+TXN-01295,14/07/2024,C-0387,Fashion,10369.0,Phuket
+TXN-01296,25/09/2024,C-0968,Sports,20656.0,Chonburi
+TXN-01297,03/10/2024,C-0855,Sports,24285.0,Chonburi
+TXN-01298,16/06/2024,C-0906,Home & Living,21176.0,Bangkok
+TXN-01299,23/04/2024,C-0585,Fashion,29769.0,Chiang Mai
+TXN-01300,10/12/2024,C-0230,Sports,46611.0,Bangkok
+TXN-01301,20/07/2024,C-0022,Home & Living,20373.0,Khon Kaen
+TXN-01302,31/10/2024,C-0971,Electronics,37323.0,Phuket
+TXN-01303,16/02/2024,C-0024,Home & Living,10462.0,Chiang Mai
+TXN-01304,28/05/2024,C-0946,Electronics,8262.0,Chiang Mai
+TXN-01305,16/03/2024,C-0572,Beauty,41020.0,Chiang Mai
+TXN-01306,12/02/2024,C-0663,Home & Living,37309.0,Chonburi
+TXN-01307,26/01/2024,C-0627,Sports,31273.0,Chiang Mai
+TXN-01308,14/05/2024,C-0642,Home & Living,18930.0,Phuket
+TXN-01309,13/09/2024,C-0235,Fashion,16844.0,Chiang Mai
+TXN-01310,23/12/2024,C-0929,Home & Living,44007.0,Chiang Mai
+TXN-01311,10/03/2024,C-0092,Sports,29657.0,Phuket
+TXN-01312,11/04/2024,C-0998,Beauty,3080.0,Bangkok
+TXN-01313,29/11/2024,C-0474,Beauty,25465.0,Chonburi
+TXN-01314,14/10/2024,C-0204,Sports,31752.0,Khon Kaen
+TXN-01315,25/09/2024,C-0269,Electronics,1807.0,Khon Kaen
+TXN-01316,06/02/2024,C-0719,Electronics,24249.0,Chonburi
+TXN-01317,08/08/2024,C-0873,Electronics,38831.0,Chiang Mai
+TXN-01318,21/10/2024,C-0173,Beauty,29816.0,Khon Kaen
+TXN-01319,09/12/2024,C-0051,Sports,32728.0,Chiang Mai
+TXN-01320,06/07/2024,C-0411,Electronics,37644.0,Khon Kaen
+TXN-01321,13/06/2024,C-0633,Sports,22767.0,Phuket
+TXN-01322,01/12/2024,C-0440,Electronics,24746.0,Bangkok
+TXN-01323,05/06/2024,C-0615,Beauty,9343.0,Bangkok
+TXN-01324,28/06/2024,C-0267,Beauty,44892.0,Khon Kaen
+TXN-01325,14/08/2024,C-0153,Electronics,10296.0,Bangkok
+TXN-01326,13/08/2024,C-0092,Beauty,44337.0,Bangkok
+TXN-01327,29/04/2024,C-0982,Home & Living,42064.0,Bangkok
+TXN-01328,10/07/2024,C-0377,Beauty,47122.0,Chiang Mai
+TXN-01329,13/02/2024,C-0175,Beauty,5944.0,Chiang Mai
+TXN-01330,28/01/2024,C-0970,Unknown,32923.0,Chonburi
+TXN-01331,13/11/2024,C-0581,Fashion,24903.5,Phuket
+TXN-01332,27/05/2024,C-0121,Home & Living,27876.0,Chiang Mai
+TXN-01333,21/12/2024,C-0015,Home & Living,24434.0,Bangkok
+TXN-01334,05/06/2024,C-0736,Beauty,13084.0,Bangkok
+TXN-01335,12/01/2024,C-0539,Electronics,34607.0,Chiang Mai
+TXN-01336,02/10/2024,C-0446,Beauty,2036.0,Chiang Mai
+TXN-01337,06/10/2024,C-0792,Electronics,11436.0,Phuket
+TXN-01338,12/05/2024,C-0943,Home & Living,16150.0,Bangkok
+TXN-01339,14/11/2024,C-0951,Sports,17743.0,Phuket
+TXN-01340,13/03/2024,C-0465,Sports,28873.0,Phuket
+TXN-01341,08/12/2024,C-0848,Fashion,18380.0,Bangkok
+TXN-01342,25/10/2024,C-0690,Beauty,43537.0,Bangkok
+TXN-01343,26/09/2024,C-0507,Beauty,5758.0,Phuket
+TXN-01344,28/03/2024,C-0122,Beauty,2556.0,Khon Kaen
+TXN-01345,12/04/2024,C-0230,Sports,41405.0,Bangkok
+TXN-01346,12/11/2024,C-0731,Beauty,24903.5,Bangkok
+TXN-01347,26/08/2024,C-0209,Fashion,20338.0,Chonburi
+TXN-01348,05/01/2024,C-0196,Home & Living,31309.0,Chiang Mai
+TXN-01349,04/12/2024,C-0969,Beauty,2858.0,Bangkok
+TXN-01350,03/12/2024,C-0883,Fashion,18213.0,Bangkok
+TXN-01351,25/02/2024,C-0833,Sports,22496.0,Chiang Mai
+TXN-01352,28/11/2024,C-0801,Home & Living,34092.0,Phuket
+TXN-01353,13/07/2024,C-0273,Fashion,28320.0,Phuket
+TXN-01354,29/12/2024,C-0295,Fashion,22921.0,Chonburi
+TXN-01355,10/06/2024,C-0765,Electronics,23191.0,Phuket
+TXN-01356,01/11/2024,C-0507,Sports,36700.0,Bangkok
+TXN-01357,05/04/2024,C-0392,Sports,18957.0,Khon Kaen
+TXN-01358,22/08/2024,C-0134,Electronics,29982.0,Bangkok
+TXN-01359,30/12/2024,C-0442,Electronics,6057.0,Bangkok
+TXN-01360,06/05/2024,C-0877,Fashion,21380.0,Chiang Mai
+TXN-01361,05/06/2024,C-0212,Home & Living,7939.0,Chiang Mai
+TXN-01362,20/07/2024,C-0615,Fashion,8923.0,Chonburi
+TXN-01363,10/01/2024,C-0221,Sports,7515.0,Chonburi
+TXN-01364,29/06/2024,C-0844,Beauty,12106.0,Chonburi
+TXN-01365,03/06/2024,C-0290,Electronics,10592.0,Chiang Mai
+TXN-01366,13/09/2024,C-0745,Fashion,16028.0,Bangkok
+TXN-01367,01/02/2024,C-0694,Sports,5442.0,Bangkok
+TXN-01368,17/07/2024,C-0194,Electronics,24903.5,Chonburi
+TXN-01369,16/01/2024,C-0429,Sports,24903.5,Khon Kaen
+TXN-01370,23/05/2024,C-0185,Fashion,40965.0,Bangkok
+TXN-01371,23/06/2024,C-0419,Fashion,38691.0,Bangkok
+TXN-01372,02/12/2024,C-0812,Beauty,30696.0,Chonburi
+TXN-01373,14/07/2024,C-0150,Fashion,22185.0,Bangkok
+TXN-01374,13/12/2024,C-0030,Beauty,7435.0,Phuket
+TXN-01375,16/11/2024,C-0298,Beauty,4180.0,Bangkok
+TXN-01376,01/08/2024,C-1000,Electronics,13575.0,Chiang Mai
+TXN-01377,19/03/2024,C-0269,Beauty,5818.0,Chonburi
+TXN-01378,08/06/2024,C-0242,Home & Living,47571.0,Chonburi
+TXN-01379,17/06/2024,C-0633,Beauty,751.0,Chiang Mai
+TXN-01380,08/03/2024,C-0462,Fashion,45431.0,Chiang Mai
+TXN-01381,11/03/2024,C-0930,Fashion,3776.0,Phuket
+TXN-01382,16/12/2024,C-0255,Sports,25855.0,Chonburi
+TXN-01383,11/03/2024,C-0379,Electronics,35190.0,Chonburi
+TXN-01384,27/12/2024,C-0597,Home & Living,13430.0,Chiang Mai
+TXN-01385,10/03/2024,C-0701,Sports,32960.0,Phuket
+TXN-01386,15/03/2024,C-0663,Electronics,12693.0,Chonburi
+TXN-01387,16/10/2024,C-0470,Home & Living,48443.0,Khon Kaen
+TXN-01388,11/06/2024,C-0088,Fashion,4515.0,Khon Kaen
+TXN-01389,29/09/2024,C-0011,Sports,33765.0,Bangkok
+TXN-01390,01/03/2024,C-0481,Sports,24903.5,Phuket
+TXN-01391,15/03/2024,C-0137,Fashion,13457.0,Chiang Mai
+TXN-01392,12/06/2024,C-0893,Electronics,36020.0,Bangkok
+TXN-01393,30/07/2024,C-0332,Electronics,12908.0,Bangkok
+TXN-01394,04/06/2024,C-0998,Fashion,46563.0,Chonburi
+TXN-01395,22/11/2024,C-0710,Fashion,12833.0,Phuket
+TXN-01396,20/05/2024,C-0408,Beauty,21563.0,Bangkok
+TXN-01397,06/04/2024,C-0704,Electronics,15423.0,Khon Kaen
+TXN-01398,04/04/2024,C-0218,Sports,42134.0,Phuket
+TXN-01399,09/11/2024,C-0731,Beauty,19945.0,Phuket
+TXN-01400,06/11/2024,C-0393,Beauty,33704.0,Khon Kaen
+TXN-01401,28/04/2024,C-0726,Beauty,14803.0,Chonburi
+TXN-01402,28/04/2024,C-0434,Home & Living,23094.0,Chonburi
+TXN-01403,02/07/2024,C-0754,Home & Living,35270.0,Phuket
+TXN-01404,01/09/2024,C-0612,Electronics,24903.5,Phuket
+TXN-01405,05/11/2024,C-0263,Sports,45295.0,Chiang Mai
+TXN-01406,28/11/2024,C-0075,Fashion,49933.0,Khon Kaen
+TXN-01407,17/07/2024,C-0098,Beauty,4538.0,Chiang Mai
+TXN-01408,11/03/2024,C-0571,Beauty,23059.0,Chonburi
+TXN-01409,25/04/2024,C-0061,Home & Living,4458.0,Bangkok
+TXN-01410,08/01/2024,C-0054,Sports,28686.0,Bangkok
+TXN-01411,30/07/2024,C-0341,Beauty,47430.0,Bangkok
+TXN-01412,09/12/2024,C-0954,Sports,49276.0,Chiang Mai
+TXN-01413,14/04/2024,C-0241,Electronics,21366.0,Chiang Mai
+TXN-01414,12/08/2024,C-0483,Electronics,24189.0,Chonburi
+TXN-01415,07/09/2024,C-0931,Home & Living,40182.0,Bangkok
+TXN-01416,22/08/2024,C-0363,Home & Living,4817.0,Chonburi
+TXN-01417,06/08/2024,C-0621,Sports,48154.0,Phuket
+TXN-01418,22/01/2024,C-0962,Electronics,30042.0,Phuket
+TXN-01419,13/07/2024,C-0687,Home & Living,31986.0,Phuket
+TXN-01420,20/07/2024,C-0991,Fashion,20176.0,Bangkok
+TXN-01421,19/10/2024,C-0822,Electronics,21043.0,Bangkok
+TXN-01422,25/09/2024,C-0613,Home & Living,49322.0,Bangkok
+TXN-01423,26/12/2024,C-0727,Home & Living,38984.0,Bangkok
+TXN-01424,23/09/2024,C-0767,Home & Living,45776.0,Bangkok
+TXN-01425,21/08/2024,C-0830,Home & Living,30970.0,Khon Kaen
+TXN-01426,22/01/2024,C-0047,Sports,21757.0,Chiang Mai
+TXN-01427,05/05/2024,C-0006,Fashion,26926.0,Bangkok
+TXN-01428,21/07/2024,C-0260,Beauty,30934.0,Bangkok
+TXN-01429,21/01/2024,C-0517,Fashion,9811.0,Bangkok
+TXN-01430,21/09/2024,C-0635,Electronics,25768.0,Bangkok
+TXN-01431,26/01/2024,C-0391,Sports,2104.0,Phuket
+TXN-01432,13/08/2024,C-0310,Electronics,21256.0,Chiang Mai
+TXN-01433,04/06/2024,C-0405,Beauty,41931.0,Chiang Mai
+TXN-01434,26/05/2024,C-0688,Beauty,24467.0,Phuket
+TXN-01435,04/08/2024,C-0380,Home & Living,24903.5,Bangkok
+TXN-01436,28/01/2024,C-0136,Electronics,43869.0,Bangkok
+TXN-01437,13/03/2024,C-0992,Beauty,10398.0,Bangkok
+TXN-01438,26/11/2024,C-0914,Home & Living,12552.0,Khon Kaen
+TXN-01439,13/09/2024,C-0573,Electronics,1574.0,Bangkok
+TXN-01440,26/10/2024,C-0043,Sports,10323.0,Phuket
+TXN-01441,22/12/2024,C-0595,Beauty,13460.0,Khon Kaen
+TXN-01442,20/07/2024,C-0184,Electronics,26205.0,Bangkok
+TXN-01443,18/08/2024,C-0267,Sports,36500.0,Bangkok
+TXN-01444,20/08/2024,C-0174,Beauty,12948.0,Bangkok
+TXN-01445,30/12/2024,C-0516,Beauty,47930.0,Chonburi
+TXN-01446,20/08/2024,C-0505,Sports,29015.0,Chiang Mai
+TXN-01447,14/06/2024,C-0953,Electronics,10974.0,Bangkok
+TXN-01448,30/12/2024,C-0348,Electronics,44133.0,Bangkok
+TXN-01449,04/03/2024,C-0899,Electronics,7447.0,Phuket
+TXN-01450,27/12/2024,C-0480,Beauty,21686.0,Chiang Mai
+TXN-01451,04/07/2024,C-0136,Home & Living,40333.0,Chiang Mai
+TXN-01452,28/12/2024,C-0092,Home & Living,15910.0,Bangkok
+TXN-01453,18/09/2024,C-0325,Sports,32889.0,Khon Kaen
+TXN-01454,22/03/2024,C-0728,Beauty,27785.0,Chiang Mai
+TXN-01455,13/07/2024,C-0544,Beauty,20685.0,Phuket
+TXN-01456,28/03/2024,C-0444,Beauty,22689.0,Khon Kaen
+TXN-01457,16/10/2024,C-0146,Electronics,45330.0,Chonburi
+TXN-01458,17/03/2024,C-0267,Sports,40583.0,Bangkok
+TXN-01459,15/03/2024,C-0120,Fashion,8982.0,Bangkok
+TXN-01460,30/12/2024,C-0321,Electronics,22854.0,Bangkok
+TXN-01461,06/06/2024,C-0046,Home & Living,45622.0,Bangkok
+TXN-01462,16/08/2024,C-0131,Beauty,24719.0,Phuket
+TXN-01463,02/04/2024,C-0512,Electronics,31532.0,Phuket
+TXN-01464,08/03/2024,C-0893,Home & Living,29799.0,Phuket
+TXN-01465,02/01/2024,C-0997,Sports,16629.0,Bangkok
+TXN-01466,09/05/2024,C-0855,Electronics,21877.0,Chonburi
+TXN-01467,11/09/2024,C-0288,Electronics,20982.0,Chiang Mai
+TXN-01468,05/10/2024,C-0766,Home & Living,31707.0,Chiang Mai
+TXN-01469,07/11/2024,C-0370,Home & Living,36872.0,Chiang Mai
+TXN-01470,01/05/2024,C-0949,Beauty,22196.0,Bangkok
+TXN-01471,03/12/2024,C-0441,Fashion,8831.0,Phuket
+TXN-01472,28/07/2024,C-0290,Sports,41963.0,Phuket
+TXN-01473,03/11/2024,C-0925,Fashion,15502.0,Chonburi
+TXN-01474,05/05/2024,C-0898,Fashion,40436.0,Khon Kaen
+TXN-01475,22/05/2024,C-0270,Beauty,16824.0,Phuket
+TXN-01476,12/10/2024,C-0628,Electronics,31285.0,Chonburi
+TXN-01477,16/04/2024,C-0850,Fashion,21042.0,Chonburi
+TXN-01478,16/03/2024,C-0780,Beauty,6764.0,Bangkok
+TXN-01479,27/06/2024,C-0949,Home & Living,10222.0,Chiang Mai
+TXN-01480,17/01/2024,C-0271,Beauty,5828.0,Khon Kaen
+TXN-01481,04/11/2024,C-0530,Home & Living,30822.0,Chonburi
+TXN-01482,14/02/2024,C-0321,Electronics,48198.0,Phuket
+TXN-01483,01/08/2024,C-0447,Fashion,29957.0,Bangkok
+TXN-01484,23/03/2024,C-0915,Fashion,13160.0,Phuket
+TXN-01485,08/11/2024,C-0169,Electronics,18601.0,Chiang Mai
+TXN-01486,24/12/2024,C-0324,Electronics,24340.0,Khon Kaen
+TXN-01487,14/10/2024,C-0755,Fashion,4368.0,Bangkok
+TXN-01488,21/08/2024,C-0504,Beauty,15136.0,Chonburi
+TXN-01489,03/07/2024,C-0783,Electronics,21944.0,Khon Kaen
+TXN-01490,17/02/2024,C-0973,Sports,41175.0,Chiang Mai
+TXN-01491,14/06/2024,C-0155,Sports,10076.0,Phuket
+TXN-01492,13/07/2024,C-0570,Home & Living,21473.0,Phuket
+TXN-01493,06/08/2024,C-0874,Fashion,21089.0,Phuket
+TXN-01494,03/02/2024,C-0946,Electronics,35647.0,Bangkok
+TXN-01495,09/03/2024,C-0674,Fashion,42825.0,Bangkok
+TXN-01496,20/05/2024,C-0652,Beauty,39663.0,Khon Kaen
+TXN-01497,30/07/2024,C-0818,Sports,19873.0,Khon Kaen
+TXN-01498,22/12/2024,C-0451,Beauty,48701.0,Bangkok
+TXN-01499,30/01/2024,C-0055,Home & Living,34808.0,Chonburi
+TXN-01500,18/11/2024,C-0194,Home & Living,19011.0,Chiang Mai
+TXN-01501,14/02/2024,C-0153,Sports,25142.0,Bangkok
+TXN-01502,18/12/2024,C-0056,Fashion,1215.0,Chiang Mai
+TXN-01503,27/12/2024,C-0236,Electronics,13885.0,Bangkok
+TXN-01504,07/11/2024,C-0188,Fashion,2156.0,Chiang Mai
+TXN-01505,12/05/2024,C-0037,Unknown,42704.0,Bangkok
+TXN-01506,15/11/2024,C-0482,Home & Living,5658.0,Chonburi
+TXN-01507,07/03/2024,C-0267,Sports,10174.0,Bangkok
+TXN-01508,11/09/2024,C-0168,Home & Living,25536.0,Phuket
+TXN-01509,19/11/2024,C-0723,Sports,39418.0,Bangkok
+TXN-01510,02/04/2024,C-0479,Beauty,21084.0,Chonburi
+TXN-01511,29/04/2024,C-0447,Beauty,18427.0,Chonburi
+TXN-01512,09/04/2024,C-0119,Sports,13461.0,Chiang Mai
+TXN-01513,13/01/2024,C-0917,Beauty,30209.0,Chonburi
+TXN-01514,01/03/2024,C-0950,Electronics,38935.0,Chonburi
+TXN-01515,16/04/2024,C-0507,Beauty,1611.0,Chonburi
+TXN-01516,31/07/2024,C-0042,Beauty,21899.0,Phuket
+TXN-01517,19/06/2024,C-0453,Fashion,24671.0,Bangkok
+TXN-01518,22/11/2024,C-0366,Sports,47718.0,Chiang Mai
+TXN-01519,23/11/2024,C-0727,Sports,2168.0,Chonburi
+TXN-01520,24/05/2024,C-0575,Beauty,42857.0,Chonburi
+TXN-01521,04/02/2024,C-0497,Electronics,12165.0,Phuket
+TXN-01522,16/09/2024,C-0469,Electronics,2763.0,Bangkok
+TXN-01523,04/01/2024,C-0505,Electronics,21734.0,Chonburi
+TXN-01524,19/06/2024,C-0116,Sports,37759.0,Chonburi
+TXN-01525,18/10/2024,C-0867,Electronics,34035.0,Chonburi
+TXN-01526,15/01/2024,C-0738,Home & Living,47507.0,Bangkok
+TXN-01527,09/04/2024,C-0888,Sports,33050.0,Chonburi
+TXN-01528,22/06/2024,C-0152,Beauty,4949.0,Chonburi
+TXN-01529,02/09/2024,C-0127,Electronics,7201.0,Bangkok
+TXN-01530,19/01/2024,C-0358,Home & Living,47283.0,Chonburi
+TXN-01531,03/09/2024,C-0096,Fashion,49957.0,Phuket
+TXN-01532,23/08/2024,C-0209,Home & Living,23901.0,Chonburi
+TXN-01533,01/10/2024,C-0890,Sports,27542.0,Chonburi
+TXN-01534,24/08/2024,C-0291,Electronics,5059.0,Chiang Mai
+TXN-01535,30/07/2024,C-0185,Sports,36224.0,Chiang Mai
+TXN-01536,29/01/2024,C-0855,Sports,27786.0,Phuket
+TXN-01537,02/06/2024,C-0173,Home & Living,26451.0,Chonburi
+TXN-01538,13/12/2024,C-0768,Fashion,36420.0,Phuket
+TXN-01539,01/10/2024,C-0521,Electronics,14082.0,Phuket
+TXN-01540,22/10/2024,C-0843,Home & Living,8052.0,Bangkok
+TXN-01541,30/06/2024,C-0280,Fashion,17588.0,Chonburi
+TXN-01542,17/03/2024,C-0577,Beauty,4203.0,Bangkok
+TXN-01543,16/01/2024,C-0913,Electronics,37048.0,Chonburi
+TXN-01544,11/07/2024,C-0680,Home & Living,42633.0,Khon Kaen
+TXN-01545,25/03/2024,C-0600,Fashion,15279.0,Phuket
+TXN-01546,18/07/2024,C-0218,Electronics,3264.0,Bangkok
+TXN-01547,29/02/2024,C-0598,Beauty,15747.0,Chonburi
+TXN-01548,06/06/2024,C-0995,Beauty,9522.0,Chiang Mai
+TXN-01549,10/06/2024,C-0005,Beauty,21664.0,Chonburi
+TXN-01550,19/05/2024,C-0539,Electronics,42071.0,Bangkok
+TXN-01551,11/09/2024,C-0786,Home & Living,1761.0,Phuket
+TXN-01552,09/07/2024,C-0585,Sports,19481.0,Chonburi
+TXN-01553,03/06/2024,C-0185,Fashion,44385.0,Chonburi
+TXN-01554,03/06/2024,C-0427,Electronics,27693.0,Chonburi
+TXN-01555,10/07/2024,C-0943,Home & Living,3129.0,Khon Kaen
+TXN-01556,13/04/2024,C-0079,Home & Living,2859.0,Phuket
+TXN-01557,15/08/2024,C-0253,Home & Living,38690.0,Khon Kaen
+TXN-01558,04/09/2024,C-0787,Home & Living,23397.0,Chiang Mai
+TXN-01559,19/03/2024,C-0511,Electronics,38614.0,Phuket
+TXN-01560,04/09/2024,C-0694,Home & Living,33867.0,Khon Kaen
+TXN-01561,25/09/2024,C-0097,Sports,11259.0,Chonburi
+TXN-01562,16/06/2024,C-0909,Sports,10478.0,Phuket
+TXN-01563,20/02/2024,C-0337,Home & Living,41635.0,Bangkok
+TXN-01564,21/09/2024,C-0027,Electronics,18942.0,Bangkok
+TXN-01565,08/03/2024,C-0292,Beauty,25030.0,Chonburi
+TXN-01566,19/01/2024,C-0698,Fashion,10976.0,Phuket
+TXN-01567,31/12/2024,C-0697,Electronics,49925.0,Bangkok
+TXN-01568,29/02/2024,C-0125,Beauty,22420.0,Bangkok
+TXN-01569,23/01/2024,C-0404,Electronics,17561.0,Chonburi
+TXN-01570,31/10/2024,C-0383,Beauty,43128.0,Bangkok
+TXN-01571,19/06/2024,C-0605,Home & Living,2388.0,Phuket
+TXN-01572,24/01/2024,C-0952,Sports,43190.0,Chiang Mai
+TXN-01573,03/12/2024,C-0975,Beauty,27087.0,Phuket
+TXN-01574,12/01/2024,C-0109,Sports,7885.0,Bangkok
+TXN-01575,08/06/2024,C-0858,Home & Living,7494.0,Chiang Mai
+TXN-01576,17/04/2024,C-0332,Beauty,13973.0,Chiang Mai
+TXN-01577,08/04/2024,C-0158,Home & Living,37869.0,Bangkok
+TXN-01578,29/09/2024,C-0030,Electronics,20069.0,Bangkok
+TXN-01579,13/08/2024,C-0084,Home & Living,44684.0,Chiang Mai
+TXN-01580,19/05/2024,C-0472,Electronics,39379.0,Phuket
+TXN-01581,20/05/2024,C-0851,Beauty,24154.0,Khon Kaen
+TXN-01582,14/11/2024,C-0725,Home & Living,42956.0,Chonburi
+TXN-01583,22/02/2024,C-0676,Electronics,37648.0,Phuket
+TXN-01584,28/06/2024,C-0492,Fashion,17036.0,Khon Kaen
+TXN-01585,18/05/2024,C-0465,Fashion,2060.0,Phuket
+TXN-01586,26/12/2024,C-0644,Home & Living,14683.0,Chonburi
+TXN-01587,20/10/2024,C-0979,Fashion,22384.0,Khon Kaen
+TXN-01588,06/02/2024,C-0276,Home & Living,47682.0,Bangkok
+TXN-01589,22/06/2024,C-0609,Home & Living,21953.0,Chonburi
+TXN-01590,26/01/2024,C-0674,Unknown,26108.0,Bangkok
+TXN-01591,29/08/2024,C-0006,Home & Living,11330.0,Khon Kaen
+TXN-01592,26/01/2024,C-0338,Electronics,31968.0,Phuket
+TXN-01593,28/01/2024,C-0994,Home & Living,19200.0,Phuket
+TXN-01594,19/07/2024,C-0045,Unknown,44214.0,Phuket
+TXN-01595,01/11/2024,C-0672,Electronics,16786.0,Bangkok
+TXN-01596,18/11/2024,C-0638,Fashion,7529.0,Chonburi
+TXN-01597,24/12/2024,C-0974,Home & Living,2544.0,Bangkok
+TXN-01598,01/07/2024,C-0464,Sports,1234.0,Bangkok
+TXN-01599,11/04/2024,C-0333,Sports,500.0,Bangkok
+TXN-01600,09/12/2024,C-0971,Electronics,25496.0,Chiang Mai
+TXN-01601,10/02/2024,C-0750,Fashion,10952.0,Phuket
+TXN-01602,26/08/2024,C-0752,Fashion,24620.0,Chonburi
+TXN-01603,17/02/2024,C-0929,Electronics,13003.0,Chonburi
+TXN-01604,23/12/2024,C-0981,Electronics,49117.0,Bangkok
+TXN-01605,21/08/2024,C-0817,Home & Living,5487.0,Bangkok
+TXN-01606,25/11/2024,C-0583,Beauty,43336.0,Bangkok
+TXN-01607,26/08/2024,C-0133,Electronics,2793.0,Phuket
+TXN-01608,24/04/2024,C-0217,Home & Living,20295.0,Phuket
+TXN-01609,11/11/2024,C-0884,Fashion,30445.0,Bangkok
+TXN-01610,05/07/2024,C-0050,Home & Living,13912.0,Chonburi
+TXN-01611,24/12/2024,C-0821,Fashion,42227.0,Bangkok
+TXN-01612,18/06/2024,C-0660,Fashion,45184.0,Phuket
+TXN-01613,15/06/2024,C-0290,Beauty,31728.0,Phuket
+TXN-01614,16/01/2024,C-0331,Home & Living,7878.0,Bangkok
+TXN-01615,27/02/2024,C-0818,Home & Living,15888.0,Chonburi
+TXN-01616,24/08/2024,C-0057,Beauty,38496.0,Chiang Mai
+TXN-01617,24/05/2024,C-0762,Beauty,18400.0,Phuket
+TXN-01618,05/11/2024,C-0073,Beauty,46563.0,Bangkok
+TXN-01619,17/09/2024,C-0561,Sports,4647.0,Chonburi
+TXN-01620,31/12/2024,C-0975,Home & Living,10546.0,Bangkok
+TXN-01621,15/06/2024,C-0617,Home & Living,26553.0,Bangkok
+TXN-01622,06/02/2024,C-0391,Beauty,2459.0,Bangkok
+TXN-01623,29/09/2024,C-0095,Beauty,28843.0,Chiang Mai
+TXN-01624,29/10/2024,C-0409,Sports,27528.0,Khon Kaen
+TXN-01625,13/11/2024,C-0262,Beauty,1369.0,Bangkok
+TXN-01626,22/03/2024,C-0183,Fashion,3385.0,Phuket
+TXN-01627,15/07/2024,C-0246,Home & Living,18904.0,Chiang Mai
+TXN-01628,16/04/2024,C-0989,Sports,47611.0,Bangkok
+TXN-01629,29/10/2024,C-0790,Fashion,18016.0,Chiang Mai
+TXN-01630,10/08/2024,C-0887,Sports,18323.0,Phuket
+TXN-01631,24/06/2024,C-0409,Electronics,12825.0,Khon Kaen
+TXN-01632,30/04/2024,C-0092,Beauty,29859.0,Phuket
+TXN-01633,08/12/2024,C-0022,Electronics,43110.0,Bangkok
+TXN-01634,30/12/2024,C-0873,Sports,37410.0,Chonburi
+TXN-01635,06/09/2024,C-0214,Electronics,29030.0,Bangkok
+TXN-01636,01/11/2024,C-0167,Home & Living,46568.0,Chiang Mai
+TXN-01637,11/10/2024,C-0398,Electronics,15672.0,Chonburi
+TXN-01638,15/08/2024,C-0799,Electronics,49162.0,Khon Kaen
+TXN-01639,26/07/2024,C-0413,Sports,24357.0,Chonburi
+TXN-01640,25/02/2024,C-0292,Home & Living,24571.0,Bangkok
+TXN-01641,01/11/2024,C-0663,Electronics,31464.0,Phuket
+TXN-01642,13/07/2024,C-0771,Sports,24962.0,Phuket
+TXN-01643,26/11/2024,C-0978,Electronics,24831.0,Khon Kaen
+TXN-01644,16/02/2024,C-0670,Sports,35939.0,Chonburi
+TXN-01645,12/03/2024,C-0158,Beauty,48681.0,Chonburi
+TXN-01646,21/11/2024,C-0124,Fashion,27173.0,Phuket
+TXN-01647,16/03/2024,C-0306,Home & Living,26831.0,Chonburi
+TXN-01648,19/08/2024,C-0503,Electronics,23269.0,Bangkok
+TXN-01649,18/07/2024,C-0821,Sports,10175.0,Bangkok
+TXN-01650,16/08/2024,C-0443,Electronics,49760.0,Phuket
+TXN-01651,14/12/2024,C-0754,Fashion,44783.0,Chiang Mai
+TXN-01652,02/06/2024,C-0826,Electronics,24114.0,Khon Kaen
+TXN-01653,13/12/2024,C-0944,Fashion,6165.0,Bangkok
+TXN-01654,10/08/2024,C-0318,Beauty,9520.0,Bangkok
+TXN-01655,25/06/2024,C-0926,Sports,24005.0,Phuket
+TXN-01656,25/10/2024,C-0702,Electronics,30041.0,Bangkok
+TXN-01657,18/09/2024,C-0618,Home & Living,45086.0,Chonburi
+TXN-01658,06/03/2024,C-0135,Fashion,3302.0,Bangkok
+TXN-01659,01/02/2024,C-0368,Sports,41464.0,Bangkok
+TXN-01660,08/10/2024,C-0682,Sports,22890.0,Chiang Mai
+TXN-01661,01/01/2024,C-0099,Sports,49310.0,Bangkok
+TXN-01662,02/07/2024,C-0853,Fashion,38097.0,Chiang Mai
+TXN-01663,24/05/2024,C-0377,Fashion,13988.0,Bangkok
+TXN-01664,30/04/2024,C-0525,Fashion,26475.0,Phuket
+TXN-01665,29/10/2024,C-0205,Sports,27958.0,Khon Kaen
+TXN-01666,11/06/2024,C-0502,Beauty,33358.0,Chiang Mai
+TXN-01667,26/07/2024,C-0457,Electronics,34550.0,Chiang Mai
+TXN-01668,06/10/2024,C-0907,Beauty,764.0,Khon Kaen
+TXN-01669,29/03/2024,C-0398,Home & Living,36574.0,Chonburi
+TXN-01670,06/04/2024,C-0488,Electronics,11293.0,Bangkok
+TXN-01671,03/07/2024,C-0275,Beauty,45327.0,Bangkok
+TXN-01672,19/03/2024,C-0577,Home & Living,22447.0,Bangkok
+TXN-01673,09/12/2024,C-0615,Sports,21831.0,Chiang Mai
+TXN-01674,06/01/2024,C-0434,Sports,24966.0,Bangkok
+TXN-01675,09/01/2024,C-0093,Sports,26384.0,Phuket
+TXN-01676,06/09/2024,C-0775,Home & Living,26242.0,Bangkok
+TXN-01677,10/03/2024,C-0433,Beauty,23511.0,Chonburi
+TXN-01678,24/11/2024,C-0831,Beauty,45575.0,Chonburi
+TXN-01679,21/08/2024,C-0378,Fashion,7474.0,Chiang Mai
+TXN-01680,22/12/2024,C-0629,Sports,42698.0,Chonburi
+TXN-01681,05/08/2024,C-0191,Sports,45978.0,Chonburi
+TXN-01682,20/08/2024,C-0445,Electronics,12842.0,Chiang Mai
+TXN-01683,09/10/2024,C-0646,Fashion,33563.0,Bangkok
+TXN-01684,15/07/2024,C-0437,Sports,32953.0,Bangkok
+TXN-01685,05/04/2024,C-0096,Fashion,5232.0,Chiang Mai
+TXN-01686,04/01/2024,C-0042,Home & Living,20590.0,Bangkok
+TXN-01687,01/05/2024,C-0526,Electronics,27115.0,Phuket
+TXN-01688,17/05/2024,C-0350,Beauty,14213.0,Phuket
+TXN-01689,06/10/2024,C-0997,Beauty,6829.0,Khon Kaen
+TXN-01690,18/01/2024,C-0475,Fashion,13017.0,Chonburi
+TXN-01691,17/10/2024,C-0693,Sports,2538.0,Chiang Mai
+TXN-01692,07/07/2024,C-0230,Sports,14071.0,Bangkok
+TXN-01693,03/09/2024,C-0664,Home & Living,45096.0,Phuket
+TXN-01694,10/02/2024,C-0703,Sports,17109.0,Bangkok
+TXN-01695,26/09/2024,C-0731,Sports,8295.0,Bangkok
+TXN-01696,23/05/2024,C-0159,Electronics,23930.0,Khon Kaen
+TXN-01697,10/02/2024,C-0954,Fashion,1192.0,Chonburi
+TXN-01698,08/11/2024,C-0508,Electronics,20174.0,Chonburi
+TXN-01699,29/08/2024,C-0540,Beauty,25070.0,Bangkok
+TXN-01700,05/12/2024,C-0645,Fashion,28583.0,Chiang Mai
+TXN-01701,09/02/2024,C-0663,Fashion,31855.0,Chiang Mai
+TXN-01702,03/10/2024,C-0538,Fashion,39384.0,Chiang Mai
+TXN-01703,08/06/2024,C-0086,Beauty,32700.0,Chonburi
+TXN-01704,24/06/2024,C-0298,Beauty,33267.0,Chonburi
+TXN-01705,06/01/2024,C-0480,Electronics,2534.0,Bangkok
+TXN-01706,19/09/2024,C-0448,Electronics,31537.0,Phuket
+TXN-01707,20/10/2024,C-0082,Electronics,25649.0,Bangkok
+TXN-01708,03/08/2024,C-0929,Home & Living,6922.0,Chiang Mai
+TXN-01709,30/05/2024,C-0821,Electronics,38977.0,Phuket
+TXN-01710,19/01/2024,C-0490,Home & Living,23506.0,Bangkok
+TXN-01711,01/11/2024,C-0308,Beauty,45382.0,Bangkok
+TXN-01712,15/10/2024,C-0153,Sports,2290.0,Phuket
+TXN-01713,18/11/2024,C-0131,Fashion,32445.0,Chonburi
+TXN-01714,27/03/2024,C-0701,Beauty,6190.0,Phuket
+TXN-01715,02/12/2024,C-0925,Fashion,36134.0,Bangkok
+TXN-01716,15/11/2024,C-0308,Fashion,16581.0,Bangkok
+TXN-01717,05/09/2024,C-0862,Sports,47398.0,Phuket
+TXN-01718,15/09/2024,C-0255,Fashion,6660.0,Chiang Mai
+TXN-01719,22/05/2024,C-0536,Electronics,49589.0,Chiang Mai
+TXN-01720,11/11/2024,C-0438,Electronics,40058.0,Chiang Mai
+TXN-01721,11/05/2024,C-0303,Fashion,2750.0,Bangkok
+TXN-01722,27/02/2024,C-0583,Home & Living,36716.0,Bangkok
+TXN-01723,29/10/2024,C-0049,Sports,30069.0,Phuket
+TXN-01724,03/12/2024,C-0565,Electronics,27409.0,Chonburi
+TXN-01725,30/03/2024,C-0079,Sports,45315.0,Chonburi
+TXN-01726,24/12/2024,C-0940,Fashion,44752.0,Chiang Mai
+TXN-01727,02/04/2024,C-0047,Beauty,33680.0,Chonburi
+TXN-01728,17/01/2024,C-0526,Home & Living,33403.0,Bangkok
+TXN-01729,13/02/2024,C-0111,Sports,18505.0,Bangkok
+TXN-01730,31/10/2024,C-0523,Electronics,25939.0,Phuket
+TXN-01731,19/03/2024,C-0436,Beauty,35605.0,Phuket
+TXN-01732,30/07/2024,C-0423,Sports,3692.0,Chonburi
+TXN-01733,01/05/2024,C-0097,Sports,8211.0,Chiang Mai
+TXN-01734,22/11/2024,C-0476,Electronics,32684.0,Khon Kaen
+TXN-01735,22/10/2024,C-0677,Electronics,30104.0,Khon Kaen
+TXN-01736,25/06/2024,C-0738,Home & Living,11165.0,Khon Kaen
+TXN-01737,15/05/2024,C-0583,Home & Living,39895.0,Chiang Mai
+TXN-01738,29/02/2024,C-0833,Home & Living,7687.0,Khon Kaen
+TXN-01739,25/08/2024,C-0260,Home & Living,5534.0,Chiang Mai
+TXN-01740,03/06/2024,C-0364,Fashion,32366.0,Phuket
+TXN-01741,29/09/2024,C-0261,Electronics,25882.0,Bangkok
+TXN-01742,15/12/2024,C-0600,Fashion,43352.0,Bangkok
+TXN-01743,30/08/2024,C-0084,Sports,25188.0,Phuket
+TXN-01744,28/09/2024,C-0788,Beauty,12471.0,Khon Kaen
+TXN-01745,07/01/2024,C-0516,Sports,45263.0,Bangkok
+TXN-01746,17/08/2024,C-0017,Electronics,32832.0,Bangkok
+TXN-01747,10/06/2024,C-0117,Home & Living,29641.0,Chiang Mai
+TXN-01748,15/12/2024,C-0759,Electronics,8108.0,Chiang Mai
+TXN-01749,19/02/2024,C-0678,Home & Living,9622.0,Phuket
+TXN-01750,22/11/2024,C-0474,Electronics,40162.0,Chiang Mai
+TXN-01751,09/08/2024,C-0184,Sports,29211.0,Chiang Mai
+TXN-01752,29/11/2024,C-0806,Home & Living,46304.0,Bangkok
+TXN-01753,20/06/2024,C-0187,Electronics,46926.0,Khon Kaen
+TXN-01754,20/02/2024,C-0864,Electronics,45969.0,Phuket
+TXN-01755,26/10/2024,C-0403,Sports,36117.0,Chiang Mai
+TXN-01756,11/12/2024,C-0047,Electronics,31541.0,Chiang Mai
+TXN-01757,10/12/2024,C-0086,Electronics,29092.0,Chonburi
+TXN-01758,09/04/2024,C-0427,Sports,28172.0,Phuket
+TXN-01759,12/12/2024,C-0898,Electronics,6217.0,Bangkok
+TXN-01760,02/04/2024,C-0722,Beauty,44061.0,Bangkok
+TXN-01761,06/01/2024,C-0305,Home & Living,26801.0,Chiang Mai
+TXN-01762,04/02/2024,C-0322,Electronics,16440.0,Khon Kaen
+TXN-01763,20/02/2024,C-0602,Sports,9512.0,Bangkok
+TXN-01764,16/12/2024,C-0742,Home & Living,11116.0,Khon Kaen
+TXN-01765,22/04/2024,C-0466,Home & Living,12741.0,Phuket
+TXN-01766,08/05/2024,C-0776,Fashion,29735.0,Bangkok
+TXN-01767,13/01/2024,C-0687,Electronics,36277.0,Phuket
+TXN-01768,30/01/2024,C-0461,Fashion,17736.0,Chiang Mai
+TXN-01769,02/12/2024,C-0639,Beauty,43508.0,Chiang Mai
+TXN-01770,21/04/2024,C-0828,Electronics,27583.0,Phuket
+TXN-01771,22/11/2024,C-0272,Electronics,3105.0,Chonburi
+TXN-01772,02/03/2024,C-0350,Beauty,10159.0,Bangkok
+TXN-01773,05/11/2024,C-0990,Beauty,49431.0,Bangkok
+TXN-01774,02/12/2024,C-0941,Sports,1233.0,Chiang Mai
+TXN-01775,27/11/2024,C-0893,Beauty,33936.0,Khon Kaen
+TXN-01776,04/04/2024,C-0830,Sports,7889.0,Khon Kaen
+TXN-01777,22/12/2024,C-0192,Home & Living,17925.0,Chiang Mai
+TXN-01778,30/05/2024,C-0217,Home & Living,1080.0,Chiang Mai
+TXN-01779,08/02/2024,C-0190,Electronics,9482.0,Phuket
+TXN-01780,21/05/2024,C-0081,Electronics,16469.0,Chonburi
+TXN-01781,20/12/2024,C-0765,Fashion,14495.0,Chonburi
+TXN-01782,14/06/2024,C-0619,Sports,31613.0,Chonburi
+TXN-01783,07/02/2024,C-0266,Electronics,14532.0,Chonburi
+TXN-01784,01/02/2024,C-0893,Fashion,25918.0,Bangkok
+TXN-01785,19/06/2024,C-0690,Electronics,41593.0,Phuket
+TXN-01786,12/05/2024,C-0109,Beauty,5147.0,Chonburi
+TXN-01787,15/05/2024,C-0445,Electronics,8820.0,Bangkok
+TXN-01788,05/02/2024,C-0548,Sports,10029.0,Bangkok
+TXN-01789,12/04/2024,C-0019,Fashion,4956.0,Phuket
+TXN-01790,01/04/2024,C-0006,Fashion,5257.0,Bangkok
+TXN-01791,25/02/2024,C-0405,Beauty,16691.0,Chonburi
+TXN-01792,08/08/2024,C-0120,Electronics,27599.0,Phuket
+TXN-01793,25/11/2024,C-0014,Sports,24205.0,Bangkok
+TXN-01794,14/08/2024,C-0176,Home & Living,17701.0,Chiang Mai
+TXN-01795,22/02/2024,C-0672,Fashion,49807.0,Bangkok
+TXN-01796,06/02/2024,C-0489,Home & Living,21503.0,Chonburi
+TXN-01797,08/05/2024,C-0472,Sports,2313.0,Chonburi
+TXN-01798,10/01/2024,C-0709,Fashion,48111.0,Bangkok
+TXN-01799,17/03/2024,C-0415,Home & Living,26109.0,Khon Kaen
+TXN-01800,01/01/2024,C-0890,Sports,15227.0,Chiang Mai
+TXN-01801,06/12/2024,C-0674,Electronics,8844.0,Khon Kaen
+TXN-01802,18/03/2024,C-0989,Beauty,33893.0,Chonburi
+TXN-01803,19/07/2024,C-0763,Sports,42838.0,Chiang Mai
+TXN-01804,20/09/2024,C-0617,Electronics,42137.0,Bangkok
+TXN-01805,08/09/2024,C-0744,Fashion,39754.0,Chiang Mai
+TXN-01806,25/07/2024,C-0499,Sports,33080.0,Phuket
+TXN-01807,05/02/2024,C-0311,Sports,28860.0,Chiang Mai
+TXN-01808,02/01/2024,C-0634,Home & Living,27849.0,Phuket
+TXN-01809,18/12/2024,C-0833,Fashion,6060.0,Chiang Mai
+TXN-01810,03/09/2024,C-0998,Fashion,10039.0,Chiang Mai
+TXN-01811,01/10/2024,C-0632,Beauty,3118.0,Phuket
+TXN-01812,02/07/2024,C-0370,Electronics,26273.0,Phuket
+TXN-01813,04/06/2024,C-0708,Electronics,43109.0,Phuket
+TXN-01814,19/11/2024,C-0690,Sports,22879.0,Chiang Mai
+TXN-01815,27/11/2024,C-0987,Electronics,35580.0,Bangkok
+TXN-01816,30/09/2024,C-0707,Sports,20694.0,Phuket
+TXN-01817,23/06/2024,C-0692,Electronics,31296.0,Chiang Mai
+TXN-01818,23/08/2024,C-0405,Beauty,25803.0,Chiang Mai
+TXN-01819,28/05/2024,C-0824,Fashion,45618.0,Chonburi
+TXN-01820,31/03/2024,C-0310,Fashion,37212.0,Phuket
+TXN-01821,15/07/2024,C-0090,Sports,40162.0,Phuket
+TXN-01822,02/06/2024,C-0129,Home & Living,38116.0,Chiang Mai
+TXN-01823,24/02/2024,C-0139,Home & Living,22590.0,Khon Kaen
+TXN-01824,02/07/2024,C-0015,Sports,32591.0,Chonburi
+TXN-01825,19/11/2024,C-0196,Home & Living,35413.0,Phuket
+TXN-01826,07/04/2024,C-0115,Home & Living,41877.0,Bangkok
+TXN-01827,08/04/2024,C-0836,Sports,41730.0,Phuket
+TXN-01828,30/10/2024,C-0017,Electronics,18276.0,Chonburi
+TXN-01829,18/07/2024,C-0713,Sports,39456.0,Phuket
+TXN-01830,03/10/2024,C-0994,Beauty,21016.0,Bangkok
+TXN-01831,12/09/2024,C-0193,Electronics,21744.0,Chiang Mai
+TXN-01832,18/08/2024,C-0880,Sports,37594.0,Chonburi
+TXN-01833,09/01/2024,C-0028,Home & Living,20576.0,Chiang Mai
+TXN-01834,29/01/2024,C-0215,Sports,22454.0,Khon Kaen
+TXN-01835,22/01/2024,C-0493,Sports,27470.0,Bangkok
+TXN-01836,18/04/2024,C-0665,Sports,39674.0,Khon Kaen
+TXN-01837,07/12/2024,C-0149,Beauty,43695.0,Phuket
+TXN-01838,13/12/2024,C-0666,Fashion,40677.0,Khon Kaen
+TXN-01839,01/10/2024,C-0248,Electronics,9627.0,Chiang Mai
+TXN-01840,23/10/2024,C-0447,Home & Living,45610.0,Phuket
+TXN-01841,06/02/2024,C-0863,Fashion,45530.0,Phuket
+TXN-01842,13/03/2024,C-0642,Home & Living,47202.0,Phuket
+TXN-01843,10/01/2024,C-0879,Beauty,21546.0,Bangkok
+TXN-01844,12/11/2024,C-0809,Home & Living,30822.0,Bangkok
+TXN-01845,25/12/2024,C-0552,Home & Living,11864.0,Bangkok
+TXN-01846,08/01/2024,C-0196,Sports,47865.0,Bangkok
+TXN-01847,26/01/2024,C-0089,Unknown,42350.0,Khon Kaen
+TXN-01848,19/02/2024,C-0309,Home & Living,39699.0,Chonburi
+TXN-01849,28/03/2024,C-0789,Fashion,22610.0,Chiang Mai
+TXN-01850,02/02/2024,C-0475,Electronics,42933.0,Bangkok
+TXN-01851,24/02/2024,C-0152,Beauty,25075.0,Chiang Mai
+TXN-01852,31/10/2024,C-0486,Home & Living,32241.0,Chonburi
+TXN-01853,22/04/2024,C-0433,Sports,37736.0,Phuket
+TXN-01854,13/04/2024,C-0023,Electronics,22873.0,Bangkok
+TXN-01855,13/12/2024,C-0120,Electronics,40213.0,Bangkok
+TXN-01856,02/03/2024,C-0171,Sports,8654.0,Chiang Mai
+TXN-01857,21/10/2024,C-0925,Electronics,36589.0,Chiang Mai
+TXN-01858,13/06/2024,C-0157,Home & Living,714.0,Chiang Mai
+TXN-01859,19/04/2024,C-0757,Home & Living,17199.0,Bangkok
+TXN-01860,30/10/2024,C-0720,Beauty,30303.0,Bangkok
+TXN-01861,02/02/2024,C-0456,Fashion,36587.0,Chiang Mai
+TXN-01862,13/03/2024,C-0987,Sports,18659.0,Khon Kaen
+TXN-01863,27/03/2024,C-0497,Fashion,28057.0,Bangkok
+TXN-01864,10/10/2024,C-0483,Electronics,3841.0,Phuket
+TXN-01865,04/05/2024,C-0021,Sports,41663.0,Phuket
+TXN-01866,21/01/2024,C-0881,Sports,39511.0,Bangkok
+TXN-01867,19/11/2024,C-0461,Sports,29150.0,Bangkok
+TXN-01868,21/03/2024,C-0600,Electronics,8327.0,Bangkok
+TXN-01869,06/09/2024,C-0249,Home & Living,8555.0,Bangkok
+TXN-01870,04/01/2024,C-0207,Electronics,4071.0,Phuket
+TXN-01871,15/02/2024,C-0302,Home & Living,5105.0,Phuket
+TXN-01872,30/10/2024,C-0584,Electronics,36445.0,Chiang Mai
+TXN-01873,01/08/2024,C-0850,Home & Living,8850.0,Phuket
+TXN-01874,31/08/2024,C-0854,Sports,49194.0,Phuket
+TXN-01875,15/04/2024,C-0402,Sports,13927.0,Khon Kaen
+TXN-01876,18/05/2024,C-0053,Fashion,43773.0,Bangkok
+TXN-01877,29/07/2024,C-0342,Home & Living,1145.0,Bangkok
+TXN-01878,30/03/2024,C-0009,Beauty,41418.0,Phuket
+TXN-01879,20/01/2024,C-0106,Beauty,19124.0,Chiang Mai
+TXN-01880,12/09/2024,C-0646,Fashion,15605.0,Bangkok
+TXN-01881,15/02/2024,C-0868,Sports,40061.0,Bangkok
+TXN-01882,03/06/2024,C-0731,Home & Living,17980.0,Bangkok
+TXN-01883,03/01/2024,C-0443,Home & Living,23670.0,Bangkok
+TXN-01884,08/04/2024,C-0426,Home & Living,10442.0,Phuket
+TXN-01885,28/09/2024,C-0869,Fashion,38780.0,Chiang Mai
+TXN-01886,12/11/2024,C-0508,Home & Living,14909.0,Chiang Mai
+TXN-01887,03/10/2024,C-0755,Sports,25618.0,Chonburi
+TXN-01888,25/08/2024,C-0593,Sports,40889.0,Bangkok
+TXN-01889,03/12/2024,C-0611,Home & Living,24903.5,Chonburi
+TXN-01890,28/01/2024,C-0749,Sports,37936.0,Phuket
+TXN-01891,17/03/2024,C-0568,Home & Living,18176.0,Chiang Mai
+TXN-01892,30/08/2024,C-0298,Beauty,8663.0,Phuket
+TXN-01893,22/03/2024,C-0038,Electronics,27133.0,Phuket
+TXN-01894,23/01/2024,C-0500,Fashion,30614.0,Chiang Mai
+TXN-01895,05/07/2024,C-0410,Electronics,11873.0,Chonburi
+TXN-01896,10/08/2024,C-0498,Fashion,18815.0,Phuket
+TXN-01897,11/11/2024,C-0526,Sports,16148.0,Bangkok
+TXN-01898,20/08/2024,C-0606,Beauty,29020.0,Chonburi
+TXN-01899,27/01/2024,C-0743,Electronics,39803.0,Bangkok
+TXN-01900,31/03/2024,C-0627,Sports,29739.0,Chiang Mai
+TXN-01901,15/01/2024,C-0958,Sports,7077.0,Chonburi
+TXN-01902,29/02/2024,C-0695,Sports,27273.0,Bangkok
+TXN-01903,30/04/2024,C-0927,Home & Living,29501.0,Phuket
+TXN-01904,30/10/2024,C-0837,Sports,25696.0,Chonburi
+TXN-01905,02/08/2024,C-0889,Fashion,49697.0,Phuket
+TXN-01906,12/12/2024,C-0500,Home & Living,35972.0,Chonburi
+TXN-01907,27/04/2024,C-0238,Home & Living,13943.0,Khon Kaen
+TXN-01908,15/06/2024,C-0732,Electronics,32712.0,Bangkok
+TXN-01909,01/05/2024,C-0063,Beauty,34836.0,Chonburi
+TXN-01910,12/04/2024,C-0541,Beauty,1857.0,Chonburi
+TXN-01911,22/04/2024,C-0020,Home & Living,40846.0,Phuket
+TXN-01912,26/10/2024,C-0433,Electronics,29479.0,Chonburi
+TXN-01913,11/08/2024,C-0591,Beauty,24942.0,Phuket
+TXN-01914,08/11/2024,C-0324,Beauty,5569.0,Bangkok
+TXN-01915,17/07/2024,C-0567,Fashion,46305.0,Phuket
+TXN-01916,22/08/2024,C-0066,Fashion,11535.0,Phuket
+TXN-01917,19/11/2024,C-0275,Fashion,14074.0,Bangkok
+TXN-01918,18/05/2024,C-0915,Beauty,23651.0,Bangkok
+TXN-01919,06/03/2024,C-0664,Fashion,16803.0,Bangkok
+TXN-01920,18/10/2024,C-0428,Home & Living,15631.0,Chonburi
+TXN-01921,10/03/2024,C-0911,Electronics,31283.0,Khon Kaen
+TXN-01922,26/08/2024,C-0485,Beauty,45489.0,Phuket
+TXN-01923,28/03/2024,C-0120,Fashion,16495.0,Bangkok
+TXN-01924,22/04/2024,C-0507,Fashion,4739.0,Chonburi
+TXN-01925,05/11/2024,C-0638,Beauty,1933.0,Chonburi
+TXN-01926,22/11/2024,C-0962,Unknown,23121.0,Phuket
+TXN-01927,28/03/2024,C-0662,Home & Living,1843.0,Chonburi
+TXN-01928,10/10/2024,C-0356,Beauty,47959.0,Phuket
+TXN-01929,14/02/2024,C-0460,Fashion,28296.0,Chonburi
+TXN-01930,24/09/2024,C-0715,Beauty,17206.0,Chonburi
+TXN-01931,20/04/2024,C-0447,Fashion,18137.0,Bangkok
+TXN-01932,24/08/2024,C-0022,Fashion,17530.0,Chonburi
+TXN-01933,07/08/2024,C-0166,Sports,11545.0,Phuket
+TXN-01934,06/05/2024,C-0295,Beauty,38870.0,Phuket
+TXN-01935,10/08/2024,C-0744,Beauty,39762.0,Chiang Mai
+TXN-01936,29/10/2024,C-0197,Fashion,13326.0,Chiang Mai
+TXN-01937,20/10/2024,C-0481,Electronics,25498.0,Chonburi
+TXN-01938,01/08/2024,C-0353,Home & Living,15480.0,Bangkok
+TXN-01939,21/01/2024,C-0449,Sports,10904.0,Chiang Mai
+TXN-01940,15/09/2024,C-0238,Electronics,46068.0,Phuket
+TXN-01941,28/09/2024,C-0520,Home & Living,16909.0,Phuket
+TXN-01942,22/12/2024,C-0225,Beauty,17221.0,Chiang Mai
+TXN-01943,19/08/2024,C-0602,Beauty,19712.0,Bangkok
+TXN-01944,12/02/2024,C-0931,Beauty,29066.0,Chiang Mai
+TXN-01945,07/01/2024,C-0702,Fashion,12691.0,Chiang Mai
+TXN-01946,27/07/2024,C-0348,Sports,20920.0,Bangkok
+TXN-01947,08/03/2024,C-0944,Sports,4876.0,Phuket
+TXN-01948,02/05/2024,C-0617,Electronics,6547.0,Khon Kaen
+TXN-01949,16/02/2024,C-0874,Home & Living,38026.0,Phuket
+TXN-01950,08/12/2024,C-0863,Beauty,49068.0,Bangkok
+TXN-01951,26/12/2024,C-0733,Beauty,36409.0,Chiang Mai
+TXN-01952,19/10/2024,C-0673,Sports,28239.0,Bangkok
+TXN-01953,13/01/2024,C-0480,Electronics,15982.0,Chiang Mai
+TXN-01954,25/08/2024,C-0135,Beauty,24903.5,Khon Kaen
+TXN-01955,26/12/2024,C-0905,Sports,39994.0,Phuket
+TXN-01956,08/07/2024,C-0301,Sports,4915.0,Phuket
+TXN-01957,26/12/2024,C-0741,Beauty,18132.0,Bangkok
+TXN-01958,17/11/2024,C-0729,Beauty,12213.0,Chonburi
+TXN-01959,19/12/2024,C-0400,Fashion,30812.0,Chiang Mai
+TXN-01960,17/01/2024,C-0983,Electronics,24678.0,Chonburi
+TXN-01961,18/05/2024,C-0427,Fashion,10508.0,Bangkok
+TXN-01962,09/11/2024,C-0854,Home & Living,12742.0,Chiang Mai
+TXN-01963,16/04/2024,C-0964,Sports,1073.0,Chonburi
+TXN-01964,11/02/2024,C-0690,Home & Living,11758.0,Chiang Mai
+TXN-01965,20/06/2024,C-0669,Electronics,34136.0,Chiang Mai
+TXN-01966,29/01/2024,C-0753,Beauty,33327.0,Chiang Mai
+TXN-01967,11/12/2024,C-0369,Fashion,4225.0,Chonburi
+TXN-01968,27/01/2024,C-0816,Home & Living,11444.0,Phuket
+TXN-01969,06/07/2024,C-0484,Electronics,10717.0,Chiang Mai
+TXN-01970,21/01/2024,C-0819,Home & Living,16354.0,Bangkok
+TXN-01971,30/03/2024,C-0995,Fashion,24564.0,Phuket
+TXN-01972,26/12/2024,C-0865,Sports,18802.0,Phuket
+TXN-01973,29/12/2024,C-0166,Electronics,30315.0,Chonburi
+TXN-01974,11/03/2024,C-0637,Electronics,7700.0,Chonburi
+TXN-01975,02/05/2024,C-0213,Sports,11122.0,Bangkok
+TXN-01976,28/11/2024,C-0290,Fashion,49947.0,Phuket
+TXN-01977,24/10/2024,C-0708,Unknown,25234.0,Chiang Mai
+TXN-01978,25/12/2024,C-0768,Electronics,19322.0,Phuket
+TXN-01979,25/04/2024,C-0089,Home & Living,32609.0,Phuket
+TXN-01980,16/05/2024,C-0684,Sports,26387.0,Bangkok
+TXN-01981,04/08/2024,C-0495,Beauty,48094.0,Phuket
+TXN-01982,02/02/2024,C-0133,Beauty,34909.0,Chonburi
+TXN-01983,19/08/2024,C-0178,Electronics,42924.0,Khon Kaen
+TXN-01984,26/09/2024,C-0205,Electronics,23695.0,Chiang Mai
+TXN-01985,28/08/2024,C-0161,Beauty,38345.0,Bangkok
+TXN-01986,13/12/2024,C-0621,Electronics,49608.0,Phuket
+TXN-01987,29/05/2024,C-0504,Home & Living,16977.0,Bangkok
+TXN-01988,07/07/2024,C-0104,Electronics,27217.0,Phuket
+TXN-01989,20/12/2024,C-0813,Electronics,33250.0,Bangkok
+TXN-01990,03/02/2024,C-0426,Fashion,2886.0,Bangkok
+TXN-01991,22/08/2024,C-0966,Home & Living,39808.0,Phuket
+TXN-01992,19/07/2024,C-0506,Home & Living,20058.0,Khon Kaen
+TXN-01993,27/05/2024,C-0311,Sports,27527.0,Bangkok
+TXN-01994,09/02/2024,C-0241,Electronics,20129.0,Bangkok
+TXN-01995,21/05/2024,C-0215,Home & Living,21114.0,Chonburi
+TXN-01996,16/03/2024,C-0571,Electronics,49672.0,Bangkok
+TXN-01997,14/04/2024,C-0049,Sports,24903.5,Bangkok
+TXN-01998,17/11/2024,C-0019,Sports,42341.0,Bangkok
+TXN-01999,01/08/2024,C-0368,Electronics,29987.0,Bangkok
+TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi
+`;
+
+        function processFromText() {
+            const text = document.getElementById('csvTextInput').value;
+            if (!text.trim()) { alert("กรุณาวางข้อมูล CSV ก่อนครับ"); return; }
+            processData(text);
+        }
+
+        function processFromFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) { processData(e.target.result); };
+            reader.readAsText(file);
+        }
+
+        function processData(csvData) {
+            const lines = csvData.split('\n').filter(line => line.trim() !== '');
+            if (lines.length < 2) return;
+
+            const headers = lines[0].split(',').map(h => h.trim());
+            const dateIndex = headers.findIndex(h => h.toLowerCase().includes('date'));
+            const salesIndex = headers.findIndex(h => h.toLowerCase().includes('sales') || h.toLowerCase().includes('amount'));
+
+            if (dateIndex === -1 || salesIndex === -1) {
+                alert("ไม่พบคอลัมน์ Date หรือ Sales_Amount");
+                return;
+            }
+
+            // 1. Aggregate Sales by Month
+            const monthlySales = {};
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(',');
+                if (cols.length < headers.length) continue;
+
+                const dateStr = cols[dateIndex].trim();
+                const sales = parseFloat(cols[salesIndex].trim());
+                const dateObj = parseDate(dateStr);
+
+                if (!dateObj || isNaN(sales)) continue;
+
+                const monthKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+                monthlySales[monthKey] = (monthlySales[monthKey] || 0) + sales;
+            }
+
+            // Convert to array and sort
+            const sortedMonths = Object.keys(monthlySales).sort();
+            const historicalData = sortedMonths.map(m => ({ month: m, sales: monthlySales[m] }));
+
+            // 2. Perform Linear Regression
+            // X = 0, 1, 2... (Time Index)
+            // Y = Sales Amount
+            const n = historicalData.length;
+            const x = Array.from({length: n}, (_, i) => i);
+            const y = historicalData.map(d => d.sales);
+
+            const regression = linearRegression(y, x);
+
+            // 3. Forecast Next 3 Months
+            const forecastData = [];
+            const lastMonthStr = historicalData[n - 1].month;
+            const lastDate = new Date(lastMonthStr + "-01");
+
+            for (let i = 1; i <= 3; i++) {
+                const nextDate = new Date(lastDate.getFullYear(), lastDate.getMonth() + i, 1);
+                const nextMonthStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`;
+                const nextX = (n - 1) + i;
+                const predictedSales = regression.slope * nextX + regression.intercept;
+                
+                forecastData.push({
+                    month: nextMonthStr,
+                    sales: Math.max(0, predictedSales) // Prevent negative sales
+                });
+            }
+
+            updateUI({ historicalData, forecastData });
+        }
+
+        // Simple Linear Regression: y = mx + c
+        function linearRegression(y, x) {
+            const n = y.length;
+            let sum_x = 0;
+            let sum_y = 0;
+            let sum_xy = 0;
+            let sum_xx = 0;
+
+            for (let i = 0; i < n; i++) {
+                sum_x += x[i];
+                sum_y += y[i];
+                sum_xy += (x[i] * y[i]);
+                sum_xx += (x[i] * x[i]);
+            }
+
+            const slope = (n * sum_xy - sum_x * sum_y) / (n * sum_xx - sum_x * sum_x);
+            const intercept = (sum_y - slope * sum_x) / n;
+
+            return { slope, intercept };
+        }
+
+        function updateUI(data) {
+            document.getElementById('dashboard').classList.remove('hidden');
+            const fmt = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 });
+
+            const forecast = data.forecastData;
+
+            // Update Cards
+            if (forecast.length >= 1) {
+                document.getElementById('label-m1').innerText = forecast[0].month;
+                document.getElementById('val-m1').innerText = fmt.format(forecast[0].sales);
+            }
+            if (forecast.length >= 2) {
+                document.getElementById('label-m2').innerText = forecast[1].month;
+                document.getElementById('val-m2').innerText = fmt.format(forecast[1].sales);
+            }
+            if (forecast.length >= 3) {
+                document.getElementById('label-m3').innerText = forecast[2].month;
+                document.getElementById('val-m3').innerText = fmt.format(forecast[2].sales);
+            }
+
+            // Render Chart
+            renderForecastChart(data.historicalData, data.forecastData);
+
+            // Render History Table
+            renderHistoryTable(data.historicalData, fmt);
+        }
+
+        function renderForecastChart(historical, forecast) {
+            const ctx = document.getElementById('forecastChart').getContext('2d');
+            if (forecastChart) forecastChart.destroy();
+
+            // Prepare Labels
+            const historyLabels = historical.map(d => d.month);
+            const forecastLabels = forecast.map(d => d.month);
+            const allLabels = [...historyLabels, ...forecastLabels];
+
+            // Prepare Data for 2 Datasets
+            // Dataset 1: Historical (Solid Line) -> [v1, v2, ..., vn, null, null, null]
+            // Dataset 2: Forecast (Dashed Line) -> [null, ..., null, vn, f1, f2, f3] (Connect last point)
+            
+            const historyValues = historical.map(d => d.sales);
+            const lastHistoryVal = historyValues[historyValues.length - 1];
+            
+            // Pad history data with nulls for forecast period
+            const chartHistoryData = [...historyValues, ...Array(forecast.length).fill(null)];
+
+            // Pad forecast data with nulls for history period (except last point to connect)
+            const forecastValues = [lastHistoryVal, ...forecast.map(d => d.sales)];
+            const padding = Array(historyValues.length - 1).fill(null);
+            const chartForecastData = [...padding, ...forecastValues];
+
+            forecastChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: allLabels,
+                    datasets: [
+                        {
+                            label: 'Actual Sales',
+                            data: chartHistoryData,
+                            borderColor: '#2563eb', // Blue
+                            backgroundColor: '#2563eb',
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Forecast (Trend)',
+                            data: chartForecastData,
+                            borderColor: '#ef4444', // Red
+                            backgroundColor: '#ef4444',
+                            borderWidth: 2,
+                            borderDash: [5, 5], // Dashed Line
+                            pointRadius: 4,
+                            pointStyle: 'rectRot',
+                            fill: false,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Sales Amount (THB)' } }
+                    }
+                }
+            });
+        }
+
+        function renderHistoryTable(data, fmt) {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+            
+            // Show latest first
+            const reversedData = [...data].reverse();
+
+            reversedData.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                
+                // Calculate MoM Growth
+                let growth = '-';
+                if (index < reversedData.length - 1) {
+                    const prev = reversedData[index + 1].sales;
+                    const curr = row.sales;
+                    if (prev > 0) {
+                        const pct = ((curr - prev) / prev) * 100;
+                        const colorClass = pct >= 0 ? 'text-green-600' : 'text-red-600';
+                        const sign = pct >= 0 ? '+' : '';
+                        growth = `<span class="${colorClass} font-bold">${sign}${pct.toFixed(1)}%</span>`;
+                    }
+                }
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium text-slate-700 text-xs">${row.month}</td>
+                    <td class="px-4 py-3 text-right font-mono text-slate-600 text-xs">${fmt.format(row.sales)}</td>
+                    <td class="px-4 py-3 text-right text-xs">${growth}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            processData(integratedData);
+        });
+    </script>
+</body>
+</html>
