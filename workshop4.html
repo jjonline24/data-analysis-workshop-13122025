@@ -3,244 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workshop 4: Correlation & Segmentation Analysis</title>
+    <title>Workshop 4: Customer Analytics</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
         body { font-family: 'Sarabun', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         @media print {
             .no-print { display: none !important; }
-            .print-break { page-break-before: always; }
-            body { background-color: white; padding: 0; }
-            .shadow-sm, .shadow-md, .shadow-lg { box-shadow: none !important; }
-            .max-w-7xl { max-width: none; }
+            body { background: white; }
+            .shadow-sm, .shadow-md { box-shadow: none !important; border: 1px solid #ddd; }
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen p-4 md:p-8">
+<body class="bg-slate-100 text-slate-800 min-h-screen p-6">
 
-    <div class="max-w-7xl mx-auto space-y-8">
+    <div class="max-w-7xl mx-auto space-y-6">
         
-        <!-- Header Section -->
-        <header class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <!-- Header (Layout like Workshop 3) -->
+        <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm">
             <div>
-                <h1 class="text-2xl font-bold text-indigo-700 flex items-center gap-2">
-                    <i class="fa-solid fa-chart-line"></i> Workshop 4: Customer Analytics
-                </h1>
-                <p class="text-slate-500 mt-1">วิเคราะห์ความสัมพันธ์ยอดขาย (Correlation) และจัดกลุ่มลูกค้า (Segmentation)</p>
+                <h1 class="text-2xl font-bold text-indigo-600">📊 Workshop 4: Customer Analytics</h1>
+                <p class="text-slate-500 text-sm mt-1">วิเคราะห์ความสัมพันธ์ยอดขาย และจัดกลุ่มลูกค้า (Segmentation)</p>
             </div>
-            <div class="text-right hidden md:block">
-                <p class="text-xs text-slate-400">System Status</p>
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Online
-                </span>
+            <div class="mt-4 md:mt-0 no-print">
+                <!-- Method 2: Upload CSV Only -->
+                <div class="flex items-center gap-2">
+                    <label for="csvInput" class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow transition flex items-center gap-2">
+                        <i class="fas fa-upload"></i> อัปโหลดไฟล์ CSV
+                    </label>
+                    <input type="file" id="csvInput" accept=".csv" class="hidden" onchange="handleFileUpload(this)">
+                </div>
+                <div class="text-xs text-slate-400 text-right mt-1">รองรับไฟล์ .csv</div>
             </div>
         </header>
 
-        <!-- Project Overview Columns -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Col 1 -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500">
-                <h3 class="font-bold text-lg mb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-blue-500"></i> สิ่งที่ต้องทำ (To Do)
-                </h3>
-                <ul class="text-sm space-y-2 text-slate-600 list-disc list-inside">
-                    <li>อัปโหลดไฟล์ Transaction (มี Customer ID)</li>
-                    <li>ตรวจสอบค่าผิดปกติ (Outliers) ของยอดขาย</li>
-                    <li>แบ่งกลุ่มลูกค้า (Segmentation) ตามยอดซื้อและความถี่</li>
-                </ul>
+        <!-- Section 1: Project Objectives -->
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+            <h2 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">
+                <i class="fas fa-tasks text-indigo-500 mr-2"></i>รายละเอียดโจทย์และเป้าหมาย
+            </h2>
+            <div class="overflow-x-auto rounded-lg border border-slate-200">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-700 text-sm font-semibold">
+                            <th class="p-4 border-b border-slate-200 w-1/3">สิ่งที่ต้องทำ (Task)</th>
+                            <th class="p-4 border-b border-slate-200 w-1/3">การวิเคราะห์ (Analysis)</th>
+                            <th class="p-4 border-b border-slate-200 w-1/3">ผลลัพธ์ที่ต้องส่งมอบ (Deliverables)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm divide-y divide-slate-100">
+                        <tr>
+                            <td class="p-4 align-top">
+                                1. วิเคราะห์ความสัมพันธ์ยอดขายและวัน
+                            </td>
+                            <td class="p-4 align-top text-slate-600">
+                                - หา Correlation ระหว่างยอดขาย กับ ประเภทวัน (Weekday/Weekend)<br>
+                                - ตรวจสอบค่าผิดปกติ (Outliers)
+                            </td>
+                            <td class="p-4 align-top">
+                                <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-bold mr-1">Graph</span> Scatter Plot แสดง Outliers
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 align-top">
+                                2. จัดกลุ่มลูกค้า (Segmentation)
+                            </td>
+                            <td class="p-4 align-top text-slate-600">
+                                - ใช้เกณฑ์ RFM (Spending & Frequency)<br>
+                                - แบ่ง 3 กลุ่ม: Gold, Silver, Bronze
+                            </td>
+                            <td class="p-4 align-top">
+                                <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-xs font-bold mr-1">Chart</span> Pie Chart สัดส่วนลูกค้า<br>
+                                <span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-bold mr-1">Table</span> Top 10 Customers
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <!-- Col 2 -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-purple-500">
-                <h3 class="font-bold text-lg mb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-magnifying-glass-chart text-purple-500"></i> การวิเคราะห์ (Analysis)
+        </section>
+
+        <!-- Section 2: Key Findings & Top 3 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Key Findings Card -->
+            <div class="md:col-span-1 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white p-6 rounded-xl shadow-md flex flex-col justify-center">
+                <h3 class="text-lg font-bold mb-4 border-b border-indigo-400 pb-2">
+                    <i class="fas fa-lightbulb mr-2"></i>ข้อค้นพบหลัก
                 </h3>
-                <ul class="text-sm space-y-2 text-slate-600 list-disc list-inside">
-                    <li>Correlation: Sales Amount vs Day Type</li>
-                    <li>หา Outliers ด้วยวิธี IQR Method</li>
-                    <li>จัดกลุ่ม: Gold, Silver, Bronze (RFM Basis)</li>
-                </ul>
+                <div id="keyFindings" class="space-y-3 text-sm text-indigo-50 leading-relaxed">
+                    <!-- Dynamic Findings -->
+                    <p class="animate-pulse">Waiting for data...</p>
+                </div>
             </div>
-            <!-- Col 3 -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-500">
-                <h3 class="font-bold text-lg mb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-flag-checkered text-emerald-500"></i> ผลลัพธ์ (Deliverables)
-                </h3>
-                <ul class="text-sm space-y-2 text-slate-600 list-disc list-inside">
-                    <li>กราฟ Scatter Plot แสดงการกระจายตัว</li>
-                    <li>กราฟจำนวนลูกค้าในแต่ละ Segment</li>
-                    <li>รายชื่อ Top 10 Customers</li>
-                </ul>
+
+            <!-- Top 3 Customers -->
+            <div class="md:col-span-3">
+                 <h3 class="text-lg font-bold text-slate-700 mb-3 ml-1">🏆 Top 3 Customers (High Spending)</h3>
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="top3Container">
+                    <!-- Dynamic Cards -->
+                 </div>
             </div>
         </div>
 
-        <!-- Upload Section -->
-        <section class="bg-white p-8 rounded-xl shadow-md text-center border border-dashed border-slate-300 no-print">
-            <div class="max-w-xl mx-auto">
-                <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                </div>
-                <h2 class="text-xl font-bold mb-2">อัปโหลดไฟล์ CSV</h2>
-                <p class="text-slate-500 text-sm mb-6">รองรับไฟล์ .csv (ต้องมีคอลัมน์ Customer_ID, Date, Sales_Amount)</p>
-                
-                <label class="block">
-                    <span class="sr-only">Choose file</span>
-                    <input type="file" id="csvFileInput" accept=".csv"
-                        class="block w-full text-sm text-slate-500
-                        file:mr-4 file:py-2.5 file:px-6
-                        file:rounded-full file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-indigo-600 file:text-white
-                        file:hover:bg-indigo-700
-                        cursor-pointer transition-colors
-                    "/>
-                </label>
-                <p id="fileInfo" class="mt-3 text-xs text-slate-400"></p>
+        <!-- Section 3: Summary & Insights -->
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+            <h3 class="text-lg font-bold text-slate-700 mb-3 flex items-center">
+                <i class="fas fa-clipboard-list text-indigo-500 mr-2"></i> สรุปผลการวิเคราะห์ (Summary & Insights)
+            </h3>
+            <div id="summaryText" class="p-4 bg-slate-50 rounded-lg text-slate-600 text-sm leading-7 border-l-4 border-indigo-400">
+                <!-- Dynamic Summary -->
+                <p class="text-slate-400">กำลังรอข้อมูลเพื่อประมวลผลสรุป...</p>
             </div>
         </section>
 
-        <!-- Summary & Insights Section -->
-        <section id="analysisSection" class="space-y-6">
-            <div class="flex items-center gap-2 mb-2">
-                <h2 class="text-xl font-bold text-slate-800">สรุปผลการวิเคราะห์ (Summary & Insights)</h2>
-                <div class="h-px bg-slate-200 flex-grow"></div>
+        <!-- Section 4: Charts Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Left: Scatter Plot -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="font-bold text-slate-700">📉 ความสัมพันธ์ยอดขาย (Correlation)</h3>
+                        <p class="text-xs text-slate-500">Sales Amount vs. Day of Week</p>
+                    </div>
+                    <span class="text-xs bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100">Check Outliers</span>
+                </div>
+                <div class="flex-grow relative h-72">
+                    <canvas id="scatterChart"></canvas>
+                </div>
+                <div id="outlierAlert" class="mt-3 hidden p-2 bg-red-50 text-red-700 text-xs rounded border border-red-100"></div>
             </div>
 
-            <!-- Key Findings Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
-                    <p class="text-xs text-slate-500 uppercase font-bold">Total Sales</p>
-                    <p class="text-2xl font-bold text-indigo-600 mt-1" id="kpiTotalSales">-</p>
+            <!-- Right: Segmentation Pie Chart -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="font-bold text-slate-700">👥 สัดส่วนกลุ่มลูกค้า (Segmentation)</h3>
+                        <p class="text-xs text-slate-500">แบ่งกลุ่มตาม Spending & Frequency</p>
+                    </div>
                 </div>
-                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
-                    <p class="text-xs text-slate-500 uppercase font-bold">Total Customers</p>
-                    <p class="text-2xl font-bold text-emerald-600 mt-1" id="kpiTotalCustomers">-</p>
+                <div class="flex-grow relative h-64 flex justify-center">
+                    <canvas id="segmentChart"></canvas>
                 </div>
-                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
-                    <p class="text-xs text-slate-500 uppercase font-bold">Avg. Transaction</p>
-                    <p class="text-2xl font-bold text-blue-600 mt-1" id="kpiAvgSales">-</p>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
-                    <p class="text-xs text-slate-500 uppercase font-bold">Outliers Found</p>
-                    <p class="text-2xl font-bold text-rose-600 mt-1" id="kpiOutliers">-</p>
+                <!-- Legend Badges -->
+                <div class="mt-4 flex justify-center gap-4 text-xs">
+                    <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-400"></span> Gold</div>
+                    <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-slate-400"></span> Silver</div>
+                    <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-orange-400"></span> Bronze</div>
                 </div>
             </div>
+        </div>
 
-            <!-- Charts Row -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Scatter Plot -->
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-lg">Sales vs Day Type (Scatter)</h3>
-                        <span class="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500">Correlation Check</span>
-                    </div>
-                    <div class="relative h-72 w-full">
-                        <canvas id="scatterChart"></canvas>
-                    </div>
-                    <p class="text-xs text-slate-400 mt-2 text-center">*แกน X มีการกระจาย (Jitter) เพื่อลดการทับซ้อนของข้อมูล</p>
-                </div>
-
-                <!-- Segmentation Chart -->
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-lg">Customer Segmentation</h3>
-                        <span class="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500">By Spending & Frequency</span>
-                    </div>
-                    <div class="relative h-72 w-full flex justify-center">
-                        <canvas id="segmentChart"></canvas>
-                    </div>
-                    <div class="mt-4 text-sm text-slate-600 bg-slate-50 p-3 rounded border border-slate-100 text-center">
-                        <span class="inline-block px-2">🥇 Gold: ยอดสูง/ซื้อบ่อย</span>
-                        <span class="inline-block px-2">🥈 Silver: ยอดปานกลาง</span>
-                        <span class="inline-block px-2">🥉 Bronze: ทั่วไป</span>
-                    </div>
-                </div>
+        <!-- Section 5: Top 10 Table -->
+        <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100">
+            <div class="bg-indigo-50 p-4 border-b border-indigo-100 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-indigo-900">
+                    <i class="fas fa-list-ol mr-2"></i>ตารางลูกค้าที่มีการซื้อสูงสุด (Top 10 Customers)
+                </h3>
             </div>
-
-            <!-- Lists Row -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Top 3 Categories -->
-                <div class="bg-white p-6 rounded-xl shadow-md lg:col-span-1">
-                    <h3 class="font-bold text-lg mb-4 text-indigo-800 border-b pb-2">Top 3 Categories (by Sales)</h3>
-                    <div id="topCategoriesList" class="space-y-4">
-                        <!-- Filled via JS -->
-                    </div>
-                </div>
-
-                <!-- Top 10 Customers Table -->
-                <div class="bg-white p-6 rounded-xl shadow-md lg:col-span-2">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-lg text-emerald-800 border-b pb-2">Top 10 Customers (Spenders)</h3>
-                        <span class="text-xs text-gray-400">เรียงตามยอดซื้อรวมสูงสุด</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead class="bg-slate-50 text-slate-600 uppercase text-xs font-bold">
-                                <tr>
-                                    <th class="px-4 py-3 rounded-tl-lg">Rank</th>
-                                    <th class="px-4 py-3">Customer ID</th>
-                                    <th class="px-4 py-3 text-center">Segment</th>
-                                    <th class="px-4 py-3 text-center">Freq.</th>
-                                    <th class="px-4 py-3 text-right rounded-tr-lg">Total Sales</th>
-                                </tr>
-                            </thead>
-                            <tbody id="topCustomersTableBody" class="divide-y divide-slate-100">
-                                <!-- Filled via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-white text-slate-500 font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="p-4 w-16">Rank</th>
+                            <th class="p-4">Customer ID</th>
+                            <th class="p-4">Segment</th>
+                            <th class="p-4 text-center">Frequency (ครั้ง)</th>
+                            <th class="p-4 text-right">Total Spending (บาท)</th>
+                            <th class="p-4 text-right">Avg/Bill (บาท)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topCustomersTable" class="divide-y divide-slate-100 bg-white">
+                        <!-- Rows -->
+                    </tbody>
+                </table>
             </div>
-
-            <!-- Outliers Report -->
-            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-rose-400">
-                <h3 class="font-bold text-lg mb-2 text-rose-700">⚠️ Outliers Report (รายการผิดปกติ)</h3>
-                <p class="text-sm text-slate-600 mb-4">รายการที่ยอดขายสูงผิดปกติ (เกินกว่า Upper Fence ของ IQR)</p>
-                <div class="max-h-48 overflow-y-auto custom-scrollbar">
-                    <table class="w-full text-sm">
-                        <thead class="bg-rose-50 text-rose-800 sticky top-0">
-                            <tr>
-                                <th class="px-3 py-2 text-left">Txn ID</th>
-                                <th class="px-3 py-2 text-left">Date</th>
-                                <th class="px-3 py-2 text-right">Amount</th>
-                                <th class="px-3 py-2 text-left">Category</th>
-                            </tr>
-                        </thead>
-                        <tbody id="outliersTableBody" class="divide-y divide-rose-100">
-                            <!-- Filled via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
         </section>
 
-        <!-- Footer Actions (Buttons Moved Here) -->
-        <footer class="flex flex-col md:flex-row justify-end gap-3 pt-6 pb-12 border-t border-slate-200 no-print">
-            <button onclick="window.print()" class="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg transition-colors flex items-center justify-center gap-2">
-                <i class="fa-solid fa-print"></i> Print Report
+        <!-- Footer Buttons -->
+        <div class="flex justify-end gap-4 mt-4 pb-8 no-print">
+            <button onclick="window.print()" class="bg-slate-500 hover:bg-slate-600 text-white px-6 py-3 rounded-lg shadow transition flex items-center gap-2 font-medium">
+                <i class="fas fa-print"></i> พิมพ์รายงาน (Print)
             </button>
-            <button onclick="exportCSV()" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
-                <i class="fa-solid fa-file-csv"></i> Export Result CSV
+            <button onclick="exportToCSV()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow transition flex items-center gap-2 font-medium">
+                <i class="fas fa-file-csv"></i> Export Result (.csv)
             </button>
-        </footer>
+        </div>
 
     </div>
 
+    <!-- Script -->
     <script>
-        // --- 1. MOCK DATA (10 Rows) ---
-        // Simulating structure of cleaned_sales-พี่ชิติ.csv which has Customer_ID
-        const mockData = `Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
+        // Mock Data: 10 Rows for Layout Testing
+        const mockDataRaw = `Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
 TXN-00001,10/09/2024,C-0486,Fashion,38926.0,Phuket
 TXN-00002,08/09/2024,C-0356,Sports,14931.0,Chonburi
 TXN-00003,15/08/2024,C-0431,Electronics,17885.0,Bangkok
@@ -2242,326 +2201,248 @@ TXN-01998,17/11/2024,C-0019,Sports,42341.0,Bangkok
 TXN-01999,01/08/2024,C-0368,Electronics,29987.0,Bangkok
 TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
 
-        let globalProcessedData = [];
-        let customerSegments = [];
-        let scatterChartInstance = null;
-        let segmentChartInstance = null;
+        let chartInstances = {};
+        let processedCustomerData = [];
 
-        // --- 2. UTILITY FUNCTIONS ---
-        
-        // Parse "DD/MM/YYYY" to Date Object
+        // Helper: Parse Date DD/MM/YYYY
         function parseDate(dateStr) {
-            if(!dateStr) return new Date();
+            if (!dateStr) return null;
             const parts = dateStr.split('/');
-            if (parts.length === 3) {
-                // months are 0-indexed in JS
-                return new Date(parts[2], parts[1] - 1, parts[0]);
+            return parts.length === 3 ? new Date(`${parts[2]}-${parts[1]}-${parts[0]}`) : new Date(dateStr);
+        }
+
+        // Helper: Format Money
+        function formatMoney(amount) {
+            return amount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Main Process Function
+        function processData(csvText) {
+            const lines = csvText.trim().split('\n');
+            const data = [];
+
+            // Skip Header (row 0)
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(',');
+                if (cols.length < 5) continue;
+
+                const dateObj = parseDate(cols[1]);
+                const day = dateObj ? dateObj.getDay() : 0;
+                const isWeekend = (day === 0 || day === 6);
+
+                data.push({
+                    txnId: cols[0],
+                    date: dateObj,
+                    dayIndex: day,
+                    customerId: cols[2],
+                    sales: parseFloat(cols[4] || 0),
+                    isWeekend: isWeekend
+                });
             }
-            return new Date(dateStr);
-        }
 
-        function isWeekend(dateObj) {
-            const day = dateObj.getDay();
-            // 0 = Sunday, 6 = Saturday
-            return day === 0 || day === 6;
-        }
-
-        // --- 3. CORE LOGIC ---
-
-        function processData(rawData, sourceName) {
-            // Update File Info
-            const infoEl = document.getElementById('fileInfo');
-            if(infoEl) infoEl.textContent = `Loaded: ${sourceName} (${rawData.length} rows)`;
-
-            // Pre-processing
-            const processed = rawData.map(row => {
-                const amount = parseFloat(row.Sales_Amount || 0);
-                
-                // Logic: Derive Weekend/Weekday from Date if columns missing
-                let isWknd = false;
-                let dayName = "";
-                
-                if (row.Date) {
-                    const dt = parseDate(row.Date);
-                    isWknd = isWeekend(dt);
-                    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                    dayName = days[dt.getDay()];
-                } else if (row.Is_Weekend) {
-                    isWknd = String(row.Is_Weekend).toLowerCase() === 'true';
-                    dayName = row.Day_Name || "N/A";
-                }
-
-                // Handle Missing Customer ID (Fallback)
-                let custId = row.Customer_ID;
-                if (!custId) {
-                    custId = "Unknown_Customer"; 
-                }
-                
-                return {
-                    ...row,
-                    Sales_Amount: amount,
-                    Is_Weekend: isWknd,
-                    Day_Name: dayName,
-                    Customer_ID: custId
-                };
-            });
-
-            globalProcessedData = processed;
-
-            // 1. Calculate KPIs
-            const totalSales = processed.reduce((sum, r) => sum + r.Sales_Amount, 0);
-            const uniqueCustomers = new Set(processed.map(r => r.Customer_ID)).size;
-            const avgSales = totalSales / processed.length || 0;
-
-            // 2. Outlier Detection (IQR)
-            const sortedSales = processed.map(r => r.Sales_Amount).sort((a, b) => a - b);
-            const q1 = sortedSales[Math.floor(sortedSales.length * 0.25)];
-            const q3 = sortedSales[Math.floor(sortedSales.length * 0.75)];
-            const iqr = q3 - q1;
-            const upperFence = q3 + (1.5 * iqr);
-            const outliers = processed.filter(r => r.Sales_Amount > upperFence);
-
-            // 3. Customer Segmentation Logic
+            // 1. Segmentation Logic
             const customerMap = {};
-            processed.forEach(r => {
-                if (!customerMap[r.Customer_ID]) {
-                    customerMap[r.Customer_ID] = { id: r.Customer_ID, total: 0, count: 0 };
+            data.forEach(d => {
+                if (!customerMap[d.customerId]) {
+                    customerMap[d.customerId] = { id: d.customerId, total: 0, count: 0 };
                 }
-                customerMap[r.Customer_ID].total += r.Sales_Amount;
-                customerMap[r.Customer_ID].count += 1;
+                customerMap[d.customerId].total += d.sales;
+                customerMap[d.customerId].count += 1;
             });
 
-            const customers = Object.values(customerMap);
-            
-            // Define Criteria (Adjustable)
-            // Bronze: < 20,000
-            // Silver: 20,000 - 50,000
-            // Gold: > 50,000 OR Freq > 3
-            customers.forEach(c => {
-                if (c.total > 50000 || c.count >= 3) c.segment = 'Gold';
-                else if (c.total > 20000) c.segment = 'Silver';
+            const customers = Object.values(customerMap).sort((a, b) => b.total - a.total);
+
+            // Assign Segments (Example Logic)
+            const count = customers.length;
+            const goldLimit = Math.ceil(count * 0.2); // Top 20%
+            const silverLimit = Math.ceil(count * 0.5); // Next 30%
+
+            customers.forEach((c, idx) => {
+                if (idx < goldLimit) c.segment = 'Gold';
+                else if (idx < silverLimit) c.segment = 'Silver';
                 else c.segment = 'Bronze';
             });
 
-            customerSegments = customers;
+            processedCustomerData = customers; // Store for export
 
-            // Update UI Numbers
-            document.getElementById('kpiTotalSales').textContent = totalSales.toLocaleString();
-            document.getElementById('kpiTotalCustomers').textContent = uniqueCustomers.toLocaleString();
-            document.getElementById('kpiAvgSales').textContent = avgSales.toLocaleString(undefined, {maximumFractionDigits: 0});
-            document.getElementById('kpiOutliers').textContent = outliers.length;
-
-            renderCharts(processed, customers, outliers);
-            renderLists(processed, customers, outliers);
-        }
-
-        function renderCharts(rawData, customers, outliers) {
-            // --- Scatter Plot (Sales vs Day Type) ---
-            const ctxScatter = document.getElementById('scatterChart').getContext('2d');
-            if (scatterChartInstance) scatterChartInstance.destroy();
-
-            // Prepare Data: X axis = 1 for Weekday, 2 for Weekend (with Jitter)
-            const scatterData = rawData.map(r => ({
-                x: (r.Is_Weekend ? 2 : 1) + (Math.random() * 0.5 - 0.25), // Jitter spread
-                y: r.Sales_Amount,
-                rawDate: r.Date,
-                rawDay: r.Day_Name
+            // 2. Scatter Data
+            const scatterData = data.map(d => ({
+                x: d.dayIndex + (Math.random() - 0.5) * 0.5, // Jitter
+                y: d.sales,
+                dayName: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.dayIndex],
+                isWeekend: d.isWeekend
             }));
 
-            scatterChartInstance = new Chart(ctxScatter, {
+            // Update UI
+            updateDashboard(customers, scatterData, data);
+        }
+
+        function updateDashboard(customers, scatterData, allTxn) {
+            // A. Key Findings
+            const totalSales = allTxn.reduce((sum, d) => sum + d.sales, 0);
+            const weekendSales = allTxn.filter(d => d.isWeekend).reduce((s,d)=>s+d.sales,0);
+            const weekdaySales = allTxn.filter(d => !d.isWeekend).reduce((s,d)=>s+d.sales,0);
+            
+            // Avoid division by zero
+            const wEndCount = allTxn.filter(d => d.isWeekend).length || 1;
+            const wDayCount = allTxn.filter(d => !d.isWeekend).length || 1;
+            const wEndAvg = weekendSales / wEndCount;
+            const wDayAvg = weekdaySales / wDayCount;
+
+            document.getElementById('keyFindings').innerHTML = `
+                <p>• ยอดขายรวมทั้งหมด: <strong>${formatMoney(totalSales)}</strong> บาท</p>
+                <p>• ลูกค้าทั้งหมด: <strong>${customers.length}</strong> ราย</p>
+                <p>• Avg Weekend: <strong>${formatMoney(wEndAvg)}</strong></p>
+                <p>• Avg Weekday: <strong>${formatMoney(wDayAvg)}</strong></p>
+            `;
+
+            // B. Summary Text
+            const topCust = customers[0];
+            const outlierCount = scatterData.filter(d => d.y > 80000).length; // Assumption > 80k is outlier
+            document.getElementById('summaryText').innerHTML = `
+                จากการวิเคราะห์ข้อมูลพบว่า <strong>ลูกค้า ID: ${topCust.id}</strong> มียอดซื้อสะสมสูงสุดถึง <strong>${formatMoney(topCust.total)} บาท</strong> 
+                จัดอยู่ในกลุ่ม <strong>Gold</strong> ส่วนการวิเคราะห์ความสัมพันธ์ (Correlation) พบว่ามีข้อมูลที่มีค่าผิดปกติ (Outliers) จำนวน <strong>${outlierCount} รายการ</strong> 
+                ซึ่งมียอดขายสูงกว่า 80,000 บาท
+            `;
+
+            // C. Top 3 Cards
+            const top3Container = document.getElementById('top3Container');
+            top3Container.innerHTML = '';
+            customers.slice(0, 3).forEach((c, i) => {
+                const colors = [
+                    'bg-yellow-50 border-yellow-200 text-yellow-700',
+                    'bg-slate-50 border-slate-200 text-slate-600',
+                    'bg-orange-50 border-orange-200 text-orange-700'
+                ];
+                const badge = ['🥇 Gold', '🥈 Silver', '🥉 Bronze'][i]; // Just ranking icons
+                
+                top3Container.innerHTML += `
+                    <div class="border rounded-xl p-4 shadow-sm flex justify-between items-center ${colors[i]}">
+                        <div>
+                            <div class="text-xs font-bold uppercase mb-1 opacity-70">Rank #${i+1}</div>
+                            <div class="font-bold text-lg">${c.id}</div>
+                            <div class="text-xs mt-1 opacity-80">${c.count} Transactions</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xl font-bold">${(c.total/1000).toFixed(1)}k</div>
+                            <div class="text-xs bg-white bg-opacity-50 px-2 py-1 rounded inline-block mt-1">${c.segment}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // D. Top 10 Table
+            const tbody = document.getElementById('topCustomersTable');
+            tbody.innerHTML = '';
+            customers.slice(0, 10).forEach((c, i) => {
+                const segmentColor = c.segment === 'Gold' ? 'text-yellow-600 bg-yellow-50' : 
+                                     c.segment === 'Silver' ? 'text-slate-600 bg-slate-100' : 'text-orange-600 bg-orange-50';
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-4 font-bold text-slate-400">#${i+1}</td>
+                        <td class="p-4 font-medium">${c.id}</td>
+                        <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold ${segmentColor}">${c.segment}</span></td>
+                        <td class="p-4 text-center">${c.count}</td>
+                        <td class="p-4 text-right font-bold text-indigo-700">${formatMoney(c.total)}</td>
+                        <td class="p-4 text-right text-slate-500">${formatMoney(c.total/c.count)}</td>
+                    </tr>
+                `;
+            });
+
+            // E. Charts
+            renderCharts(scatterData, customers);
+        }
+
+        function renderCharts(scatterData, customers) {
+            // Scatter
+            const ctxScatter = document.getElementById('scatterChart').getContext('2d');
+            if(chartInstances.scatter) chartInstances.scatter.destroy();
+
+            // Check Outliers for Alert
+            const outliers = scatterData.filter(d => d.y > 80000);
+            if(outliers.length > 0) {
+                document.getElementById('outlierAlert').innerHTML = `<i class="fas fa-exclamation-triangle"></i> พบ Outliers: ${outliers.length} จุด (ยอดขาย > 80,000)`;
+                document.getElementById('outlierAlert').classList.remove('hidden');
+            } else {
+                document.getElementById('outlierAlert').classList.add('hidden');
+            }
+
+            chartInstances.scatter = new Chart(ctxScatter, {
                 type: 'scatter',
                 data: {
-                    datasets: [{
-                        label: 'Transactions',
-                        data: scatterData,
-                        backgroundColor: rawData.map(r => r.Sales_Amount > (outliers.length > 0 ? (outliers[0]?.Sales_Amount || 999999) : 999999) ? '#e11d48' : (r.Is_Weekend ? '#f59e0b' : '#3b82f6')),
-                        pointRadius: 5,
-                        pointHoverRadius: 7
-                    }]
+                    datasets: [
+                        {
+                            label: 'Weekday',
+                            data: scatterData.filter(d => !d.isWeekend),
+                            backgroundColor: '#6366f1' // Indigo 500
+                        },
+                        {
+                            label: 'Weekend',
+                            data: scatterData.filter(d => d.isWeekend),
+                            backgroundColor: '#f97316' // Orange 500
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => {
-                                    const d = ctx.raw;
-                                    return `${d.rawDay} (${d.rawDate}): ${d.y.toLocaleString()} บาท`;
-                                }
-                            }
-                        },
-                        legend: { display: false }
-                    },
                     scales: {
-                        x: {
-                            type: 'linear',
-                            position: 'bottom',
-                            min: 0,
-                            max: 3,
-                            ticks: {
-                                callback: (val) => {
-                                    if (Math.abs(val - 1) < 0.2) return 'Weekday (จ-ศ)';
-                                    if (Math.abs(val - 2) < 0.2) return 'Weekend (ส-อา)';
-                                    return '';
-                                },
-                                font: { weight: 'bold', family: 'Sarabun' }
-                            },
-                            grid: { display: false }
-                        },
-                        y: {
-                            title: { display: true, text: 'Sales Amount (THB)', font: { family: 'Sarabun' } },
-                            beginAtZero: true
+                        x: { 
+                            type: 'linear', position: 'bottom',
+                            ticks: { callback: v => ['S','M','T','W','T','F','S'][Math.round(v)] || '' }
                         }
                     }
                 }
             });
 
-            // --- Segmentation Chart (Doughnut) ---
-            const ctxSeg = document.getElementById('segmentChart').getContext('2d');
-            if (segmentChartInstance) segmentChartInstance.destroy();
+            // Segmentation Pie
+            const ctxPie = document.getElementById('segmentChart').getContext('2d');
+            if(chartInstances.pie) chartInstances.pie.destroy();
 
-            const counts = { Gold: 0, Silver: 0, Bronze: 0 };
-            customers.forEach(c => {
-                if(counts[c.segment] !== undefined) counts[c.segment]++;
-            });
+            const segCounts = { Gold: 0, Silver: 0, Bronze: 0 };
+            customers.forEach(c => segCounts[c.segment]++);
 
-            segmentChartInstance = new Chart(ctxSeg, {
+            chartInstances.pie = new Chart(ctxPie, {
                 type: 'doughnut',
                 data: {
                     labels: ['Gold', 'Silver', 'Bronze'],
                     datasets: [{
-                        data: [counts.Gold, counts.Silver, counts.Bronze],
-                        backgroundColor: ['#eab308', '#94a3b8', '#ca8a04'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
+                        data: [segCounts.Gold, segCounts.Silver, segCounts.Bronze],
+                        backgroundColor: ['#fbbf24', '#94a3b8', '#fb923c'], // Yellow, Slate, Orange
+                        borderWidth: 0
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { font: { family: 'Sarabun' } } }
-                    }
+                    plugins: { legend: { display: false } },
+                    cutout: '70%'
                 }
             });
         }
 
-        function renderLists(rawData, customers, outliers) {
-            // 1. Top 3 Categories
-            const catMap = {};
-            rawData.forEach(r => {
-                const cat = r.Product_Category || "Unknown";
-                catMap[cat] = (catMap[cat] || 0) + r.Sales_Amount;
-            });
-            const sortedCats = Object.entries(catMap).sort((a,b) => b[1] - a[1]).slice(0, 3);
-            
-            const catListEl = document.getElementById('topCategoriesList');
-            catListEl.innerHTML = sortedCats.map((item, index) => `
-                <div class="flex items-center justify-between p-3 bg-indigo-50 rounded-lg">
-                    <div class="flex items-center gap-3">
-                        <span class="w-6 h-6 flex items-center justify-center bg-indigo-600 text-white rounded-full text-xs font-bold shadow-sm">${index+1}</span>
-                        <span class="font-medium text-indigo-900">${item[0]}</span>
-                    </div>
-                    <span class="font-bold text-indigo-700">${item[1].toLocaleString()} ฿</span>
-                </div>
-            `).join('');
-
-            // 2. Top 10 Customers
-            const sortedCustomers = [...customers].sort((a,b) => b.total - a.total).slice(0, 10);
-            const custBody = document.getElementById('topCustomersTableBody');
-            
-            const badgeColor = { 'Gold': 'bg-yellow-100 text-yellow-800', 'Silver': 'bg-gray-100 text-gray-800', 'Bronze': 'bg-orange-100 text-orange-800' };
-
-            custBody.innerHTML = sortedCustomers.map((c, i) => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-4 py-3 font-medium text-slate-500">#${i+1}</td>
-                    <td class="px-4 py-3 font-bold text-slate-700">${c.id}</td>
-                    <td class="px-4 py-3 text-center">
-                        <span class="px-2 py-1 rounded text-xs font-bold ${badgeColor[c.segment] || 'bg-slate-100'}">${c.segment}</span>
-                    </td>
-                    <td class="px-4 py-3 text-center text-slate-600">${c.count}</td>
-                    <td class="px-4 py-3 text-right font-bold text-emerald-600">${c.total.toLocaleString()}</td>
-                </tr>
-            `).join('');
-
-            // 3. Outliers Table
-            const outliersBody = document.getElementById('outliersTableBody');
-            if (outliers.length === 0) {
-                outliersBody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 italic">✅ No significant outliers found</td></tr>`;
-            } else {
-                outliersBody.innerHTML = outliers.map(o => `
-                    <tr>
-                        <td class="px-3 py-2 text-slate-600 font-mono text-xs">${o.Transaction_ID}</td>
-                        <td class="px-3 py-2 text-slate-500 text-xs">${o.Date}</td>
-                        <td class="px-3 py-2 text-right font-bold text-rose-600">${o.Sales_Amount.toLocaleString()}</td>
-                        <td class="px-3 py-2 text-slate-500 text-xs">${o.Product_Category}</td>
-                    </tr>
-                `).join('');
-            }
-        }
-
-        // --- 4. EVENT HANDLERS ---
-
-        // CSV Parser
-        document.getElementById('csvFileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
+        function handleFileUpload(input) {
+            const file = input.files[0];
             if (!file) return;
-
             const reader = new FileReader();
-            reader.onload = function(event) {
-                const text = event.target.result;
-                const rows = text.trim().split('\n');
-                if(rows.length < 2) return;
-
-                const headers = rows[0].split(',').map(h => h.trim());
-                
-                const data = [];
-                for (let i = 1; i < rows.length; i++) {
-                    // Handle CSV with commas inside quotes simple regex
-                    const values = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    if (values.length === headers.length) {
-                        let obj = {};
-                        headers.forEach((h, index) => {
-                            obj[h] = values[index] ? values[index].replace(/^"|"$/g, '').trim() : "";
-                        });
-                        data.push(obj);
-                    }
-                }
-                processData(data, file.name);
-            };
+            reader.onload = e => processData(e.target.result);
             reader.readAsText(file);
-        });
-
-        function exportCSV() {
-            if (customerSegments.length === 0) {
-                alert("ไม่มีข้อมูลสำหรับการ Export");
-                return;
-            }
-
-            // Export Customer Segmentation Data
-            const headers = ["Customer_ID", "Segment", "Total_Spending", "Frequency"];
-            const csvRows = [headers.join(',')];
-
-            customerSegments.forEach(c => {
-                csvRows.push([c.id, c.segment, c.total, c.count].join(','));
-            });
-
-            const csvString = csvRows.join('\n');
-            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'segmentation_result.csv');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
 
-        // Initialize with Mock Data for visual check
-        window.addEventListener('DOMContentLoaded', () => {
-            processData(mockData, 'Mock Data (10 Rows)');
-        });
+        function exportToCSV() {
+            if(processedCustomerData.length === 0) return alert('ไม่มีข้อมูล');
+            const csv = "Customer_ID,Total_Spending,Frequency,Segment\n" + 
+                        processedCustomerData.map(c => `${c.id},${c.total},${c.count},${c.segment}`).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "customer_segmentation.csv";
+            link.click();
+        }
+
+        // Init with Mock
+        document.addEventListener('DOMContentLoaded', () => processData(mockDataRaw));
+
     </script>
 </body>
 </html>
