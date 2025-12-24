@@ -423,8 +423,8 @@
         </div>
 
         <!-- Workshop Pages -->
-<!-- ... existing code ... -->
-    <script>
+        <!-- ... existing code ... -->
+        <script>
         // 1. ประกาศตัวแปรสำหรับเก็บตารางทั้ง 2 ตัว
         // let tableRaw;        // *ยกเลิกใช้* สำหรับหน้าข้อมูลดิบ
         let tableWorkshop1; // สำหรับหน้า Workshop 1
@@ -465,13 +465,13 @@
             }
         }
 
-        $(document).ready(function() {
-            const fullData = [
-    // ... existing code ...
-    ["TXN-02000", "04/10/2024", "C-0903", "Electronics", 49601.0, "Chonburi"]
-            ];
+            //$(document).ready(function() {
+            //const fullData = [
+            // ... existing code ...
+
+            //];
             // ถ้า Workshop 1 คือ "Cleanup Mission" คุณอาจจะสร้างตัวแปร cleanedData ที่กรองข้อมูลแล้วมาใส่ตรงนี้
-            const workshopData = fullData;
+            //const workshopData = fullData;
             
             // *ส่วนนี้ปิดการใช้งานเพราะเราลบตาราง salesDataTable ออกจาก HTML แล้ว*
             /*
@@ -498,7 +498,7 @@
             tableWorkshop1 = $('#cleanedsalesDataTable').DataTable({
                 data: workshopData, // ใช้ข้อมูลชุด workshop
             // ... existing code ...
-
+        </script>
         <!-- Workshop Pages -->
         <div id="content-workshop-1" class="content-section">
             <div class="workshop-content">
@@ -705,25 +705,24 @@
         let tableWorkshop1; // สำหรับหน้า Workshop 1
 
         // ฟังก์ชันสำหรับเปลี่ยนหน้า
-    function switchContent(contentId) {
-        // 1. ซ่อนเนื้อหาทุก Section
-        $('.content-section').hide().removeClass('active');
+        function switchContent(contentId) {
+            // 1. ซ่อนเนื้อหาทุก Section
+            $('.content-section').hide().removeClass('active');
         
-        // 2. แสดง Section ที่เลือก
-        $('#content-' + contentId).fadeIn(400).addClass('active');
+            // 2. แสดง Section ที่เลือก
+            $('#content-' + contentId).fadeIn(400).addClass('active');
         
-        // 3. จัดการ Class Active ที่เมนู Sidebar
-        $('.menu-item').removeClass('active');
-        // ค้นหาเมนูที่มีการเรียก contentId นี้
-        $(`.menu-item[onclick="switchContent('${contentId}')"]`).addClass('active');
+            // 3. จัดการ Class Active ที่เมนู Sidebar
+            $('.menu-item').removeClass('active');
+            // ค้นหาเมนูที่มีการเรียก contentId นี้
+            $(`.menu-item[onclick="switchContent('${contentId}')"]`).addClass('active');
 
-        // 4. แก้ปัญหาหัวตาราง DataTables เบี้ยวเมื่อเปิดหน้าใหม่
-        if (contentId === 'workshop-1' && tableWorkshop1) {
-            setTimeout(() => {
-                tableWorkshop1.columns.adjust().draw();
-            }, 100);
-        }
-    }
+            // 4. แก้ปัญหาหัวตาราง DataTables เบี้ยวเมื่อเปิดหน้าใหม่
+            if (contentId === 'workshop-1' && tableWorkshop1) {
+                setTimeout(() => {
+                    tableWorkshop1.columns.adjust().draw();
+                }, 100);
+            }
         }
 
         $(document).ready(function() {
@@ -2758,35 +2757,6 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
