@@ -475,23 +475,23 @@
             
             // *ส่วนนี้ปิดการใช้งานเพราะเราลบตาราง salesDataTable ออกจาก HTML แล้ว*
             /*
-            tableRaw = $('#salesDataTable').DataTable({
-                data: fullData,
-                paging: false,
-                scrollY: '500px',
-                scrollCollapse: true,
-                autoWidth: false,
-                order: [[1, 'desc']],
-                language: {
-                    search: "🔍 ค้นหา:",
-                    info: "แสดงทั้งหมด _TOTAL_ รายการ",
-                    infoEmpty: "ไม่มีข้อมูล",
-                    zeroRecords: "ไม่พบข้อมูล"
-                },
-                columnDefs: [
-                    { targets: 4, render: $.fn.dataTable.render.number(',', '.', 0, '฿') }
-                ],
-            });
+            //tableRaw = $('#salesDataTable').DataTable({
+            //    data: fullData,
+            //    paging: false,
+            //    scrollY: '500px',
+            //    scrollCollapse: true,
+            //    autoWidth: false,
+            //    order: [[1, 'desc']],
+            //    language: {
+            //        search: "🔍 ค้นหา:",
+            //        info: "แสดงทั้งหมด _TOTAL_ รายการ",
+            //        infoEmpty: "ไม่มีข้อมูล",
+            //        zeroRecords: "ไม่พบข้อมูล"
+            //    },
+            //    columnDefs: [
+            //        { targets: 4, render: $.fn.dataTable.render.number(',', '.', 0, '฿') }
+            //    ],
+            //});
             */
 
                 // 4. สร้างตารางที่ 2: หน้า Workshop 1 (#cleanedsalesDataTable)
@@ -727,11 +727,11 @@
             // 2. ปรับขนาดตารางเมื่อสลับหน้า (ป้องกันหัวตารางเบี้ยว)
             
             // ถ้าเข้าหน้าข้อมูลดิบ และตารางสร้างเสร็จแล้ว ให้จัดระเบียบใหม่
-            if (contentId === 'raw-data' && tableRaw) {
+            /*if (contentId === 'raw-data' && tableRaw) {
                 setTimeout(() => {
                     tableRaw.columns.adjust().draw();
                 }, 10);
-            }
+            }*/
 
             // ถ้าเข้าหน้า Workshop 1 และตารางสร้างเสร็จแล้ว ให้จัดระเบียบใหม่
             if (contentId === 'workshop-1' && tableWorkshop1) {
@@ -2791,6 +2791,7 @@
     </script>
 </body>
 </html>
+
 
 
 
