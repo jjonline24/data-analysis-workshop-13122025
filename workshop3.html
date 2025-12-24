@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Analysis: Weekday vs Weekend</title>
+    <title>Sales Analysis: Weekday vs Weekend (Revised)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -12,6 +12,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Sarabun', sans-serif; }
+        @media print {
+            #input-section, #action-buttons, header button {
+                display: none !important;
+            }
+            body { background-color: white; }
+            .shadow-sm { shadow: none; }
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen p-6">
@@ -32,38 +39,69 @@
             </div>
         </header>
 
-        <!-- Input Section -->
-        <section class="bg-white p-6 rounded-xl shadow-sm border border-indigo-100">
+        <!-- Workshop Challenge (เก็บไว้ตามเดิม) -->
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">🧩 โจทย์ Workshop 3: Weekday vs Weekend</h2>
+                    <p class="text-slate-600 mt-1">
+                        เป้าหมายคือ “เพิ่มคอลัมน์วัน (Day Name) และตัวแปรบอกวันหยุด (Is Weekend)” แล้ววิเคราะห์ว่า
+                        ยอดขายเฉลี่ยในวันธรรมดาและวันหยุดต่างกันหรือไม่
+                    </p>
+                </div>
+                <span class="shrink-0 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    Data Enrichment + Comparison
+                </span>
+            </div>
+
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div class="rounded-lg border border-slate-200 p-4 bg-slate-50">
+                    <p class="font-semibold text-slate-700 mb-1">สิ่งที่ต้องทำ</p>
+                    <ul class="list-disc pl-5 text-slate-600 space-y-1">
+                        <li>อ่านข้อมูลธุรกรรมจาก CSV</li>
+                        <li>คำนวณ <span class="font-medium">Day Name</span> จาก Date</li>
+                        <li>สร้าง <span class="font-medium">Is Weekend</span> (Sat/Sun)</li>
+                    </ul>
+                </div>
+                <div class="rounded-lg border border-slate-200 p-4 bg-slate-50">
+                    <p class="font-semibold text-slate-700 mb-1">การวิเคราะห์</p>
+                    <ul class="list-disc pl-5 text-slate-600 space-y-1">
+                        <li>เปรียบเทียบยอดขายเฉลี่ย Weekday vs Weekend</li>
+                        <li>ดูสัดส่วน/แนวโน้มรายหมวดสินค้าและภูมิภาค</li>
+                        <li>สรุปข้อค้นพบ (Insights) ให้ผู้ตรวจเข้าใจ</li>
+                    </ul>
+                </div>
+                <div class="rounded-lg border border-slate-200 p-4 bg-slate-50">
+                    <p class="font-semibold text-slate-700 mb-1">ผลลัพธ์ที่ต้องส่งมอบ</p>
+                    <ul class="list-disc pl-5 text-slate-600 space-y-1">
+                        <li>ไฟล์ข้อมูลที่ถูก “เพิ่มคอลัมน์” แล้ว (Export)</li>
+                        <li>สรุปผลการวิเคราะห์ (Export)</li>
+                        <li>รายงานภาพรวมสำหรับ Review</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Input Section (เหลือแค่อัปโหลดไฟล์) -->
+        <section id="input-section" class="bg-white p-6 rounded-xl shadow-sm border border-indigo-100">
             <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
                 📥 นำเข้าข้อมูลจริง
                 <span class="text-xs font-normal text-gray-400">(รองรับ Date format: DD/MM/YYYY)</span>
             </h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Option 1: Paste Text -->
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">วิธีที่ 1: วางข้อมูล CSV ที่นี่</label>
-                    <textarea id="csvTextInput" rows="5" class="w-full p-3 text-xs border rounded-lg focus:ring-2 focus:ring-indigo-500 font-mono bg-slate-50" placeholder="Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region..."></textarea>
-                    <button onclick="processFromText()" class="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full md:w-auto">
-                        วิเคราะห์ข้อมูลจากกล่องข้อความ
-                    </button>
-                </div>
-
-                <!-- Option 2: Upload File -->
-                <div class="border-l pl-0 md:pl-6 md:border-slate-200">
-                    <label class="block text-sm font-medium text-slate-700 mb-2">วิธีที่ 2: อัปโหลดไฟล์ CSV</label>
-                    <div class="flex items-center justify-center w-full">
-                        <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                                </svg>
-                                <p class="text-sm text-gray-500"><span class="font-semibold">คลิกเพื่ออัปโหลด</span></p>
-                                <p class="text-xs text-gray-500">ไฟล์ .CSV (เช่น cleaned_sales-พี่ชิติ.csv)</p>
-                            </div>
-                            <input id="dropzone-file" type="file" class="hidden" accept=".csv" onchange="processFromFile(this)" />
-                        </label>
-                    </div>
+            <div class="w-full">
+                <label class="block text-sm font-medium text-slate-700 mb-2">อัปโหลดไฟล์ CSV</label>
+                <div class="flex items-center justify-center w-full">
+                    <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                            </svg>
+                            <p class="text-sm text-gray-500"><span class="font-semibold">คลิกเพื่ออัปโหลด</span> หรือลากไฟล์มาวาง</p>
+                            <p class="text-xs text-gray-500">ไฟล์ .CSV (เช่น cleaned_sales-พี่ชิติ.csv)</p>
+                        </div>
+                        <input id="dropzone-file" type="file" class="hidden" accept=".csv" onchange="processFromFile(this)" />
+                    </label>
                 </div>
             </div>
         </section>
@@ -71,7 +109,7 @@
         <!-- Dashboard Content -->
         <div id="dashboard" class="hidden space-y-6">
             
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <h2 class="text-xl font-bold text-slate-800">ผลการวิเคราะห์</h2>
                 <div id="data-source-badge" class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">
                     Showing Sample Data
@@ -121,6 +159,59 @@
                 </div>
             </div>
 
+            <!-- Insights & Summary (เอา QA ออก) -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <h3 class="font-bold text-slate-700 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h4"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5v2a4 4 0 004 4h4"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path>
+                        </svg>
+                        สรุปผลการวิเคราะห์ (Summary & Insights)
+                    </h3>
+                    <div class="text-xs text-slate-500">
+                        *สรุปนี้อัปเดตอัตโนมัติเมื่อมีการวิเคราะห์ข้อมูลใหม่
+                    </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="rounded-lg border border-slate-200 p-4 bg-slate-50">
+                        <p class="text-xs font-semibold text-slate-500">ช่วงข้อมูล (Date Range)</p>
+                        <p class="mt-1 text-lg font-bold text-slate-800" id="summary-date-range">-</p>
+                        <p class="text-sm text-slate-600 mt-1">จำนวนรายการ: <span id="summary-row-count" class="font-semibold">-</span></p>
+                    </div>
+                    <div class="rounded-lg border border-slate-200 p-4 bg-slate-50">
+                        <p class="text-xs font-semibold text-slate-500">เปรียบเทียบ Weekday vs Weekend</p>
+                        <p class="mt-1 text-lg font-bold text-slate-800" id="summary-diff">-</p>
+                        <p class="text-sm text-slate-600 mt-1">สัดส่วนยอดขาย Weekend: <span id="summary-weekend-share" class="font-semibold">-</span></p>
+                    </div>
+                    <!-- Quick QA ถูกเอาออก -->
+                </div>
+
+                <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="rounded-lg border border-slate-200 p-4">
+                        <p class="font-semibold text-slate-700 mb-2">ข้อค้นพบหลัก (Key Findings)</p>
+                        <ul id="insights-list" class="list-disc pl-5 text-slate-600 space-y-1">
+                            <li>—</li>
+                        </ul>
+                    </div>
+                    <div class="rounded-lg border border-slate-200 p-4">
+                        <p class="font-semibold text-slate-700 mb-2">Top 3 (ตามยอดขายรวม)</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div class="bg-slate-50 rounded-lg border border-slate-200 p-3">
+                                <p class="text-xs font-semibold text-slate-500">หมวดสินค้า</p>
+                                <ol id="top-categories" class="mt-1 space-y-1 text-slate-700"></ol>
+                            </div>
+                            <div class="bg-slate-50 rounded-lg border border-slate-200 p-3">
+                                <p class="text-xs font-semibold text-slate-500">ภูมิภาค</p>
+                                <ol id="top-regions" class="mt-1 space-y-1 text-slate-700"></ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Chart -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
                 <h3 class="font-bold text-slate-700 mb-6 flex items-center">
@@ -163,14 +254,83 @@
                 </div>
             </div>
 
+            <!-- Action Buttons (Moved to Bottom) -->
+            <div id="action-buttons" class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex justify-end gap-2">
+                <button onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition-colors">
+                    🖨️ Print Report
+                </button>
+                <button id="btn-export-csv" onclick="exportProcessedCSV()" disabled
+                    class="disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+                    ⬇️ Export CSV
+                </button>
+            </div>
+
         </div>
     </div>
 
     <script>
         let chartInstance = null;
 
-        // --- MOCK DATA FOR IMMEDIATE DISPLAY ---
-        // This simulates the structure of 'cleaned_sales-พี่ชิติ.csv' so the user sees results instantly.
+        // --- EXPORT STATE ---
+        let lastAnalysis = {
+            sourceName: 'Sample Data',
+            generatedAt: null,
+            rows: [],
+            summary: null
+        };
+
+        function nowISO() {
+            return new Date().toISOString();
+        }
+
+        function downloadBlob(filename, content, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function escapeCSV(v) {
+            const s = (v ?? '').toString();
+            if (/[",\n]/.test(s)) return '"' + s.replaceAll('"', '""') + '"';
+            return s;
+        }
+
+        function rowsToCSV(rows) {
+            const header = ['Transaction_ID','Date','Day_Name','Is_Weekend','Product_Category','Region','Sales_Amount'];
+            const lines = [header.join(',')];
+            rows.forEach(r => {
+                lines.push([
+                    escapeCSV(r.id),
+                    escapeCSV(r.date),
+                    escapeCSV(r.dayName),
+                    escapeCSV(r.isWeekend),
+                    escapeCSV(r.category),
+                    escapeCSV(r.region),
+                    r.sales
+                ].join(','));
+            });
+            return lines.join('\n');
+        }
+
+        function exportProcessedCSV() {
+            if (!lastAnalysis.rows?.length) return;
+            const safeSource = (lastAnalysis.sourceName || 'data').replaceAll(/[^a-zA-Z0-9ก-๙_-]+/g, '_');
+            const filename = `workshop3_processed_${safeSource}.csv`;
+            downloadBlob(filename, rowsToCSV(lastAnalysis.rows), 'text/csv;charset=utf-8');
+        }
+
+        function setExportEnabled(enabled) {
+            const el = document.getElementById('btn-export-csv');
+            if (el) el.disabled = !enabled;
+        }
+
+        // --- MOCK DATA (Reduced to 10 rows) ---
         const mockData = `Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
 TXN-00001,10/09/2024,C-0486,Fashion,38926.0,Phuket
 TXN-00002,08/09/2024,C-0356,Sports,14931.0,Chonburi
@@ -2173,16 +2333,6 @@ TXN-01998,17/11/2024,C-0019,Sports,42341.0,Bangkok
 TXN-01999,01/08/2024,C-0368,Electronics,29987.0,Bangkok
 TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
 
-        // Process from Text Area
-        function processFromText() {
-            const text = document.getElementById('csvTextInput').value;
-            if (!text.trim()) {
-                alert("กรุณาวางข้อมูล CSV ก่อนครับ");
-                return;
-            }
-            processData(text, 'User Input Data');
-        }
-
         // Process from File Upload
         function processFromFile(input) {
             const file = input.files[0];
@@ -2195,13 +2345,15 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
         }
 
         function processData(csvData, sourceName) {
+            setExportEnabled(false);
             const lines = csvData.split('\n').filter(line => line.trim() !== '');
+            // reset summary area
+            try { renderInsights({dateRange:'-',rowCount:0,diffText:'-',weekendShareText:'-',findings:['—'],topCategories:[],topRegions:[],generatedAt:null}); } catch(e) {}
             if (lines.length < 2) return;
 
             const headers = lines[0].split(',').map(h => h.trim());
             const dateIndex = headers.findIndex(h => h.includes('Date'));
             const salesIndex = headers.findIndex(h => h.includes('Sales_Amount') || h.includes('Sales'));
-            // Optional columns for display
             const catIndex = headers.findIndex(h => h.includes('Product_Category'));
             const regionIndex = headers.findIndex(h => h.includes('Region'));
 
@@ -2224,6 +2376,13 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
             const processedRows = [];
             const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+            const categoryTotals = new Map();
+            const regionTotals = new Map();
+            let totalSales = 0;
+            let weekendSales = 0;
+            let minDate = null;
+            let maxDate = null;
+
             // Loop starting from row 1 (skipping header)
             for (let i = 1; i < lines.length; i++) {
                 const cols = lines[i].split(',');
@@ -2239,6 +2398,7 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
                 // Create Date Object
                 const [day, month, year] = dateStr.split('/').map(Number);
                 const dateObj = new Date(year, month - 1, day);
+                if (Number.isNaN(dateObj.getTime())) continue;
 
                 // 1. Get Day Name
                 const dayIndex = dateObj.getDay(); // 0 = Sun, 6 = Sat
@@ -2256,7 +2416,15 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
                     weekdayCount++;
                 }
 
-                // Prepare row for table display
+                totalSales += sales;
+                if (isWeekend) weekendSales += sales;
+
+                categoryTotals.set(category, (categoryTotals.get(category) || 0) + sales);
+                regionTotals.set(region, (regionTotals.get(region) || 0) + sales);
+
+                if (!minDate || dateObj < minDate) minDate = dateObj;
+                if (!maxDate || dateObj > maxDate) maxDate = dateObj;
+
                 processedRows.push({
                     id: cols[0],
                     date: dateStr,
@@ -2272,29 +2440,112 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
             const avgWeekday = weekdayCount ? (weekdaySum / weekdayCount) : 0;
             const avgWeekend = weekendCount ? (weekendSum / weekendCount) : 0;
 
+            // Build Summary
+            const diff = avgWeekend - avgWeekday;
+            const diffPct = avgWeekday ? (diff / avgWeekday) * 100 : 0;
+            const weekendShare = totalSales ? (weekendSales / totalSales) * 100 : 0;
+
+            const topN = (m, n=3) => Array.from(m.entries())
+                .map(([name,total]) => ({ name, total }))
+                .sort((a,b) => b.total - a.total)
+                .slice(0,n);
+
+            const pad2 = (x) => x.toString().padStart(2,'0');
+            const fmtDate = (d) => d ? `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}` : '-';
+
+            const findings = [];
+            if (avgWeekday || avgWeekend) {
+                const higher = diff > 0 ? 'Weekend' : (diff < 0 ? 'Weekday' : 'Equal');
+                findings.push(`ยอดขายเฉลี่ย ${higher === 'Equal' ? 'ใกล้เคียงกัน' : higher + ' สูงกว่า'} ระหว่าง Weekday vs Weekend`);
+                findings.push(`ความต่างเฉลี่ย: ${diff.toLocaleString('th-TH', {maximumFractionDigits:0})} บาท (${diffPct.toFixed(1)}%)`);
+                findings.push(`Weekend คิดเป็น ${weekendShare.toFixed(1)}% ของยอดขายรวม`);
+            }
+            const topCategories = topN(categoryTotals, 3);
+            const topRegions = topN(regionTotals, 3);
+
+            if (topCategories.length) findings.push(`Top Category: ${topCategories[0].name}`);
+            if (topRegions.length) findings.push(`Top Region: ${topRegions[0].name}`);
+
+            const summary = {
+                sourceName,
+                generatedAt: nowISO(),
+                rowCount: processedRows.length,
+                dateRange: `${fmtDate(minDate)} - ${fmtDate(maxDate)}`,
+                avgWeekday,
+                avgWeekend,
+                diff,
+                diffPct,
+                weekendShare,
+                topCategories,
+                topRegions,
+                findings,
+                diffText: `Weekend - Weekday = ${diff.toLocaleString('th-TH', {maximumFractionDigits:0})} บาท (${diffPct.toFixed(1)}%)`,
+                weekendShareText: `${weekendShare.toFixed(1)}%`
+            };
+
+            lastAnalysis = {
+                sourceName,
+                generatedAt: summary.generatedAt,
+                rows: processedRows,
+                summary
+            };
+
+            renderInsights(summary);
+            setExportEnabled(true);
             updateUI(avgWeekday, avgWeekend, processedRows);
+        }
+
+        function renderInsights(summary) {
+            document.getElementById('summary-date-range').innerText = summary.dateRange || '-';
+            document.getElementById('summary-row-count').innerText = (summary.rowCount ?? 0).toLocaleString('th-TH');
+            document.getElementById('summary-diff').innerText = summary.diffText || '-';
+            document.getElementById('summary-weekend-share').innerText = summary.weekendShareText || '-';
+
+            // Insights list
+            const ul = document.getElementById('insights-list');
+            ul.innerHTML = '';
+            (summary.findings || ['-']).forEach(t => {
+                const li = document.createElement('li');
+                li.innerText = t;
+                ul.appendChild(li);
+            });
+
+            // Top categories/regions
+            const catEl = document.getElementById('top-categories');
+            catEl.innerHTML = '';
+            (summary.topCategories || []).forEach(x => {
+                const li = document.createElement('li');
+                li.innerText = `${x.name}: ${x.total.toLocaleString('th-TH', {maximumFractionDigits:0})}`;
+                catEl.appendChild(li);
+            });
+            if (!catEl.children.length) catEl.innerHTML = '<li>-</li>';
+
+            const regEl = document.getElementById('top-regions');
+            regEl.innerHTML = '';
+            (summary.topRegions || []).forEach(x => {
+                const li = document.createElement('li');
+                li.innerText = `${x.name}: ${x.total.toLocaleString('th-TH', {maximumFractionDigits:0})}`;
+                regEl.appendChild(li);
+            });
+            if (!regEl.children.length) regEl.innerHTML = '<li>-</li>';
         }
 
         function updateUI(avgWeekday, avgWeekend, rows) {
             document.getElementById('dashboard').classList.remove('hidden');
             
-            // Format Numbers
             const fmt = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 });
             
             document.getElementById('weekday-avg').innerText = fmt.format(avgWeekday);
             document.getElementById('weekend-avg').innerText = fmt.format(avgWeekend);
             document.getElementById('total-rows').innerText = rows.length.toLocaleString();
 
-            // Update Chart
             updateChart(avgWeekday, avgWeekend);
 
-            // Update Table (Limit to first 100 for performance)
             const tbody = document.getElementById('dataTableBody');
             tbody.innerHTML = '';
             
             rows.slice(0, 100).forEach(row => {
                 const tr = document.createElement('tr');
-                // Styling logic
                 const isWknd = row.isWeekend;
                 const rowClass = isWknd ? 'bg-purple-50/30 hover:bg-purple-50' : 'hover:bg-gray-50';
                 const badgeColor = isWknd ? 'bg-purple-100 text-purple-700 ring-1 ring-purple-600/20' : 'bg-slate-100 text-slate-600 ring-1 ring-slate-600/10';
@@ -2331,14 +2582,8 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
                     datasets: [{
                         label: 'Average Sales',
                         data: [weekday, weekend],
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.7)', // Blue
-                            'rgba(168, 85, 247, 0.7)'  // Purple
-                        ],
-                        borderColor: [
-                            'rgba(59, 130, 246, 1)',
-                            'rgba(168, 85, 247, 1)'
-                        ],
+                        backgroundColor: ['rgba(59, 130, 246, 0.7)', 'rgba(168, 85, 247, 0.7)'],
+                        borderColor: ['rgba(59, 130, 246, 1)', 'rgba(168, 85, 247, 1)'],
                         borderWidth: 2,
                         borderRadius: 6,
                         barPercentage: 0.5
@@ -2350,16 +2595,10 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: 'rgba(17, 24, 39, 0.9)',
-                            padding: 12,
-                            titleFont: { family: "'Sarabun', sans-serif", size: 14 },
-                            bodyFont: { family: "'Sarabun', sans-serif", size: 13 },
                             callbacks: {
                                 label: function(context) {
                                     let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
+                                    if (label) { label += ': '; }
                                     if (context.parsed.y !== null) {
                                         label += new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(context.parsed.y);
                                     }
@@ -2374,36 +2613,22 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
                             grid: { borderDash: [2, 4], color: '#e5e7eb' },
                             ticks: {
                                 font: { family: "'Sarabun', sans-serif" },
-                                callback: function(value) {
-                                    return value.toLocaleString();
-                                }
+                                callback: function(value) { return value.toLocaleString(); }
                             },
-                            title: {
-                                display: true,
-                                text: 'จำนวนเงิน (บาท)',
-                                font: { family: "'Sarabun', sans-serif" }
-                            }
+                            title: { display: true, text: 'จำนวนเงิน (บาท)', font: { family: "'Sarabun', sans-serif" } }
                         },
                         x: {
                             grid: { display: false },
-                            ticks: {
-                                font: { family: "'Sarabun', sans-serif", size: 14, weight: 'bold' }
-                            }
+                            ticks: { font: { family: "'Sarabun', sans-serif", size: 14, weight: 'bold' } }
                         }
-                    },
-                    animation: {
-                        duration: 1500,
-                        easing: 'easeOutQuart'
                     }
                 }
             });
         }
 
-        // Initialize with Mock Data
         window.addEventListener('DOMContentLoaded', () => {
-            processData(mockData, 'จากข้อมูล 2,000 รายการ');
+            processData(mockData, 'Sample Data (10 Rows)');
         });
     </script>
 </body>
 </html>
-
