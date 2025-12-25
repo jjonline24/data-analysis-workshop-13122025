@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Analysis Dashboard</title>
+    <title>Workshop 5: Sales Insight & Visualization</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -12,6 +12,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Sarabun', sans-serif; }
+        @media print {
+            .no-print { display: none; }
+            .page-break { page-break-before: always; }
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen p-6">
@@ -21,169 +25,190 @@
         <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm">
             <div>
-                <h1 class="text-2xl font-bold text-indigo-600">📊 ระบบวิเคราะห์ยอดขายขั้นสูง (Advanced Insights)</h1>
-                <p class="text-slate-500 text-sm">เจาะลึกเทรนด์รายเดือน, ประสิทธิภาพสินค้า และโอกาสเติบโต</p>
+                <h1 class="text-2xl font-bold text-indigo-600">📊 Workshop 5: Data Storytelling & Insights</h1>
+                <p class="text-slate-500 text-sm mt-1">เป้าหมาย: ค้นหา Insight ที่น่าสนใจ, วิเคราะห์แนวโน้ม และเจาะลึกพฤติกรรมลูกค้า</p>
             </div>
-            <div class="mt-4 md:mt-0">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    <span class="w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
-                    พร้อมใช้งาน (Auto-loaded)
-                </span>
+            <div class="mt-4 md:mt-0 text-right">
+                <p class="text-xs text-slate-400">System Status</p>
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span class="text-sm font-medium text-slate-600">Ready to Analyze</span>
+                </div>
             </div>
         </header>
 
-        <!-- Input Section -->
-        <section class="bg-white p-6 rounded-xl shadow-sm border border-indigo-100">
-            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                📥 นำเข้าข้อมูลเพิ่มเติม
-                <span class="text-xs font-normal text-gray-400">(รองรับ Date format: DD/MM/YYYY, YYYY-MM-DD, DD-Mon-YY)</span>
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Option 1: Paste Text -->
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">วิธีที่ 1: วางข้อมูล CSV ที่นี่</label>
-                    <textarea id="csvTextInput" rows="3" class="w-full p-3 text-xs border rounded-lg focus:ring-2 focus:ring-indigo-500 font-mono bg-slate-50" placeholder="Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region..."></textarea>
-                    <button onclick="processFromText()" class="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full md:w-auto">
-                        วิเคราะห์ข้อมูลใหม่
-                    </button>
-                </div>
-
-                <!-- Option 2: Upload File -->
-                <div class="border-l pl-0 md:pl-6 md:border-slate-200">
-                    <label class="block text-sm font-medium text-slate-700 mb-2">วิธีที่ 2: อัปโหลดไฟล์ CSV</label>
-                    <div class="flex items-center justify-center w-full">
-                        <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                                </svg>
-                                <p class="text-sm text-gray-500"><span class="font-semibold">คลิกเพื่ออัปโหลด</span></p>
-                                <p class="text-xs text-gray-500">.CSV File Only</p>
-                            </div>
-                            <input id="dropzone-file" type="file" class="hidden" accept=".csv" onchange="processFromFile(this)" />
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Dashboard Content -->
-        <div id="dashboard" class="hidden space-y-8">
-            
-            <!-- Insight Summary Box -->
-            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white shadow-lg relative overflow-hidden">
-                <div class="relative z-10">
-                    <h3 class="text-lg font-bold flex items-center gap-2 mb-2">
-                        🚀 Deep Dive Insight: สิ่งที่น่าประหลาดใจที่สุด
-                    </h3>
-                    <p id="insight-summary" class="text-2xl font-light leading-relaxed">
-                        กำลังประมวลผล...
-                    </p>
-                </div>
-                <div class="absolute right-0 bottom-0 opacity-10 transform translate-x-10 translate-y-10">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-64 w-64" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
-                </div>
-            </div>
-
-            <!-- SECTION 1: Trend & Category Performance -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                <!-- Monthly Sales Trend -->
-                <div class="bg-white p-6 rounded-xl shadow-sm">
-                    <h3 class="font-bold text-slate-700 mb-4 border-l-4 border-blue-500 pl-3">
-                        1. Trend Analysis: แนวโน้มยอดขายรายเดือน
-                    </h3>
-                    <div class="h-80 w-full">
-                        <canvas id="monthlyTrendChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Category Performance by Region -->
-                <div class="bg-white p-6 rounded-xl shadow-sm">
-                    <h3 class="font-bold text-slate-700 mb-4 border-l-4 border-orange-500 pl-3">
-                        2. Category Performance: ยอดขายแยกตามสินค้าและภูมิภาค
-                    </h3>
-                    <div class="h-80 w-full">
-                        <canvas id="categoryRegionChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SECTION 2: Existing Stats (Weekday/Weekend) -->
-            <div class="bg-white p-6 rounded-xl shadow-sm">
-                <h3 class="font-bold text-slate-700 mb-4 border-l-4 border-emerald-500 pl-3">
-                    3. การวิเคราะห์วันธรรมดา vs วันหยุด (ดั้งเดิม)
+        <!-- Problem Statement Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Card 1 -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                <h3 class="font-bold text-lg text-slate-700 mb-3 flex items-center gap-2">
+                    📝 สิ่งที่ต้องทำ (To Do)
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Weekday Card -->
-                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                        <p class="text-sm text-blue-600 font-semibold uppercase">วันธรรมดา (Weekday)</p>
-                        <p class="text-2xl font-bold text-slate-800 mt-2" id="weekday-avg">0.00</p>
-                        <p class="text-xs text-slate-500">ยอดขายเฉลี่ย</p>
+                <ul class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                    <li>รวบรวมข้อมูลการขายและลูกค้า</li>
+                    <li>ทำความสะอาดข้อมูล (Data Cleaning)</li>
+                    <li>เชื่อมโยงข้อมูล Transaction และ Customer</li>
+                </ul>
+            </div>
+            <!-- Card 2 -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-500">
+                <h3 class="font-bold text-lg text-slate-700 mb-3 flex items-center gap-2">
+                    🔍 การวิเคราะห์ (Analysis)
+                </h3>
+                <ul class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                    <li>Trend Analysis (รายเดือน)</li>
+                    <li>Category Performance (แยกตามภูมิภาค)</li>
+                    <li>Deep Dive: สินค้าเติบโตสูงสุด 3 เดือนล่าสุด</li>
+                </ul>
+            </div>
+            <!-- Card 3 -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
+                <h3 class="font-bold text-lg text-slate-700 mb-3 flex items-center gap-2">
+                    🚀 ผลลัพธ์ (Deliverables)
+                </h3>
+                <ul class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                    <li>Dashboard แสดงกราฟ 3 รูปแบบ</li>
+                    <li>Top 10 Customers List</li>
+                    <li>ข้อสรุป "Surprise Insight" ใน 1 บรรทัด</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Input Section (Upload Only) -->
+        <div class="bg-white p-6 rounded-xl shadow-sm no-print">
+            <h2 class="text-lg font-bold text-slate-700 mb-4">📥 นำเข้าข้อมูล (Import Data)</h2>
+            <div class="p-8 border-2 border-dashed border-slate-300 rounded-lg text-center hover:bg-slate-50 transition-colors relative">
+                <input type="file" id="csvUpload" accept=".csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                <div class="space-y-2 pointer-events-none">
+                    <svg class="w-10 h-10 mx-auto text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    <p class="text-sm text-slate-600 font-medium">คลิกเพื่ออัปโหลดไฟล์ CSV หรือลากไฟล์มาวางที่นี่</p>
+                    <p class="text-xs text-slate-400">รองรับไฟล์ที่มีคอลัมน์: Transaction_ID, Date, Customer_ID, Product_Category, Sales_Amount, Region</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary & Insights Section -->
+        <div id="summarySection" class="hidden space-y-6">
+            
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+                <h2 class="text-xl font-bold mb-2">💡 สรุปผลการวิเคราะห์ (Summary & Insights)</h2>
+                <div class="flex flex-col md:flex-row gap-8 mt-4">
+                    <div class="flex-1">
+                        <p class="text-indigo-100 text-sm uppercase tracking-wider font-semibold">ยอดขายรวม (Total Sales)</p>
+                        <p class="text-4xl font-bold mt-1" id="totalSalesDisplay">฿0</p>
                     </div>
-                    <!-- Weekend Card -->
-                    <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
-                        <p class="text-sm text-purple-600 font-semibold uppercase">วันหยุด (Weekend)</p>
-                        <p class="text-2xl font-bold text-slate-800 mt-2" id="weekend-avg">0.00</p>
-                        <p class="text-xs text-slate-500">ยอดขายเฉลี่ย</p>
+                    <div class="flex-1 border-l border-indigo-400 pl-6">
+                        <p class="text-indigo-100 text-sm uppercase tracking-wider font-semibold">สินค้าขายดีอันดับ 1 (Top Category)</p>
+                        <p class="text-2xl font-bold mt-1" id="topCategoryDisplay">-</p>
                     </div>
-                    <!-- Chart -->
-                    <div class="h-32 w-full">
-                        <canvas id="comparisonChart"></canvas>
+                    <div class="flex-1 border-l border-indigo-400 pl-6">
+                        <p class="text-indigo-100 text-sm uppercase tracking-wider font-semibold">Insight ที่น่าประหลาดใจที่สุด</p>
+                        <p class="text-lg italic mt-1 font-medium text-yellow-300" id="surpriseInsight">กำลังประมวลผล...</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Data Table -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-slate-700">ข้อมูลรายรายการ</h3>
-                    <span class="bg-gray-100 text-gray-600 text-xs font-medium px-3 py-1 rounded-full border border-gray-200">
-                        Total Rows: <span id="total-rows">0</span>
-                    </span>
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Chart 1: Trend Analysis -->
+                <div class="bg-white p-6 rounded-xl shadow-sm lg:col-span-2">
+                    <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                        📈 1. Trend Analysis: ยอดขายรวมรายเดือน
+                    </h3>
+                    <div class="h-80">
+                        <canvas id="trendChart"></canvas>
+                    </div>
                 </div>
-                <div class="overflow-x-auto max-h-96 rounded border border-gray-200">
-                    <table class="min-w-full divide-y divide-slate-200 text-sm">
-                        <thead class="bg-slate-50 sticky top-0 z-10">
+
+                <!-- Chart 2: Category Performance -->
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                        📊 2. Category Performance (แยกตาม Region)
+                    </h3>
+                    <div class="h-80">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Deep Dive Growth -->
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                        🚀 3. Deep Dive: สินค้าที่เติบโตสูงสุด (3 เดือนล่าสุด)
+                    </h3>
+                    <div class="h-80">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Findings & Top 3 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <!-- Key Findings Text -->
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h3 class="font-bold text-slate-700 mb-4">🔑 ข้อค้นพบหลัก (Key Findings)</h3>
+                    <ul class="space-y-3 text-slate-600 text-sm" id="keyFindingsList">
+                        <!-- JS generated content -->
+                    </ul>
+                </div>
+
+                <!-- Top 3 Categories Table (Small) -->
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h3 class="font-bold text-slate-700 mb-4">🏆 Top 3 หมวดหมู่สินค้า (ยอดขายสูงสุด)</h3>
+                    <div class="overflow-hidden rounded-lg border border-slate-200">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">อันดับ</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">หมวดหมู่</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase">ยอดขาย (บาท)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-slate-200" id="top3TableBody">
+                                <!-- JS generated content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top 10 Customers Table -->
+            <div class="bg-white p-6 rounded-xl shadow-sm page-break">
+                <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                    👑 ลูกค้าที่มีการซื้อสูงสุด (Top 10 Customers)
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-indigo-50">
                             <tr>
-                                <th class="px-4 py-3 text-left font-semibold text-gray-600 text-xs">Date</th>
-                                <th class="px-4 py-3 text-left font-semibold text-gray-600 text-xs">Product</th>
-                                <th class="px-4 py-3 text-left font-semibold text-gray-600 text-xs">Region</th>
-                                <th class="px-4 py-3 text-right font-semibold text-gray-600 text-xs">Sales</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-indigo-700 uppercase tracking-wider">อันดับ</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-indigo-700 uppercase tracking-wider">Customer ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-indigo-700 uppercase tracking-wider">จำนวนครั้งที่ซื้อ</th>
+                                <th class="px-6 py-3 text-right text-xs font-bold text-indigo-700 uppercase tracking-wider">ยอดซื้อรวม (บาท)</th>
                             </tr>
                         </thead>
-                        <tbody id="dataTableBody" class="divide-y divide-slate-200 bg-white"></tbody>
+                        <tbody class="bg-white divide-y divide-slate-200" id="customerTableBody">
+                            <!-- Data will be populated here -->
+                        </tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row justify-end gap-4 mt-8 pb-8 no-print">
+                <button onclick="window.print()" class="flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-300 text-slate-700 rounded-lg shadow-sm hover:bg-slate-50 transition-all font-medium">
+                    🖨️ Print Report
+                </button>
+                <button onclick="exportToCSV()" class="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-all font-medium">
+                    📥 Export CSV
+                </button>
             </div>
 
         </div>
     </div>
 
     <script>
-        let monthlyTrendChart = null;
-        let categoryRegionChart = null;
-        let comparisonChart = null;
-
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-        // --- UPDATED DATE PARSING FUNCTION ---
-        function parseDate(dateStr) {
-            if (!dateStr) return null;
-            const dmy = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-            if (dmy) return new Date(dmy[3], dmy[2] - 1, dmy[1]);
-            const d = new Date(dateStr);
-            if (!isNaN(d.getTime())) return d;
-            return null;
-        }
-
-        // --- SAMPLE DATA ---
-        const integratedData = `
-Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
+        // Mock Data: 10 Rows for Layout Preview
+        const mockData = `TXN-01997,14/04/2024,C-0049,Sports,24903.5,Bangkok
 TXN-00001,10/09/2024,C-0486,Fashion,38926.0,Phuket
 TXN-00002,08/09/2024,C-0356,Sports,14931.0,Chonburi
 TXN-00003,15/08/2024,C-0431,Electronics,17885.0,Bangkok
@@ -2183,259 +2208,354 @@ TXN-01996,16/03/2024,C-0571,Electronics,49672.0,Bangkok
 TXN-01997,14/04/2024,C-0049,Sports,24903.5,Bangkok
 TXN-01998,17/11/2024,C-0019,Sports,42341.0,Bangkok
 TXN-01999,01/08/2024,C-0368,Electronics,29987.0,Bangkok
-TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi
-`;
+TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
 
-        function processFromText() {
-            const text = document.getElementById('csvTextInput').value;
-            if (!text.trim()) { alert("กรุณาวางข้อมูล CSV ก่อนครับ"); return; }
-            processData(text);
+        let currentData = [];
+        let trendChart, categoryChart, growthChart;
+
+        // --- Data Processing & Logic ---
+
+        // Parse CSV text to Objects
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            // Check if first line is header, if not use default or detect
+            // Assuming input has no header or user paste removes it, but if uploaded file has header:
+            let startIndex = 0;
+            if (lines[0].toLowerCase().includes('transaction_id')) {
+                startIndex = 1;
+            }
+
+            const data = [];
+            for (let i = startIndex; i < lines.length; i++) {
+                const parts = lines[i].split(',').map(p => p.trim());
+                if (parts.length >= 6) {
+                    // Format: TXN, Date(DD/MM/YYYY), CustID, Category, Sales, Region
+                    const dateParts = parts[1].split('/');
+                    // Create Date object (Month is 0-indexed)
+                    const dateObj = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+                    
+                    data.push({
+                        txnId: parts[0],
+                        date: dateObj,
+                        dateStr: parts[1], // Keep original string
+                        customerId: parts[2],
+                        category: parts[3],
+                        sales: parseFloat(parts[4]),
+                        region: parts[5]
+                    });
+                }
+            }
+            return data.sort((a, b) => a.date - b.date);
         }
 
-        function processFromFile(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) { processData(e.target.result); };
-            reader.readAsText(file);
-        }
-
-        function processData(csvData) {
-            const lines = csvData.split('\n').filter(line => line.trim() !== '');
-            if (lines.length < 2) return;
-
-            const headers = lines[0].split(',').map(h => h.trim());
-            const dateIndex = headers.findIndex(h => h.toLowerCase().includes('date'));
-            const salesIndex = headers.findIndex(h => h.toLowerCase().includes('sales') || h.toLowerCase().includes('amount'));
-            const catIndex = headers.findIndex(h => h.toLowerCase().includes('category') || h.toLowerCase().includes('product'));
-            const regionIndex = headers.findIndex(h => h.toLowerCase().includes('region'));
+        // Main processing function
+        function processData(csvText, sourceName) {
+            currentData = parseCSV(csvText);
             
-            if (dateIndex === -1 || salesIndex === -1) {
-                alert("ไม่พบคอลัมน์ Date หรือ Sales_Amount");
+            if (currentData.length === 0) {
+                alert("ไม่พบข้อมูลที่ถูกต้อง กรุณาตรวจสอบรูปแบบไฟล์");
                 return;
             }
 
-            const processedRows = [];
-            let weekdaySum = 0, weekdayCount = 0;
-            let weekendSum = 0, weekendCount = 0;
-
-            // Aggregation objects
-            const monthlySales = {}; // "YYYY-MM": total
-            const categoryRegionSales = {}; // "Category": { "Region1": total, "Region2": total }
-            const categoryMonthly = {}; // "Category": { "YYYY-MM": total }
-
-            for (let i = 1; i < lines.length; i++) {
-                const cols = lines[i].split(',');
-                if (cols.length < headers.length) continue;
-
-                const dateStr = cols[dateIndex].trim();
-                const salesStr = cols[salesIndex].trim();
-                const category = catIndex > -1 ? cols[catIndex].trim() : 'Unknown';
-                const region = regionIndex > -1 ? cols[regionIndex].trim() : 'Unknown';
-                const sales = parseFloat(salesStr);
-                const dateObj = parseDate(dateStr);
-
-                if (!dateObj || isNaN(sales)) continue;
-
-                const dayIndex = dateObj.getDay();
-                const isWeekend = (dayIndex === 0 || dayIndex === 6);
-                
-                // 1. Basic Stats
-                if (isWeekend) { weekendSum += sales; weekendCount++; }
-                else { weekdaySum += sales; weekdayCount++; }
-
-                // 2. Monthly Trend Aggregation
-                const monthKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
-                monthlySales[monthKey] = (monthlySales[monthKey] || 0) + sales;
-
-                // 3. Category & Region Aggregation
-                if (!categoryRegionSales[category]) categoryRegionSales[category] = {};
-                categoryRegionSales[category][region] = (categoryRegionSales[category][region] || 0) + sales;
-
-                // 4. Category Monthly for Deep Dive
-                if (!categoryMonthly[category]) categoryMonthly[category] = {};
-                categoryMonthly[category][monthKey] = (categoryMonthly[category][monthKey] || 0) + sales;
-
-                processedRows.push({
-                    id: cols[0],
-                    date: dateStr,
-                    dayName: dayNames[dayIndex],
-                    isWeekend: isWeekend,
-                    category: category,
-                    region: region,
-                    sales: sales
-                });
-            }
-
-            const avgWeekday = weekdayCount ? (weekdaySum / weekdayCount) : 0;
-            const avgWeekend = weekendCount ? (weekendSum / weekendCount) : 0;
-
-            // Deep Dive Analysis: Find fastest growing category in last 3 months
-            const sortedMonths = Object.keys(monthlySales).sort();
-            let insightText = "ข้อมูลไม่เพียงพอสำหรับการวิเคราะห์แนวโน้ม";
+            document.getElementById('summarySection').classList.remove('hidden');
             
-            if (sortedMonths.length >= 2) {
-                const lastMonth = sortedMonths[sortedMonths.length - 1];
-                // Compare with 3 months ago (or first month if < 3)
-                const startMonth = sortedMonths.length >= 3 ? sortedMonths[sortedMonths.length - 3] : sortedMonths[0];
-                
-                let maxGrowth = -Infinity;
-                let topCat = "";
+            updateMetrics();
+            renderCharts();
+            renderTopCustomers();
+            generateTextInsights();
+        }
 
-                Object.keys(categoryMonthly).forEach(cat => {
-                    const endVal = categoryMonthly[cat][lastMonth] || 0;
-                    const startVal = categoryMonthly[cat][startMonth] || 0;
-                    
-                    if (startVal > 0) {
-                        const growth = ((endVal - startVal) / startVal) * 100;
-                        if (growth > maxGrowth) {
-                            maxGrowth = growth;
-                            topCat = cat;
-                        }
-                    }
-                });
+        function updateMetrics() {
+            // Total Sales
+            const totalSales = currentData.reduce((sum, item) => sum + item.sales, 0);
+            document.getElementById('totalSalesDisplay').textContent = 
+                totalSales.toLocaleString('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 });
 
-                if (topCat) {
-                    insightText = `✨ สินค้า **${topCat}** มียอดขายเติบโตสูงสุดถึง **${maxGrowth.toFixed(1)}%** เมื่อเทียบ ${lastMonth} กับ ${startMonth}`;
-                } else {
-                    insightText = `📅 ข้อมูลล่าสุดเดือน ${lastMonth}: ยอดขายรวม ${monthlySales[lastMonth].toLocaleString()} บาท`;
-                }
-            }
-
-            updateUI({
-                avgWeekday, avgWeekend,
-                processedRows,
-                monthlySales,
-                categoryRegionSales,
-                insightText
+            // Top Category
+            const catSales = {};
+            currentData.forEach(d => {
+                catSales[d.category] = (catSales[d.category] || 0) + d.sales;
             });
+            const topCat = Object.entries(catSales).sort((a, b) => b[1] - a[1])[0];
+            document.getElementById('topCategoryDisplay').textContent = topCat ? topCat[0] : '-';
+
+            // Populate Top 3 Table
+            const top3 = Object.entries(catSales).sort((a, b) => b[1] - a[1]).slice(0, 3);
+            const top3Html = top3.map((item, index) => `
+                <tr>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-500">${index + 1}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-slate-900">${item[0]}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-500 text-right">${item[1].toLocaleString()}</td>
+                </tr>
+            `).join('');
+            document.getElementById('top3TableBody').innerHTML = top3Html;
         }
 
-        function updateUI(data) {
-            document.getElementById('dashboard').classList.remove('hidden');
-            const fmt = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 });
+        function renderCharts() {
+            // Common Config
+            Chart.defaults.font.family = "'Sarabun', sans-serif";
+            const colors = ['#4F46E5', '#EC4899', '#10B981', '#F59E0B', '#6366F1', '#8B5CF6'];
 
-            // Stats
-            document.getElementById('weekday-avg').innerText = fmt.format(data.avgWeekday);
-            document.getElementById('weekend-avg').innerText = fmt.format(data.avgWeekend);
-            document.getElementById('total-rows').innerText = data.processedRows.length.toLocaleString();
-            document.getElementById('insight-summary').innerHTML = data.insightText;
+            // --- 1. Trend Analysis (Monthly Sales) ---
+            const monthlyData = {};
+            currentData.forEach(d => {
+                const monthKey = d.date.toLocaleDateString('th-TH', { month: 'short', year: '2-digit' });
+                // Use a sortable key for ordering: YYYY-MM
+                const sortKey = `${d.date.getFullYear()}-${String(d.date.getMonth()+1).padStart(2, '0')}`;
+                if (!monthlyData[sortKey]) monthlyData[sortKey] = { label: monthKey, sales: 0 };
+                monthlyData[sortKey].sales += d.sales;
+            });
 
-            // Charts
-            renderComparisonChart(data.avgWeekday, data.avgWeekend);
-            renderMonthlyTrendChart(data.monthlySales);
-            renderCategoryRegionChart(data.categoryRegionSales);
-
-            // Table
-            updateDataTable(data.processedRows);
-        }
-
-        function renderMonthlyTrendChart(monthlyData) {
-            const ctx = document.getElementById('monthlyTrendChart').getContext('2d');
-            if (monthlyTrendChart) monthlyTrendChart.destroy();
-
+            // Sort keys
             const sortedKeys = Object.keys(monthlyData).sort();
-            const values = sortedKeys.map(k => monthlyData[k]);
+            const trendLabels = sortedKeys.map(k => monthlyData[k].label);
+            const trendValues = sortedKeys.map(k => monthlyData[k].sales);
 
-            monthlyTrendChart = new Chart(ctx, {
+            const ctx1 = document.getElementById('trendChart').getContext('2d');
+            if (trendChart) trendChart.destroy();
+            trendChart = new Chart(ctx1, {
                 type: 'line',
                 data: {
-                    labels: sortedKeys,
+                    labels: trendLabels,
                     datasets: [{
-                        label: 'Total Sales',
-                        data: values,
-                        borderColor: 'rgba(79, 70, 229, 1)',
+                        label: 'ยอดขายรวม (บาท)',
+                        data: trendValues,
+                        borderColor: '#4F46E5',
                         backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.3,
+                        borderWidth: 3,
+                        tension: 0.4,
                         fill: true,
+                        pointRadius: 4,
                         pointBackgroundColor: '#fff',
-                        pointBorderColor: 'rgba(79, 70, 229, 1)',
-                        pointRadius: 5
+                        pointBorderColor: '#4F46E5'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
+                    scales: {
+                        y: { beginAtZero: true, grid: { borderDash: [2, 4] } },
+                        x: { grid: { display: false } }
+                    }
                 }
             });
-        }
 
-        function renderCategoryRegionChart(data) {
-            const ctx = document.getElementById('categoryRegionChart').getContext('2d');
-            if (categoryRegionChart) categoryRegionChart.destroy();
-
-            const categories = Object.keys(data);
-            // Collect all unique regions
-            const regions = new Set();
-            categories.forEach(c => Object.keys(data[c]).forEach(r => regions.add(r)));
-            const regionList = Array.from(regions);
-
-            const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+            // --- 2. Category Performance by Region ---
+            const regions = [...new Set(currentData.map(d => d.region))];
+            const categories = [...new Set(currentData.map(d => d.category))];
             
-            const datasets = regionList.map((region, i) => ({
-                label: region,
-                data: categories.map(cat => data[cat][region] || 0),
-                backgroundColor: colors[i % colors.length]
-            }));
+            const datasets2 = regions.map((region, idx) => {
+                return {
+                    label: region,
+                    data: categories.map(cat => {
+                        return currentData
+                            .filter(d => d.category === cat && d.region === region)
+                            .reduce((sum, d) => sum + d.sales, 0);
+                    }),
+                    backgroundColor: colors[idx % colors.length]
+                };
+            });
 
-            categoryRegionChart = new Chart(ctx, {
+            const ctx2 = document.getElementById('categoryChart').getContext('2d');
+            if (categoryChart) categoryChart.destroy();
+            categoryChart = new Chart(ctx2, {
                 type: 'bar',
                 data: {
                     labels: categories,
-                    datasets: datasets
+                    datasets: datasets2
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: { x: { stacked: false }, y: { beginAtZero: true } }
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, grid: { borderDash: [2, 4] } }
+                    }
                 }
             });
+
+            // --- 3. Deep Dive: Growth (Last 3 Months) ---
+            // Identify last 3 months present in data
+            if (sortedKeys.length >= 2) {
+                const lastMonthKey = sortedKeys[sortedKeys.length - 1];
+                const prevMonthKey = sortedKeys[sortedKeys.length - 2]; // Compare last month vs previous month for growth
+                // Or if we want trend over 3 months, let's just show sales of top categories for last 3 months
+                const last3Months = sortedKeys.slice(-3);
+                
+                // Find category with max growth between last 2 available months
+                const growthMap = {};
+                categories.forEach(cat => {
+                    const salesLast = currentData.filter(d => d.category === cat && 
+                        `${d.date.getFullYear()}-${String(d.date.getMonth()+1).padStart(2, '0')}` === lastMonthKey)
+                        .reduce((s, d) => s + d.sales, 0);
+                    
+                    const salesPrev = currentData.filter(d => d.category === cat && 
+                        `${d.date.getFullYear()}-${String(d.date.getMonth()+1).padStart(2, '0')}` === prevMonthKey)
+                        .reduce((s, d) => s + d.sales, 0);
+
+                    growthMap[cat] = {
+                        growth: salesPrev === 0 ? 100 : ((salesLast - salesPrev) / salesPrev) * 100,
+                        valLast: salesLast,
+                        valPrev: salesPrev
+                    };
+                });
+
+                // Prepare Chart Data: Show Sales of Each Category for the Last 3 Months
+                const datasets3 = categories.map((cat, idx) => {
+                    return {
+                        label: cat,
+                        data: last3Months.map(mKey => {
+                            return currentData
+                                .filter(d => d.category === cat && `${d.date.getFullYear()}-${String(d.date.getMonth()+1).padStart(2, '0')}` === mKey)
+                                .reduce((sum, d) => sum + d.sales, 0);
+                        }),
+                        borderColor: colors[idx % colors.length],
+                        tension: 0.3,
+                        fill: false
+                    };
+                });
+
+                const ctx3 = document.getElementById('growthChart').getContext('2d');
+                if (growthChart) growthChart.destroy();
+                growthChart = new Chart(ctx3, {
+                    type: 'line',
+                    data: {
+                        labels: last3Months.map(k => monthlyData[k].label),
+                        datasets: datasets3
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'แนวโน้มยอดขายรายหมวดหมู่ (3 เดือนล่าสุด)' }
+                        }
+                    }
+                });
+
+                // Find Surprise Insight (Max Growth Category)
+                let maxGrowthCat = '';
+                let maxGrowthVal = -Infinity;
+                Object.entries(growthMap).forEach(([cat, data]) => {
+                    if (data.growth > maxGrowthVal) {
+                        maxGrowthVal = data.growth;
+                        maxGrowthCat = cat;
+                    }
+                });
+                
+                const growthText = maxGrowthVal > 0 ? `เติบโตขึ้น ${maxGrowthVal.toFixed(1)}%` : `ลดลง ${Math.abs(maxGrowthVal).toFixed(1)}%`;
+                document.getElementById('surpriseInsight').textContent = 
+                    `😲 ไม่น่าเชื่อ! สินค้ากลุ่ม "${maxGrowthCat}" มียอดขาย ${growthText} เมื่อเทียบกับเดือนก่อนหน้า`;
+
+            } else {
+                // Not enough data
+                 document.getElementById('surpriseInsight').textContent = "ข้อมูลไม่เพียงพอสำหรับเปรียบเทียบการเติบโตรายเดือน";
+            }
         }
 
-        function renderComparisonChart(weekday, weekend) {
-            const ctx = document.getElementById('comparisonChart').getContext('2d');
-            if (comparisonChart) comparisonChart.destroy();
-            comparisonChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Weekday', 'Weekend'],
-                    datasets: [{
-                        label: 'Avg Sales',
-                        data: [weekday, weekend],
-                        backgroundColor: ['rgba(59, 130, 246, 0.5)', 'rgba(168, 85, 247, 0.5)'],
-                        borderColor: ['rgba(59, 130, 246, 1)', 'rgba(168, 85, 247, 1)'],
-                        borderWidth: 1
-                    }]
-                },
-                options: { 
-                    indexAxis: 'y',
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { legend: { display: false } } 
-                }
+        function renderTopCustomers() {
+            const custMap = {};
+            currentData.forEach(d => {
+                if (!custMap[d.customerId]) custMap[d.customerId] = { count: 0, total: 0 };
+                custMap[d.customerId].count += 1;
+                custMap[d.customerId].total += d.sales;
+            });
+
+            const sortedCust = Object.entries(custMap)
+                .map(([id, data]) => ({ id, ...data }))
+                .sort((a, b) => b.total - a.total)
+                .slice(0, 10);
+
+            const html = sortedCust.map((c, i) => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-indigo-600">#${i + 1}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700 font-medium">${c.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${c.count} รายการ</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900 text-right font-bold">${c.total.toLocaleString()}</td>
+                </tr>
+            `).join('');
+            
+            document.getElementById('customerTableBody').innerHTML = html;
+        }
+
+        function generateTextInsights() {
+            // Simple Logic to generate bullet points
+            const findings = document.getElementById('keyFindingsList');
+            findings.innerHTML = ''; // Clear
+
+            // 1. Peak Sales Month
+            const monthlySales = {};
+            currentData.forEach(d => {
+                const k = d.date.toLocaleDateString('th-TH', { month: 'long' });
+                monthlySales[k] = (monthlySales[k] || 0) + d.sales;
+            });
+            const peakMonth = Object.entries(monthlySales).sort((a, b) => b[1] - a[1])[0];
+            
+            // 2. Best Region
+            const regionSales = {};
+            currentData.forEach(d => {
+                regionSales[d.region] = (regionSales[d.region] || 0) + d.sales;
+            });
+            const bestRegion = Object.entries(regionSales).sort((a, b) => b[1] - a[1])[0];
+
+            const points = [
+                `เดือนที่มียอดขายสูงสุดคือ <span class="font-bold text-indigo-600">${peakMonth[0]}</span> (ยอดขาย ${peakMonth[1].toLocaleString()} บาท)`,
+                `ภูมิภาคที่ทำผลงานได้ดีที่สุดคือ <span class="font-bold text-indigo-600">${bestRegion[0]}</span> คิดเป็นสัดส่วนหลักของรายได้`,
+                `พฤติกรรมการซื้อ: ลูกค้า Top 10 มีส่วนในการสร้างยอดขายรวมอย่างมีนัยสำคัญ (ดูตารางด้านล่าง)`
+            ];
+
+            points.forEach(txt => {
+                const li = document.createElement('li');
+                li.className = "flex items-start gap-2";
+                li.innerHTML = `<span class="mt-1 text-indigo-500">➤</span> <span>${txt}</span>`;
+                findings.appendChild(li);
             });
         }
 
-        function updateDataTable(rows) {
-            const tbody = document.getElementById('dataTableBody');
-            tbody.innerHTML = '';
-            rows.slice(0, 50).forEach(row => { // Limit to 50 for performance
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="px-4 py-3 text-slate-600">${row.date}</td>
-                    <td class="px-4 py-3 font-medium text-indigo-600">${row.category}</td>
-                    <td class="px-4 py-3 text-slate-500">${row.region}</td>
-                    <td class="px-4 py-3 text-right font-mono text-slate-600">${row.sales.toLocaleString()}</td>
-                `;
-                tbody.appendChild(tr);
-            });
+        function exportToCSV() {
+            if (currentData.length === 0) {
+                alert("ไม่มีข้อมูลสำหรับส่งออก");
+                return;
+            }
+            
+            const headers = ["Transaction_ID", "Date", "Customer_ID", "Product_Category", "Sales_Amount", "Region"];
+            const rows = currentData.map(d => [
+                d.txnId,
+                d.dateStr,
+                d.customerId,
+                d.category,
+                d.sales,
+                d.region
+            ]);
+
+            let csvContent = "data:text/csv;charset=utf-8," 
+                + headers.join(",") + "\n" 
+                + rows.map(e => e.join(",")).join("\n");
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "workshop5_analysis_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
+        // Event Listeners
+        document.getElementById('csvUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                processData(e.target.result, file.name);
+            };
+            reader.readAsText(file);
+        });
+
+        // Initialize with Mock Data for preview layout
         window.addEventListener('DOMContentLoaded', () => {
-            processData(integratedData);
+            processData(mockData, 'Mock Data (10 Rows)');
         });
     </script>
 </body>
