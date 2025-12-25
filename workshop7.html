@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Analysis: Pareto</title>
+    <title>Workshop 7: Pareto Analysis</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -12,6 +12,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Sarabun', sans-serif; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .shadow-sm { box-shadow: none !important; }
+            .border { border: 1px solid #ddd !important; }
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen p-6">
@@ -19,136 +25,201 @@
     <div class="max-w-7xl mx-auto space-y-6">
         
         <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm">
+        <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-indigo-100">
             <div>
-                <h1 class="text-2xl font-bold text-indigo-600">📊 Pareto Analysis Report</h1>
-                <p class="text-slate-500 text-sm">วิเคราะห์กฎ 80/20 เพื่อหาลูกค้ากลุ่มสำคัญ (Key Customers)</p>
+                <h1 class="text-2xl font-bold text-indigo-600">📊 Workshop 7: Pareto Analysis</h1>
+                <p class="text-slate-500 text-sm">วิเคราะห์กลุ่มลูกค้าชั้นดีด้วยกฎ 80/20 (Top 80% Revenue Contributors)</p>
             </div>
             <div class="mt-4 md:mt-0">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    <span class="w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
-                    พร้อมใช้งาน (Auto-loaded)
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                    <span class="w-2 h-2 mr-2 bg-indigo-500 rounded-full"></span>
+                    Pareto Model Ready
                 </span>
             </div>
         </header>
 
-        <!-- Input Section -->
-        <section class="bg-white p-6 rounded-xl shadow-sm border border-pink-100">
-            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                📥 นำเข้าข้อมูล (เพื่อคำนวณ Pareto ใหม่)
-                <span class="text-xs font-normal text-gray-400">(รองรับ Date format: DD/MM/YYYY, YYYY-MM-DD)</span>
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Option 1: Paste Text -->
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">วิธีที่ 1: วางข้อมูล CSV ที่นี่</label>
-                    <textarea id="csvTextInput" rows="3" class="w-full p-3 text-xs border rounded-lg focus:ring-2 focus:ring-pink-500 font-mono bg-slate-50" placeholder="Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region..."></textarea>
-                    <button onclick="processFromText()" class="mt-3 bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full md:w-auto">
-                        วิเคราะห์ Pareto
-                    </button>
+        <!-- Workshop Objectives (New Section) -->
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <h2 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">🎯 โจทย์และเป้าหมาย (Workshop 7)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                <!-- Column 1 -->
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                    <h3 class="font-bold text-indigo-600 mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                        สิ่งที่ต้องทำ
+                    </h3>
+                    <ul class="list-disc list-inside text-slate-600 space-y-1">
+                        <li>รวมยอดขายตาม Customer_ID</li>
+                        <li>เรียงลำดับยอดขาย (มาก -> น้อย)</li>
+                        <li>คำนวณ % สะสม (Cumulative %)</li>
+                    </ul>
                 </div>
-
-                <!-- Option 2: Upload File -->
-                <div class="border-l pl-0 md:pl-6 md:border-slate-200">
-                    <label class="block text-sm font-medium text-slate-700 mb-2">วิธีที่ 2: อัปโหลดไฟล์ CSV</label>
-                    <div class="flex items-center justify-center w-full">
-                        <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                                </svg>
-                                <p class="text-sm text-gray-500"><span class="font-semibold">คลิกเพื่ออัปโหลด</span></p>
-                                <p class="text-xs text-gray-500">.CSV File Only</p>
-                            </div>
-                            <input id="dropzone-file" type="file" class="hidden" accept=".csv" onchange="processFromFile(this)" />
-                        </label>
-                    </div>
+                <!-- Column 2 -->
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                    <h3 class="font-bold text-indigo-600 mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        การวิเคราะห์
+                    </h3>
+                    <ul class="list-disc list-inside text-slate-600 space-y-1">
+                        <li>ตัดเกรดลูกค้ากลุ่ม Top 80% (Pareto Group)</li>
+                        <li>ระบุลูกค้ากลุ่มทั่วไป (Bottom 20%)</li>
+                        <li>วิเคราะห์สัดส่วนจำนวนคน vs รายได้</li>
+                    </ul>
+                </div>
+                <!-- Column 3 -->
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                    <h3 class="font-bold text-indigo-600 mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        ผลลัพธ์ที่ต้องส่งมอบ
+                    </h3>
+                    <ul class="list-disc list-inside text-slate-600 space-y-1">
+                        <li>ตารางจัดอันดับลูกค้า (Customer Ranking)</li>
+                        <li>กราฟ Pareto Chart</li>
+                        <li>สรุป Key Findings</li>
+                    </ul>
                 </div>
             </div>
         </section>
 
-        <!-- Dashboard Content -->
-        <div id="dashboard" class="hidden space-y-8">
+        <!-- Input Section (Upload Only) -->
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-indigo-100 no-print">
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                📥 นำเข้าข้อมูล (Upload CSV)
+            </h2>
             
-            <!-- SECTION: Pareto Analysis Only -->
-            <div class="bg-white p-6 rounded-xl shadow-sm">
-                <h3 class="font-bold text-slate-700 mb-4 border-l-4 border-pink-500 pl-3">
-                    Pareto Analysis: กฎ 80/20 (Top Customer Analysis)
-                </h3>
-                
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div class="bg-pink-50 p-4 rounded-lg border border-pink-100 text-center">
-                        <p class="text-sm text-pink-600 font-semibold uppercase">ลูกค้ากลุ่ม Top 80%</p>
-                        <p class="text-3xl font-bold text-slate-800 mt-2" id="pareto-customer-count">-</p>
-                        <p class="text-xs text-slate-500">คน</p>
+            <div class="flex items-center justify-center w-full">
+                <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                        </svg>
+                        <p class="text-sm text-gray-500"><span class="font-semibold">คลิกเพื่ออัปโหลด</span> ไฟล์ cleaned_sales-พี่ชิติ.csv</p>
+                        <p class="text-xs text-gray-500 mt-1">Format: Transaction_ID, Date, Customer_ID, Product_Category, Sales_Amount, Region</p>
                     </div>
-                    <div class="bg-pink-50 p-4 rounded-lg border border-pink-100 text-center">
-                        <p class="text-sm text-pink-600 font-semibold uppercase">คิดเป็นสัดส่วน</p>
-                        <p class="text-3xl font-bold text-slate-800 mt-2" id="pareto-customer-percent">-</p>
-                        <p class="text-xs text-slate-500">% ของลูกค้าทั้งหมด</p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 text-center">
-                        <p class="text-sm text-gray-600 font-semibold uppercase">ยอดขายรวมทั้งหมด</p>
-                        <p class="text-3xl font-bold text-slate-800 mt-2" id="pareto-total-sales">-</p>
-                        <p class="text-xs text-slate-500">บาท</p>
+                    <input id="dropzone-file" type="file" class="hidden" accept=".csv" onchange="processFromFile(this)" />
+                </label>
+            </div>
+        </section>
+
+        <!-- Dashboard Content -->
+        <div id="dashboard" class="hidden space-y-6">
+            
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-slate-800">สรุปผลการวิเคราะห์ (Summary & Insights)</h2>
+                <div id="data-source-badge" class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">
+                    2,000 Rows
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Total Sales -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <p class="text-xs text-slate-500 uppercase">ยอดขายรวม (Total Revenue)</p>
+                    <p class="text-2xl font-bold text-slate-800 mt-1" id="total-revenue">0.00</p>
+                    <p class="text-xs text-slate-400 mt-1">บาท</p>
+                </div>
+                <!-- Total Customers -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <p class="text-xs text-slate-500 uppercase">ลูกค้าทั้งหมด (Total Customers)</p>
+                    <p class="text-2xl font-bold text-slate-800 mt-1" id="total-customers">0</p>
+                    <p class="text-xs text-slate-400 mt-1">คน (Unique IDs)</p>
+                </div>
+                <!-- Pareto Count -->
+                <div class="bg-gradient-to-br from-green-50 to-white p-4 rounded-xl shadow-sm border border-green-200">
+                    <p class="text-xs text-green-700 uppercase font-semibold">ลูกค้ากลุ่ม Top 80% (Pareto)</p>
+                    <p class="text-2xl font-bold text-green-700 mt-1" id="pareto-count">0</p>
+                    <p class="text-xs text-green-600 mt-1">คน (<span id="pareto-pct-customers">0</span>% ของลูกค้าทั้งหมด)</p>
+                </div>
+                <!-- Pareto Sales -->
+                <div class="bg-gradient-to-br from-green-50 to-white p-4 rounded-xl shadow-sm border border-green-200">
+                    <p class="text-xs text-green-700 uppercase font-semibold">ยอดขายจากกลุ่ม Top 80%</p>
+                    <p class="text-2xl font-bold text-green-700 mt-1" id="pareto-sales">0.00</p>
+                    <p class="text-xs text-green-600 mt-1">บาท (<span id="pareto-pct-sales">0</span>% ของยอดขายรวม)</p>
+                </div>
+            </div>
+
+            <!-- Chart & Key Findings -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Chart -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-slate-700 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                        Pareto Chart (ยอดขาย vs % สะสม)
+                    </h3>
+                    <div class="h-80 w-full">
+                        <canvas id="paretoChart"></canvas>
                     </div>
                 </div>
 
-                <!-- Charts & Table -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Chart -->
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-500 mb-3 text-center">Pareto Chart: Top 20 Customers</h4>
-                        <div class="h-80 w-full">
-                            <canvas id="paretoChart"></canvas>
+                <!-- Key Findings (New Section) -->
+                <div class="lg:col-span-1 bg-indigo-50 p-6 rounded-xl shadow-sm border border-indigo-100">
+                    <h3 class="font-bold text-indigo-800 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        ข้อค้นพบหลัก (Key Findings)
+                    </h3>
+                    <div class="space-y-4 text-sm text-indigo-900">
+                        <div class="p-3 bg-white rounded-lg border border-indigo-100 shadow-sm">
+                            <p class="font-semibold text-indigo-600 mb-1">กฎ 80/20 เป็นจริงหรือไม่?</p>
+                            <p id="finding-8020">กำลังประมวลผล...</p>
                         </div>
-                        <p class="text-xs text-gray-400 text-center mt-2">* กราฟแสดงยอดขาย (แท่ง) และ % สะสม (เส้น) ของลูกค้า 20 รายแรก</p>
-                    </div>
-                    
-                    <!-- Table -->
-                    <div class="flex flex-col">
-                        <div class="flex justify-between items-center mb-3">
-                            <h4 class="text-sm font-semibold text-gray-500">รายชื่อลูกค้ากลุ่ม Top 80% (Pareto Group)</h4>
-                            <span class="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded">High Value</span>
+                        <div class="p-3 bg-white rounded-lg border border-indigo-100 shadow-sm">
+                            <p class="font-semibold text-indigo-600 mb-1">Top Customer Impact</p>
+                            <p id="finding-top1">กำลังประมวลผล...</p>
                         </div>
-                        <div class="overflow-x-auto flex-grow max-h-80 rounded border border-gray-200">
-                            <table class="min-w-full divide-y divide-slate-200 text-sm">
-                                <thead class="bg-pink-50 sticky top-0 z-10">
-                                    <tr>
-                                        <th class="px-4 py-2 text-left font-semibold text-gray-600 text-xs">Rank</th>
-                                        <th class="px-4 py-2 text-left font-semibold text-gray-600 text-xs">Customer ID</th>
-                                        <th class="px-4 py-2 text-right font-semibold text-gray-600 text-xs">Sales</th>
-                                        <th class="px-4 py-2 text-right font-semibold text-gray-600 text-xs">Cumul. %</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="paretoTableBody" class="divide-y divide-slate-200 bg-white"></tbody>
-                            </table>
-                        </div>
+                        <p class="text-xs text-indigo-500 italic mt-2">* ลูกค้ากลุ่ม Pareto (Top 80%) คือกลุ่มที่ควรโฟกัสในการทำ CRM และโปรโมชั่นพิเศษ</p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-slate-700 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        รายละเอียดลูกค้าเรียงตามยอดขาย (Customer Ranking)
+                    </h3>
+                </div>
+                <div class="overflow-x-auto max-h-96 rounded-lg border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                        <thead class="bg-gray-50 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-600 uppercase tracking-wider text-xs">Rank</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-600 uppercase tracking-wider text-xs">Customer ID</th>
+                                <th class="px-4 py-3 text-right font-semibold text-indigo-600 uppercase tracking-wider text-xs">Total Sales (Bath)</th>
+                                <th class="px-4 py-3 text-right font-semibold text-gray-600 uppercase tracking-wider text-xs">Cumulative Sales</th>
+                                <th class="px-4 py-3 text-right font-semibold text-gray-600 uppercase tracking-wider text-xs">Cumulative %</th>
+                                <th class="px-4 py-3 text-center font-semibold text-gray-600 uppercase tracking-wider text-xs">Group</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody" class="divide-y divide-gray-200 bg-white">
+                            <!-- JS will populate -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bottom Actions -->
+            <div class="flex justify-end gap-4 pb-12 no-print">
+                <button onclick="window.print()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-6 py-2 rounded-lg text-sm font-medium transition-colors flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    Print Report
+                </button>
+                <button onclick="exportToCSV()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Export CSV Result
+                </button>
             </div>
 
         </div>
     </div>
 
     <script>
-        let paretoChart = null;
+        let chartInstance = null;
+        let processedResults = [];
 
-        // --- UPDATED DATE PARSING FUNCTION ---
-        function parseDate(dateStr) {
-            if (!dateStr) return null;
-            const dmy = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-            if (dmy) return new Date(dmy[3], dmy[2] - 1, dmy[1]);
-            const d = new Date(dateStr);
-            if (!isNaN(d.getTime())) return d;
-            return null;
-        }
-
-        // --- SAMPLE DATA (Full Set) ---
-        const integratedData = `
-Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
+        // --- MOCK DATA (10 Rows) ---
+        const mockData = `Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
 TXN-00001,10/09/2024,C-0486,Fashion,38926.0,Phuket
 TXN-00002,08/09/2024,C-0356,Sports,14931.0,Chonburi
 TXN-00003,15/08/2024,C-0431,Electronics,17885.0,Bangkok
@@ -2148,165 +2219,264 @@ TXN-01996,16/03/2024,C-0571,Electronics,49672.0,Bangkok
 TXN-01997,14/04/2024,C-0049,Sports,24903.5,Bangkok
 TXN-01998,17/11/2024,C-0019,Sports,42341.0,Bangkok
 TXN-01999,01/08/2024,C-0368,Electronics,29987.0,Bangkok
-TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi
-`;
+TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
 
-        function processFromText() {
-            const text = document.getElementById('csvTextInput').value;
-            if (!text.trim()) { alert("กรุณาวางข้อมูล CSV ก่อนครับ"); return; }
-            processData(text);
-        }
+        // Initialize with Mock Data
+        window.addEventListener('DOMContentLoaded', () => {
+            processData(mockData, true);
+        });
 
+        // Handle File Upload
         function processFromFile(input) {
             const file = input.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) { processData(e.target.result); };
+            reader.onload = function(e) {
+                processData(e.target.result, false);
+            };
             reader.readAsText(file);
         }
 
-        function processData(csvData) {
-            const lines = csvData.split('\n').filter(line => line.trim() !== '');
-            if (lines.length < 2) return;
+        // Core Logic: Pareto Analysis
+        function processData(csvData, isMock) {
+            const rows = csvData.trim().split('\n').map(row => row.trim()).filter(row => row);
+            if (rows.length < 2) return alert("ข้อมูลไม่เพียงพอ");
 
-            const headers = lines[0].split(',').map(h => h.trim());
-            const salesIndex = headers.findIndex(h => h.toLowerCase().includes('sales') || h.toLowerCase().includes('amount'));
-            const custIndex = headers.findIndex(h => h.toLowerCase().includes('customer'));
+            // 1. Parse CSV & Aggregate Sales by Customer
+            const customerSalesMap = {};
+            // Assuming header: Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
+            // Indices: Customer_ID = 2, Sales_Amount = 4
             
-            if (salesIndex === -1) {
-                alert("ไม่พบคอลัมน์ Sales_Amount");
-                return;
-            }
+            // Check headers if needed, for now assume standard format from prompt
+            const dataRows = rows.slice(1);
+            let totalRevenue = 0;
 
-            const customerSales = {}; 
+            dataRows.forEach(row => {
+                // Split carefully allowing for potential commas inside quotes if complex, but simple split for now
+                const cols = row.split(','); 
+                const customerId = cols[2];
+                const amount = parseFloat(cols[4]);
 
-            for (let i = 1; i < lines.length; i++) {
-                const cols = lines[i].split(',');
-                if (cols.length < headers.length) continue;
-
-                const salesStr = cols[salesIndex].trim();
-                const customerId = custIndex > -1 ? cols[custIndex].trim() : `Cust-${i}`;
-                const sales = parseFloat(salesStr);
-
-                if (isNaN(sales)) continue;
-
-                // Customer Aggregation
-                customerSales[customerId] = (customerSales[customerId] || 0) + sales;
-            }
-
-            // Pareto Calculation
-            const customersArr = Object.keys(customerSales).map(id => ({ id: id, total: customerSales[id] }));
-            customersArr.sort((a, b) => b.total - a.total); // Sort Descending
-
-            const grandTotalSales = customersArr.reduce((sum, c) => sum + c.total, 0);
-            let runningTotal = 0;
-            let paretoCutoffIndex = -1;
-
-            customersArr.forEach((c, index) => {
-                runningTotal += c.total;
-                c.cumulativeSales = runningTotal;
-                c.cumulativePercent = (runningTotal / grandTotalSales) * 100;
-                if (paretoCutoffIndex === -1 && c.cumulativePercent >= 80) {
-                    paretoCutoffIndex = index;
+                if (customerId && !isNaN(amount)) {
+                    if (!customerSalesMap[customerId]) {
+                        customerSalesMap[customerId] = 0;
+                    }
+                    customerSalesMap[customerId] += amount;
+                    totalRevenue += amount;
                 }
             });
 
-            const paretoGroup = customersArr.slice(0, paretoCutoffIndex + 1);
+            // 2. Convert to Array and Sort Descending
+            let sortedCustomers = Object.keys(customerSalesMap).map(id => ({
+                id: id,
+                total: customerSalesMap[id]
+            })).sort((a, b) => b.total - a.total);
 
-            updateUI({
-                customers: customersArr,
-                paretoGroup: paretoGroup,
-                grandTotalSales: grandTotalSales
+            // 3. Calculate Cumulative %
+            let runningTotal = 0;
+            let paretoCount = 0;
+            let paretoSales = 0;
+
+            processedResults = sortedCustomers.map((cust, index) => {
+                runningTotal += cust.total;
+                const cumPct = (runningTotal / totalRevenue) * 100;
+                
+                // Define Pareto Group: Usually Top 80% Revenue
+                // Strictly speaking, anyone contributing to the first 80%
+                let group = 'General';
+                // Mark as Pareto if this entry keeps us under or just crossed 80% (simplification)
+                // A common approach: If cumulative % <= 80, OR the specific transaction that crosses 80.
+                const isPareto = cumPct <= 80 || (index > 0 && ((runningTotal - cust.total) / totalRevenue * 100) < 80);
+                
+                if (isPareto) {
+                    group = 'Top 80% (Pareto)';
+                    paretoCount++;
+                    paretoSales += cust.total;
+                } else {
+                    group = 'Bottom 20%';
+                }
+
+                return {
+                    rank: index + 1,
+                    id: cust.id,
+                    total: cust.total,
+                    cumulative: runningTotal,
+                    cumPct: cumPct,
+                    group: group
+                };
+            });
+
+            // 4. Update Dashboard UI
+            updateSummary(totalRevenue, processedResults.length, paretoCount, paretoSales, isMock);
+            renderTable(processedResults);
+            renderChart(processedResults);
+            updateFindings(processedResults.length, paretoCount, totalRevenue, paretoSales, processedResults[0]);
+
+            // Show Dashboard
+            document.getElementById('dashboard').classList.remove('hidden');
+        }
+
+        function updateSummary(totalRev, totalCust, paretoCnt, paretoSale, isMock) {
+            // Toggle Badge
+            const badge = document.getElementById('data-source-badge');
+            if (isMock) {
+                badge.classList.remove('hidden');
+                badge.textContent = "Showing Mock Data (10 Rows)";
+                badge.className = "px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200";
+            } else {
+                badge.textContent = `Analyzed ${totalCust.toLocaleString()} Customers`;
+                badge.className = "px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200";
+            }
+
+            // Numbers
+            document.getElementById('total-revenue').innerText = totalRev.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('total-customers').innerText = totalCust.toLocaleString();
+            
+            document.getElementById('pareto-count').innerText = paretoCnt.toLocaleString();
+            const custPct = totalCust > 0 ? (paretoCnt / totalCust * 100).toFixed(1) : 0;
+            document.getElementById('pareto-pct-customers').innerText = custPct;
+
+            document.getElementById('pareto-sales').innerText = paretoSale.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            const salePct = totalRev > 0 ? (paretoSale / totalRev * 100).toFixed(1) : 0;
+            document.getElementById('pareto-pct-sales').innerText = salePct;
+        }
+
+        function updateFindings(totalCust, paretoCnt, totalRev, paretoSale, topCust) {
+            const custPct = (paretoCnt / totalCust * 100).toFixed(1);
+            const salePct = (paretoSale / totalRev * 100).toFixed(1);
+
+            // Finding 1: 80/20 Rule Check
+            const finding1 = document.getElementById('finding-8020');
+            finding1.innerHTML = `ลูกค้าจำนวน <b>${custPct}%</b> (${paretoCnt} คน) สร้างรายได้ถึง <b>${salePct}%</b> ของทั้งหมด <br>
+            <span class="text-xs text-slate-500">(กฎ 80/20 กล่าวว่ารายได้ 80% มักมาจากลูกค้าเพียง 20%)</span>`;
+
+            // Finding 2: Top 1
+            if (topCust) {
+                const topPct = (topCust.total / totalRev * 100).toFixed(1);
+                document.getElementById('finding-top1').innerHTML = `ลูกค้าอันดับ 1 (<b>${topCust.id}</b>) ซื้อสินค้าไปทั้งสิ้น <b>${topCust.total.toLocaleString()}</b> บาท <br>
+                คิดเป็น <b>${topPct}%</b> ของรายได้บริษัทคนเดียว`;
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+            
+            // Show all or top 100 for performance if large, but user wants full logic. 
+            // For browser performance with 2000 rows, rendering all is okay, but maybe limit view if huge.
+            // Let's render first 50 rows + scroll.
+            const limit = 2000; // Render all as per standard request, handled by overflow-y
+            
+            data.slice(0, limit).forEach(row => {
+                const tr = document.createElement('tr');
+                const isPareto = row.group.includes('Top 80%');
+                const groupClass = isPareto 
+                    ? 'text-green-700 bg-green-50 font-bold' 
+                    : 'text-gray-500';
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-slate-500">${row.rank}</td>
+                    <td class="px-4 py-3 font-medium text-slate-700">${row.id}</td>
+                    <td class="px-4 py-3 text-right text-slate-700">${row.total.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                    <td class="px-4 py-3 text-right text-slate-500">${row.cumulative.toLocaleString(undefined, {minimumFractionDigits: 0})}</td>
+                    <td class="px-4 py-3 text-right text-slate-500">${row.cumPct.toFixed(2)}%</td>
+                    <td class="px-4 py-3 text-center text-xs">
+                        <span class="px-2 py-1 rounded-full ${isPareto ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">
+                            ${row.group}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
             });
         }
 
-        function updateUI(data) {
-            document.getElementById('dashboard').classList.remove('hidden');
-            const fmt = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 });
+        function renderChart(data) {
+            // Limit chart labels to top 20 or 30 for readability, or aggregate the rest
+            const chartLimit = 20; 
+            const chartData = data.slice(0, chartLimit);
+            const labels = chartData.map(d => d.id);
+            const salesData = chartData.map(d => d.total);
+            const cumData = chartData.map(d => d.cumPct);
 
-            // Pareto Stats
-            const pCount = data.paretoGroup.length;
-            const totalCust = data.customers.length;
-            const pPercent = totalCust > 0 ? (pCount / totalCust * 100).toFixed(1) : 0;
-
-            document.getElementById('pareto-customer-count').innerText = pCount.toLocaleString();
-            document.getElementById('pareto-customer-percent').innerText = pPercent + '%';
-            document.getElementById('pareto-total-sales').innerText = fmt.format(data.grandTotalSales);
-
-            // Render Charts & Tables
-            renderParetoChart(data.customers);
-            updateParetoTable(data.paretoGroup);
-        }
-
-        function renderParetoChart(customers) {
             const ctx = document.getElementById('paretoChart').getContext('2d');
-            if (paretoChart) paretoChart.destroy();
-
-            // Display top 20 for chart clarity
-            const displayCount = Math.min(customers.length, 20);
-            const chartData = customers.slice(0, displayCount);
             
-            const labels = chartData.map(c => c.id);
-            const dataSales = chartData.map(c => c.total);
-            const dataCumul = chartData.map(c => c.cumulativePercent);
+            if (chartInstance) chartInstance.destroy();
 
-            paretoChart = new Chart(ctx, {
+            chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [
                         {
                             label: 'Cumulative %',
-                            data: dataCumul,
+                            data: cumData,
                             type: 'line',
-                            borderColor: 'rgba(236, 72, 153, 1)',
+                            borderColor: '#ef4444', // Red-500
                             borderWidth: 2,
                             yAxisID: 'y1',
-                            pointRadius: 3,
-                            fill: false
+                            tension: 0.1,
+                            pointRadius: 3
                         },
                         {
                             label: 'Sales Amount',
-                            data: dataSales,
-                            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                            data: salesData,
+                            backgroundColor: '#6366f1', // Indigo-500
                             yAxisID: 'y',
-                            borderRadius: 4
+                            barPercentage: 0.6
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            type: 'linear',
-                            position: 'left',
-                            title: { display: true, text: 'Sales (THB)' }
-                        },
-                        y1: {
-                            beginAtZero: true,
-                            type: 'linear',
-                            position: 'right',
-                            max: 100,
-                            grid: { drawOnChartArea: false },
-                            title: { display: true, text: 'Cumulative %' },
-                            ticks: { callback: function(value) { return value + "%" } }
-                        }
-                    },
                     plugins: {
+                        legend: { position: 'top' },
+                        title: { 
+                            display: true, 
+                            text: `Top ${chartLimit} Customers Analysis`,
+                            font: { family: "'Sarabun', sans-serif" }
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
                                     let label = context.dataset.label || '';
-                                    if (label) label += ': ';
-                                    if (context.dataset.type === 'line') {
-                                        label += context.raw.toFixed(1) + '%';
-                                    } else {
-                                        label += context.raw.toLocaleString();
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        if (context.datasetIndex === 1) { // Sales
+                                            label += context.parsed.y.toLocaleString() + ' บาท';
+                                        } else { // Percent
+                                            label += context.parsed.y.toFixed(2) + '%';
+                                        }
                                     }
                                     return label;
                                 }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Sales (Baht)' },
+                            grid: { borderDash: [2, 4], color: '#e5e7eb' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            min: 0,
+                            max: 100,
+                            title: { display: true, text: 'Cumulative %' },
+                            grid: { drawOnChartArea: false } // Only draw grid for left axis
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: { family: "'Sarabun', sans-serif" }
                             }
                         }
                     }
@@ -2314,25 +2484,24 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi
             });
         }
 
-        function updateParetoTable(group) {
-            const tbody = document.getElementById('paretoTableBody');
-            tbody.innerHTML = '';
-            // Show top 50 in table
-            group.slice(0, 50).forEach((c, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="px-4 py-2 text-slate-500 text-xs">#${index + 1}</td>
-                    <td class="px-4 py-2 font-medium text-indigo-600 text-xs">${c.id}</td>
-                    <td class="px-4 py-2 text-right font-mono text-slate-600 text-xs">${c.total.toLocaleString()}</td>
-                    <td class="px-4 py-2 text-right text-pink-600 font-bold text-xs">${c.cumulativePercent.toFixed(1)}%</td>
-                `;
-                tbody.appendChild(tr);
+        function exportToCSV() {
+            if (processedResults.length === 0) return;
+            
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Rank,Customer_ID,Total_Sales,Cumulative_Sales,Cumulative_Percent,Group\n";
+            
+            processedResults.forEach(row => {
+                csvContent += `${row.rank},${row.id},${row.total},${row.cumulative},${row.cumPct.toFixed(2)},${row.group}\n`;
             });
-        }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            processData(integratedData);
-        });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "pareto_analysis_result.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     </script>
 </body>
 </html>
