@@ -78,13 +78,12 @@
 
         <!-- CSV Upload Section (Method 2 style) -->
         <div class="bg-white p-6 rounded-xl shadow-sm space-y-4 no-print">
-            <h2 class="text-lg font-bold flex items-center gap-2">📂 อัปโหลดไฟล์ CSV (cleaned_sales-พี่ชิติ.csv)</h2>
+            <h2 class="text-lg font-bold flex items-center gap-2">📂 อัปโหลดไฟล์ CSV</h2>
             <div class="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center bg-slate-50 transition hover:border-indigo-400">
                 <input type="file" id="csvFile" accept=".csv" class="hidden" onchange="handleFileUpload(event)">
                 <label for="csvFile" class="cursor-pointer flex flex-col items-center">
                     <svg class="w-12 h-12 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                    <p class="text-slate-600 font-medium">คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวางที่นี่</p>
-                    <p class="text-slate-400 text-xs mt-1">เฉพาะไฟล์ .csv เท่านั้น (รองรับข้อมูลขนาดใหญ่)</p>
+                    <p class="text-slate-600 font-medium">คลิกเพื่อเลือกไฟล์.csv เท่านั้น</p>
                 </label>
             </div>
             <div id="fileInfo" class="hidden flex items-center gap-3 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
