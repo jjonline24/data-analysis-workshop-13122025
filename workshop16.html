@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Segmentation (K-Means)</title>
+    <title>Workshop 16: Customer Segmentation (K-Means)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -12,6 +12,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Sarabun', sans-serif; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white; }
+            .shadow-sm { box-shadow: none !important; border: 1px solid #ddd; }
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen p-6">
@@ -20,123 +25,173 @@
         
         <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm">
-        <!--header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm border-l-8 border-indigo-600"-->
             <div>
-                <h1 class="text-2xl font-bold text-indigo-600">🤖 AI Customer Segmentation</h1>
-                <p class="text-slate-500 text-sm">จัดกลุ่มลูกค้าอัตโนมัติด้วย K-Means Clustering (Spend, Frequency, Age)</p>
+                <h1 class="text-2xl font-bold text-indigo-600">📊 Workshop 16: Customer Segmentation</h1>
+                <p class="text-slate-500 text-sm">การจัดกลุ่มลูกค้าด้วย K-Means Clustering (Age, Spend, Frequency)</p>
             </div>
             <div class="mt-4 md:mt-0">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    <span class="w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
-                    พร้อมใช้งาน (Auto-loaded)
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                    <span class="w-2 h-2 mr-2 bg-indigo-500 rounded-full"></span>
+                    K-Means Model Ready
                 </span>
             </div>
         </header>
 
-        <!-- Input Section -->
-        <section class="bg-white p-6 rounded-xl shadow-sm border border-indigo-100">
-            <details>
-                <summary class="cursor-pointer font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
-                    ⚙️ จัดการข้อมูล (คลิกเพื่อเปิด)
-                </summary>
-                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">วิธีที่ 1: วางข้อมูล CSV ที่นี่</label>
-                        <textarea id="csvTextInput" rows="3" class="w-full p-3 text-xs border rounded-lg focus:ring-2 focus:ring-indigo-500 font-mono bg-slate-50" placeholder="Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region..."></textarea>
-                        <button onclick="processFromText()" class="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                            Run K-Means
-                        </button>
-                    </div>
-                    <div class="border-l pl-0 md:pl-6 md:border-slate-200">
-                        <label class="block text-sm font-medium text-slate-700 mb-2">วิธีที่ 2: อัปโหลดไฟล์ CSV</label>
-                        <input id="dropzone-file" type="file" accept=".csv" onchange="processFromFile(this)" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 p-2 border rounded-lg"/>
-                    </div>
+        <!-- Goals & Objectives Section -->
+        <section class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-indigo-500">
+            <h2 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2 flex items-center">
+                🎯 โจทย์และเป้าหมาย (Workshop 16)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Column 1 -->
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <h3 class="font-bold text-indigo-600 mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                        สิ่งที่ต้องทำ
+                    </h3>
+                    <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
+                        <li>รวมข้อมูลรายลูกค้า (Group by Customer_ID)</li>
+                        <li>คำนวณ <strong>Total Spend</strong> และ <strong>Frequency</strong></li>
+                        <li>จำลองข้อมูล <strong>Age</strong> (เนื่องจากไม่มีไฟล์ Profile)</li>
+                        <li>เตรียมข้อมูลสำหรับการทำ Clustering</li>
+                    </ul>
                 </div>
-            </details>
+                <!-- Column 2 -->
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <h3 class="font-bold text-orange-500 mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        การวิเคราะห์ (K-Means)
+                    </h3>
+                    <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
+                        <li>ใช้ 3 ปัจจัย: <strong>Age, Spend, Frequency</strong></li>
+                        <li>แบ่งลูกค้าเป็น <strong>4 กลุ่ม (Clusters)</strong></li>
+                        <li>หา Pattern พฤติกรรมของแต่ละกลุ่ม</li>
+                        <li>กำหนด Persona ของลูกค้า</li>
+                    </ul>
+                </div>
+                <!-- Column 3 -->
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <h3 class="font-bold text-emerald-600 mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        ผลลัพธ์ที่ต้องส่งมอบ
+                    </h3>
+                    <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
+                        <li>Dashboard สรุปจำนวนและสัดส่วนลูกค้า</li>
+                        <li>แผนภาพ Scatter Plot แสดงกลุ่มลูกค้า</li>
+                        <li>คำอธิบาย Persona ของทั้ง 4 กลุ่ม</li>
+                        <li>ไฟล์ CSV ผลลัพธ์ที่มี Column กลุ่มลูกค้า</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Upload CSV Section (Placed here as requested) -->
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-indigo-100 no-print">
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                📥 นำเข้าข้อมูล (Import Data)
+            </h2>
+            
+            <div class="w-full">
+                <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-40 border-2 border-indigo-300 border-dashed rounded-xl cursor-pointer bg-indigo-50 hover:bg-indigo-100 transition-colors group">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                        <div class="bg-white p-3 rounded-full mb-3 shadow-sm group-hover:scale-110 transition-transform">
+                            <svg class="w-8 h-8 text-indigo-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                            </svg>
+                        </div>
+                        <p class="text-sm text-indigo-700 font-semibold">คลิกเพื่ออัปโหลดไฟล์ CSV</p>
+                        <p class="text-xs text-indigo-500 mt-1">ไฟล์ Sales Transaction (ต้องมี Customer_ID, Sales_Amount)</p>
+                    </div>
+                    <input id="dropzone-file" type="file" class="hidden" accept=".csv" onchange="processFromFile(this)" />
+                </label>
+            </div>
         </section>
 
         <!-- Dashboard Content -->
-        <div id="dashboard" class="hidden space-y-8">
+        <div id="dashboard" class="hidden space-y-6">
             
-            <!-- Persona Cards Area -->
-            <div id="persona-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Cards will be injected by JS -->
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    📝 สรุปผลการวิเคราะห์ (Summary & Insights)
+                </h2>
+                <div id="data-source-badge" class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">
+                    Processing...
+                </div>
             </div>
 
-            <!-- Visualization -->
+            <!-- Persona Cards Container -->
+            <div id="personaContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Javascript will inject content here -->
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Scatter Plot -->
-                <div class="bg-white p-6 rounded-xl shadow-sm lg:col-span-2">
-                    <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
-                        <span class="text-xl">📊</span> 
-                        Cluster Visualization (Spend vs Frequency)
+                <!-- Chart Section -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-slate-700 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                        Customer Clusters (Spend vs Frequency)
                     </h3>
-                    <div class="h-96 w-full">
+                    <div class="h-80 w-full">
                         <canvas id="clusterChart"></canvas>
                     </div>
-                    <p class="text-xs text-gray-400 text-center mt-2">* แกน X: ยอดซื้อรวม, แกน Y: ความถี่, สี: กลุ่มลูกค้า</p>
+                    <p class="text-xs text-slate-400 mt-2 text-center">*ขนาดวงกลมแทนอายุ (Age) ของลูกค้า</p>
                 </div>
 
-                <!-- Cluster Stats Table -->
-                <div class="bg-white p-6 rounded-xl shadow-sm lg:col-span-1 flex flex-col">
-                    <h3 class="font-bold text-slate-700 mb-4">สถิติแต่ละกลุ่ม (Cluster Stats)</h3>
-                    <div class="overflow-x-auto flex-grow rounded-lg border border-gray-100">
-                        <table class="min-w-full divide-y divide-gray-200 text-sm">
-                            <thead class="bg-slate-50">
-                                <tr>
-                                    <th class="px-3 py-2 text-left text-xs font-semibold text-slate-500">Group</th>
-                                    <th class="px-3 py-2 text-right text-xs font-semibold text-slate-500">Avg Spend</th>
-                                    <th class="px-3 py-2 text-right text-xs font-semibold text-slate-500">Avg Age</th>
-                                </tr>
-                            </thead>
-                            <tbody id="statsTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
-                        </table>
+                <!-- Key Findings -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col">
+                    <h3 class="font-bold text-slate-700 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        ข้อค้นพบหลัก (Key Findings)
+                    </h3>
+                    <div class="flex-grow bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <ul id="keyFindingsList" class="space-y-3 text-sm text-slate-600">
+                            <!-- Javascript will inject findings -->
+                        </ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Customer List Table -->
-            <div class="bg-white p-6 rounded-xl shadow-sm">
+            <!-- Data Table Preview -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-slate-700">รายชื่อลูกค้าในแต่ละกลุ่ม (Customer List)</h3>
-                    <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">* ข้อมูลอายุเป็นการจำลอง (Mock Data)</span>
+                    <h3 class="font-bold text-slate-700">ตัวอย่างข้อมูลหลังจัดกลุ่ม (Top 10)</h3>
                 </div>
-                <div class="overflow-x-auto max-h-80 rounded border border-gray-200">
-                    <table class="min-w-full divide-y divide-slate-200 text-sm">
-                        <thead class="bg-slate-50 sticky top-0 z-10">
+                <div class="overflow-x-auto rounded-lg border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-4 py-3 text-left font-semibold text-gray-600 text-xs">Customer ID</th>
-                                <th class="px-4 py-3 text-center font-semibold text-gray-600 text-xs">Age</th>
-                                <th class="px-4 py-3 text-right font-semibold text-gray-600 text-xs">Total Spend</th>
-                                <th class="px-4 py-3 text-center font-semibold text-gray-600 text-xs">Frequency</th>
-                                <th class="px-4 py-3 text-center font-semibold text-gray-600 text-xs">Cluster / Persona</th>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-600">Customer ID</th>
+                                <th class="px-4 py-3 text-right font-semibold text-gray-600">Age (Simulated)</th>
+                                <th class="px-4 py-3 text-right font-semibold text-gray-600">Total Spend</th>
+                                <th class="px-4 py-3 text-right font-semibold text-gray-600">Frequency</th>
+                                <th class="px-4 py-3 text-left font-semibold text-indigo-600">Cluster Group</th>
                             </tr>
                         </thead>
-                        <tbody id="customerTableBody" class="divide-y divide-slate-200 bg-white"></tbody>
+                        <tbody id="dataTableBody" class="divide-y divide-gray-200 bg-white">
+                            <!-- JS Populated -->
+                        </tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="flex justify-end gap-3 pb-8 no-print">
+                <button onclick="window.print()" class="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 font-medium transition shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    Print Report
+                </button>
+                <button id="exportBtn" class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition shadow-lg shadow-indigo-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Export CSV
+                </button>
             </div>
 
         </div>
     </div>
 
     <script>
-        let clusterChart = null;
-
-        // --- MOCK DATA GENERATOR ---
-        function generateMockAge(customerId) {
-            // Hash based random to keep age consistent for same ID
-            let hash = 0;
-            for (let i = 0; i < customerId.length; i++) {
-                hash = customerId.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            // Age between 18 and 75
-            return 18 + (Math.abs(hash) % 58);
-        }
-
-        // --- SAMPLE DATA ---
-        const integratedData = `
-Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
+        // Mock Data (10 Rows for Layout Preview)
+        const mockData = `Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
 TXN-00001,10/09/2024,C-0486,Fashion,38926.0,Phuket
 TXN-00002,08/09/2024,C-0356,Sports,14931.0,Chonburi
 TXN-00003,15/08/2024,C-0431,Electronics,17885.0,Bangkok
@@ -2136,280 +2191,225 @@ TXN-01996,16/03/2024,C-0571,Electronics,49672.0,Bangkok
 TXN-01997,14/04/2024,C-0049,Sports,24903.5,Bangkok
 TXN-01998,17/11/2024,C-0019,Sports,42341.0,Bangkok
 TXN-01999,01/08/2024,C-0368,Electronics,29987.0,Bangkok
-TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi
-`;
+TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
 
-        function processFromText() {
-            const text = document.getElementById('csvTextInput').value;
-            if (!text.trim()) { alert("กรุณาวางข้อมูล CSV ก่อนครับ"); return; }
-            processData(text);
-        }
+        let globalProcessedData = [];
+        let chartInstance = null;
 
+        // --- File Handling ---
         function processFromFile(input) {
             const file = input.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) { processData(e.target.result); };
+            reader.onload = function(e) {
+                processData(e.target.result, 'Uploaded File: ' + file.name);
+            };
             reader.readAsText(file);
         }
 
-        function processData(csvData) {
-            const lines = csvData.split('\n').filter(line => line.trim() !== '');
-            if (lines.length < 2) return;
+        // --- Core Logic ---
+        function processData(csvText, sourceName) {
+            const rows = csvText.trim().split('\n').slice(1); // Skip header
+            const customerMap = {};
 
-            const headers = lines[0].split(',').map(h => h.trim());
-            const salesIndex = headers.findIndex(h => h.toLowerCase().includes('sales') || h.toLowerCase().includes('amount'));
-            const custIndex = headers.findIndex(h => h.toLowerCase().includes('customer'));
-            
-            if (salesIndex === -1 || custIndex === -1) {
-                alert("ไม่พบคอลัมน์ Sales_Amount หรือ Customer_ID");
-                return;
-            }
+            // 1. Data Aggregation & Age Simulation
+            rows.forEach(row => {
+                const cols = row.split(',');
+                if (cols.length < 5) return;
 
-            // 1. Aggregation (Spend & Frequency)
-            const customers = {};
-            for (let i = 1; i < lines.length; i++) {
-                const cols = lines[i].split(',');
-                if (cols.length < headers.length) continue;
-
-                const custId = custIndex > -1 ? cols[custIndex].trim() : `Unknown-${i}`;
-                const sales = parseFloat(cols[salesIndex].trim());
-
-                if (isNaN(sales)) continue;
-
-                if (!customers[custId]) {
-                    customers[custId] = { id: custId, spend: 0, freq: 0 };
+                const customerId = cols[2].trim();
+                const amount = parseFloat(cols[4]);
+                
+                if (!customerMap[customerId]) {
+                    customerMap[customerId] = {
+                        customerId: customerId,
+                        totalSpend: 0,
+                        frequency: 0,
+                        // Simulate Age between 18-65
+                        age: Math.floor(Math.random() * (65 - 18 + 1)) + 18 
+                    };
                 }
-                customers[custId].spend += sales;
-                customers[custId].freq += 1;
-            }
 
-            // 2. Data Enrichment (Mock Age) & Normalization Prep
-            const customerList = Object.values(customers).map(c => ({
+                customerMap[customerId].totalSpend += amount;
+                customerMap[customerId].frequency += 1;
+            });
+
+            const customers = Object.values(customerMap);
+
+            // 2. K-Means Clustering Implementation
+            // Normalize
+            const maxSpend = Math.max(...customers.map(c => c.totalSpend)) || 1;
+            const maxFreq = Math.max(...customers.map(c => c.frequency)) || 1;
+            const maxAge = 65;
+
+            const normalizedData = customers.map(c => ({
                 ...c,
-                age: generateMockAge(c.id)
+                nSpend: c.totalSpend / maxSpend,
+                nFreq: c.frequency / maxFreq,
+                nAge: c.age / maxAge
             }));
 
-            // Calculate Min/Max for Normalization
-            const maxSpend = Math.max(...customerList.map(c => c.spend));
-            const minSpend = Math.min(...customerList.map(c => c.spend));
-            const maxFreq = Math.max(...customerList.map(c => c.freq));
-            const minFreq = Math.min(...customerList.map(c => c.freq));
-            const maxAge = Math.max(...customerList.map(c => c.age));
-            const minAge = Math.min(...customerList.map(c => c.age));
+            // Init Centroids (Fixed points for demo stability, or random)
+            let centroids = [
+                { nSpend: 0.1, nFreq: 0.1, nAge: 0.3 }, // Cluster 0
+                { nSpend: 0.9, nFreq: 0.9, nAge: 0.5 }, // Cluster 1
+                { nSpend: 0.5, nFreq: 0.2, nAge: 0.8 }, // Cluster 2
+                { nSpend: 0.3, nFreq: 0.8, nAge: 0.2 }  // Cluster 3
+            ];
 
-            // 3. K-Means Algorithm (k=4)
-            const k = 4;
-            const dataPoints = customerList.map(c => ({
-                ...c,
-                normSpend: (c.spend - minSpend) / (maxSpend - minSpend || 1),
-                normFreq: (c.freq - minFreq) / (maxFreq - minFreq || 1),
-                normAge: (c.age - minAge) / (maxAge - minAge || 1),
-                cluster: -1
-            }));
-
-            // Initialize Centroids (Random points)
-            let centroids = [];
-            for (let i = 0; i < k; i++) {
-                const randomPoint = dataPoints[Math.floor(Math.random() * dataPoints.length)];
-                centroids.push({
-                    normSpend: randomPoint.normSpend,
-                    normFreq: randomPoint.normFreq,
-                    normAge: randomPoint.normAge
-                });
-            }
-
-            // Iterate
-            let changed = true;
-            let iter = 0;
-            const maxIter = 20;
-
-            while (changed && iter < maxIter) {
-                changed = false;
-                // Assign points
-                dataPoints.forEach(p => {
+            // Iterations
+            for (let iter = 0; iter < 10; iter++) {
+                // Assign
+                normalizedData.forEach(p => {
                     let minDist = Infinity;
-                    let clusterIndex = -1;
+                    let cIndex = 0;
                     centroids.forEach((c, idx) => {
-                        // Euclidean distance (Weighted: Spend is most important, Freq second)
-                        const dist = Math.sqrt(
-                            Math.pow(p.normSpend - c.normSpend, 2) * 1.5 + 
-                            Math.pow(p.normFreq - c.normFreq, 2) * 1.0 +
-                            Math.pow(p.normAge - c.normAge, 2) * 0.5
-                        );
-                        if (dist < minDist) {
-                            minDist = dist;
-                            clusterIndex = idx;
-                        }
+                        const dist = Math.sqrt(Math.pow(p.nSpend - c.nSpend, 2) + Math.pow(p.nFreq - c.nFreq, 2) + Math.pow(p.nAge - c.nAge, 2));
+                        if (dist < minDist) { minDist = dist; cIndex = idx; }
                     });
-                    if (p.cluster !== clusterIndex) {
-                        p.cluster = clusterIndex;
-                        changed = true;
-                    }
+                    p.cluster = cIndex;
                 });
-
-                // Update Centroids
+                // Update
                 centroids = centroids.map((c, idx) => {
-                    const clusterPoints = dataPoints.filter(p => p.cluster === idx);
-                    if (clusterPoints.length === 0) return c; // Avoid div by zero
-                    const avgSpend = clusterPoints.reduce((s, p) => s + p.normSpend, 0) / clusterPoints.length;
-                    const avgFreq = clusterPoints.reduce((s, p) => s + p.normFreq, 0) / clusterPoints.length;
-                    const avgAge = clusterPoints.reduce((s, p) => s + p.normAge, 0) / clusterPoints.length;
-                    return { normSpend: avgSpend, normFreq: avgFreq, normAge: avgAge };
+                    const points = normalizedData.filter(p => p.cluster === idx);
+                    if (points.length === 0) return c;
+                    return {
+                        nSpend: points.reduce((s, p) => s + p.nSpend, 0) / points.length,
+                        nFreq: points.reduce((s, p) => s + p.nFreq, 0) / points.length,
+                        nAge: points.reduce((s, p) => s + p.nAge, 0) / points.length
+                    };
                 });
-                iter++;
             }
 
-            // 4. Persona Assignment
-            const clusters = [];
-            for(let i=0; i<k; i++) {
-                const points = dataPoints.filter(p => p.cluster === i);
-                if (points.length === 0) continue;
+            // 3. Name Clusters (Persona)
+            const clusterStats = centroids.map((c, idx) => {
+                const points = normalizedData.filter(p => p.cluster === idx);
+                const avgSpend = points.reduce((s, p) => s + p.totalSpend, 0) / (points.length || 1);
+                const avgFreq = points.reduce((s, p) => s + p.frequency, 0) / (points.length || 1);
                 
-                const avgSpend = points.reduce((s, p) => s + p.spend, 0) / points.length;
-                const avgFreq = points.reduce((s, p) => s + p.freq, 0) / points.length;
-                const avgAge = points.reduce((s, p) => s + p.age, 0) / points.length;
+                let name = "Standard";
+                let desc = "ลูกค้าทั่วไป";
+                let colorClass = "bg-gray-100 text-gray-800 border-gray-300";
 
-                // Determine Persona Name
-                let name = "Standard Customer";
-                let color = "bg-gray-100 border-gray-300 text-gray-700";
-                
-                // Logic based on normalized centroids (roughly)
-                const cNormSpend = centroids[i].normSpend;
-                const cNormFreq = centroids[i].normFreq;
-                const cNormAge = centroids[i].normAge;
+                const isHighSpend = avgSpend > (maxSpend * 0.4);
+                const isHighFreq = avgFreq > (maxFreq * 0.4);
 
-                if (cNormSpend > 0.6) {
-                    name = "👑 VIP / Big Spenders";
-                    color = "bg-yellow-50 border-yellow-300 text-yellow-800";
-                } else if (cNormFreq > 0.6) {
-                    name = "💎 Loyal Regulars";
-                    color = "bg-purple-50 border-purple-300 text-purple-800";
-                } else if (cNormSpend < 0.3 && cNormFreq < 0.3) {
-                    name = "💤 Low Value / Inactive";
-                    color = "bg-slate-50 border-slate-300 text-slate-600";
-                } else if (cNormAge < 0.4) {
-                    name = "🚀 Young Potential";
-                    color = "bg-blue-50 border-blue-300 text-blue-800";
+                if (isHighSpend && isHighFreq) {
+                    name = "VIP (Gold)";
+                    desc = "ยอดซื้อสูง & ซื้อบ่อย";
+                    colorClass = "bg-yellow-100 text-yellow-800 border-yellow-300";
+                } else if (isHighSpend) {
+                    name = "Big Spender";
+                    desc = "ยอดซื้อสูง แต่ไม่บ่อย";
+                    colorClass = "bg-blue-100 text-blue-800 border-blue-300";
+                } else if (isHighFreq) {
+                    name = "Loyal/Regular";
+                    desc = "ซื้อบ่อย แต่ยอดไม่เยอะ";
+                    colorClass = "bg-green-100 text-green-800 border-green-300";
                 } else {
-                    name = "🛍️ Mid-Level Standard";
-                    color = "bg-green-50 border-green-300 text-green-800";
+                    name = "New/Risk";
+                    desc = "ยอดน้อย & นานๆ ครั้ง";
+                    colorClass = "bg-slate-100 text-slate-800 border-slate-300";
                 }
 
-                clusters.push({
-                    id: i,
-                    count: points.length,
-                    avgSpend, avgFreq, avgAge,
-                    name, color,
-                    points
-                });
-            }
+                return { id: idx, name, desc, colorClass, avgSpend, avgFreq, count: points.length };
+            });
 
-            // Sort clusters by Spend for consistency
-            clusters.sort((a,b) => b.avgSpend - a.avgSpend);
+            // 4. Map back to global data
+            globalProcessedData = normalizedData.map(d => ({
+                id: d.customerId,
+                age: d.age,
+                spend: d.totalSpend,
+                freq: d.frequency,
+                cluster: clusterStats[d.cluster].name,
+                clusterIdx: d.cluster
+            }));
 
-            updateUI(clusters, dataPoints);
+            updateUI(sourceName, clusterStats);
         }
 
-        function updateUI(clusters, allPoints) {
+        // --- UI Updates ---
+        function updateUI(sourceName, stats) {
             document.getElementById('dashboard').classList.remove('hidden');
-            const fmt = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 });
+            
+            // Badge
+            const badge = document.getElementById('data-source-badge');
+            badge.innerText = sourceName;
+            badge.className = sourceName.includes('Mock') 
+                ? "px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200"
+                : "px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 border border-green-200";
 
-            // 1. Render Persona Cards
-            const container = document.getElementById('persona-container');
-            container.innerHTML = '';
-            clusters.forEach(c => {
-                const card = document.createElement('div');
-                card.className = `${c.color} p-4 rounded-xl border shadow-sm transition hover:shadow-md`;
-                card.innerHTML = `
-                    <h4 class="font-bold text-lg mb-2">${c.name}</h4>
-                    <div class="space-y-1 text-sm">
-                        <p class="flex justify-between"><span>Count:</span> <span class="font-bold">${c.count}</span></p>
-                        <p class="flex justify-between"><span>Avg Spend:</span> <span class="font-bold">${fmt.format(c.avgSpend)}</span></p>
-                        <p class="flex justify-between"><span>Avg Freq:</span> <span class="font-bold">${c.avgFreq.toFixed(1)}x</span></p>
-                        <p class="flex justify-between"><span>Avg Age:</span> <span class="font-bold">${c.avgAge.toFixed(0)}</span></p>
+            // Personas
+            const pContainer = document.getElementById('personaContainer');
+            pContainer.innerHTML = stats.map(s => `
+                <div class="border p-4 rounded-lg shadow-sm ${s.colorClass}">
+                    <h4 class="font-bold text-lg mb-1">${s.name}</h4>
+                    <p class="text-sm opacity-80 mb-3">${s.desc}</p>
+                    <div class="text-xs space-y-1">
+                        <div class="flex justify-between"><span>Count:</span> <strong>${s.count}</strong></div>
+                        <div class="flex justify-between"><span>Avg Spend:</span> <strong>${Math.round(s.avgSpend).toLocaleString()}</strong></div>
+                        <div class="flex justify-between"><span>Avg Freq:</span> <strong>${s.avgFreq.toFixed(1)}</strong></div>
                     </div>
-                `;
-                container.appendChild(card);
-            });
+                </div>
+            `).join('');
 
-            // 2. Render Chart
-            renderClusterChart(clusters);
-
-            // 3. Render Stats Table
-            const statsBody = document.getElementById('statsTableBody');
-            statsBody.innerHTML = '';
-            clusters.forEach(c => {
-                statsBody.innerHTML += `
-                    <tr>
-                        <td class="px-3 py-2 text-xs font-medium">${c.name}</td>
-                        <td class="px-3 py-2 text-xs text-right">${fmt.format(c.avgSpend)}</td>
-                        <td class="px-3 py-2 text-xs text-right">${c.avgAge.toFixed(0)} ปี</td>
-                    </tr>
-                `;
-            });
-
-            // 4. Render Customer List
-            const custBody = document.getElementById('customerTableBody');
-            custBody.innerHTML = '';
+            // Key Findings
+            const findings = document.getElementById('keyFindingsList');
+            const maxGrp = stats.reduce((p, c) => (p.count > c.count ? p : c));
+            const vipGrp = stats.find(s => s.name.includes('VIP')) || stats[0];
             
-            // Flatten and Sort by Spend
-            const sortedPoints = allPoints.sort((a,b) => b.spend - a.spend).slice(0, 100);
-            
-            sortedPoints.forEach(p => {
-                // Find cluster name
-                const clusterInfo = clusters.find(c => c.id === p.cluster);
-                const clusterName = clusterInfo ? clusterInfo.name : 'Unknown';
-                const badgeColor = clusterInfo ? clusterInfo.color.replace('bg-', 'bg-opacity-50 bg-') : '';
+            findings.innerHTML = `
+                <li>🏆 <strong>กลุ่มลูกค้าหลัก:</strong> กลุ่ม "${maxGrp.name}" มีจำนวนมากที่สุด (${maxGrp.count} คน) ควรเน้นรักษาฐานนี้</li>
+                <li>💰 <strong>กลุ่มทำเงิน:</strong> กลุ่ม "${vipGrp.name}" มียอดใช้จ่ายเฉลี่ยสูงสุด (${Math.round(vipGrp.avgSpend).toLocaleString()} บาท)</li>
+                <li>📢 <strong>คำแนะนำ:</strong> ควรจัดโปรโมชั่นกระตุ้นกลุ่ม Frequency สูง ให้เพิ่มยอดซื้อต่อบิล (Upsell)</li>
+            `;
 
-                custBody.innerHTML += `
-                    <tr>
-                        <td class="px-4 py-2 font-medium text-slate-700">${p.id}</td>
-                        <td class="px-4 py-2 text-center text-slate-600">${p.age}</td>
-                        <td class="px-4 py-2 text-right font-mono text-slate-600">${fmt.format(p.spend)}</td>
-                        <td class="px-4 py-2 text-center text-slate-600">${p.freq}</td>
-                        <td class="px-4 py-2 text-center"><span class="text-xs px-2 py-1 rounded border ${clusterInfo?.color}">${clusterName}</span></td>
-                    </tr>
-                `;
-            });
+            // Chart
+            renderChart(stats);
+
+            // Table
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = globalProcessedData.slice(0, 10).map(r => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-4 py-3 text-slate-600 font-mono">${r.id}</td>
+                    <td class="px-4 py-3 text-right text-slate-600">${r.age}</td>
+                    <td class="px-4 py-3 text-right font-bold text-indigo-600">${r.spend.toLocaleString()}</td>
+                    <td class="px-4 py-3 text-right text-slate-600">${r.freq}</td>
+                    <td class="px-4 py-3 text-slate-700"><span class="px-2 py-1 rounded text-xs bg-gray-200">${r.cluster}</span></td>
+                </tr>
+            `).join('');
         }
 
-        function renderClusterChart(clusters) {
+        function renderChart(stats) {
             const ctx = document.getElementById('clusterChart').getContext('2d');
-            if (clusterChart) clusterChart.destroy();
+            if (chartInstance) chartInstance.destroy();
 
-            const datasets = clusters.map(c => {
-                // Extract colors roughly from tailwind class string mapping
-                let colorHex = '#94a3b8'; // default slate
-                if (c.color.includes('yellow')) colorHex = '#eab308';
-                else if (c.color.includes('purple')) colorHex = '#a855f7';
-                else if (c.color.includes('blue')) colorHex = '#3b82f6';
-                else if (c.color.includes('green')) colorHex = '#22c55e';
-
+            const datasets = stats.map((s, idx) => {
+                const points = globalProcessedData.filter(d => d.cluster === s.name);
+                const colors = ['#EAB308', '#3B82F6', '#22C55E', '#64748B'];
                 return {
-                    label: c.name,
-                    data: c.points.map(p => ({ x: p.spend, y: p.freq })),
-                    backgroundColor: colorHex,
-                    borderColor: colorHex,
-                    pointRadius: 5,
-                    pointHoverRadius: 7
+                    label: s.name,
+                    data: points.map(p => ({ x: p.freq, y: p.spend, r: p.age / 5 })), // Bubble radius by age
+                    backgroundColor: colors[idx] + 'CC', // Add transparency
+                    borderColor: colors[idx],
+                    borderWidth: 1
                 };
             });
 
-            clusterChart = new Chart(ctx, {
-                type: 'scatter',
-                data: { datasets: datasets },
+            chartInstance = new Chart(ctx, {
+                type: 'bubble',
+                data: { datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        x: { title: { display: true, text: 'Total Spend (THB)' }, beginAtZero: true },
-                        y: { title: { display: true, text: 'Frequency (Times)' }, beginAtZero: true }
+                        x: { title: { display: true, text: 'Frequency (ครั้ง)' }, beginAtZero: true },
+                        y: { title: { display: true, text: 'Total Spend (บาท)' }, beginAtZero: true }
                     },
                     plugins: {
                         tooltip: {
                             callbacks: {
-                                label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.x.toLocaleString()} ฿ (${ctx.raw.y}x)`
+                                label: (ctx) => `${ctx.raw.x} Freq, ${ctx.raw.y.toLocaleString()} THB (Age ~${ctx.raw.r * 5})`
                             }
                         }
                     }
@@ -2417,10 +2417,22 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi
             });
         }
 
-        // Auto-load
-        window.addEventListener('DOMContentLoaded', () => {
-            processData(integratedData);
+        // Export Event
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            if (!globalProcessedData.length) return alert('No data to export');
+            const csv = ['Customer_ID,Age,Total_Spend,Frequency,Cluster_Group']
+                .concat(globalProcessedData.map(r => `${r.id},${r.age},${r.spend},${r.freq},${r.cluster}`))
+                .join('\n');
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+            link.download = 'customer_segments.csv';
+            link.click();
         });
+
+        // Init Mock Data
+        window.addEventListener('DOMContentLoaded', () => processData(mockData, 'Mock Data (10 Rows)'));
+
     </script>
 </body>
 </html>
