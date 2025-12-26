@@ -3,23 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workshop 12: Sales Outlier Analysis (IQR)</title>
+    <title>Workshop 12: Outlier Analysis (IQR)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
         body { font-family: 'Sarabun', sans-serif; }
         @media print {
             .no-print { display: none !important; }
+            .print-only { display: block !important; }
             body { background: white; }
-            .shadow-sm, .shadow-lg { box-shadow: none !important; }
-            .bg-slate-100 { background-color: white !important; }
+            .shadow-sm, .shadow-md { box-shadow: none !important; }
         }
     </style>
 </head>
@@ -28,219 +25,162 @@
     <div class="max-w-7xl mx-auto space-y-6">
         
         <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-600">
+        <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm">
             <div>
-                <h1 class="text-2xl font-bold text-indigo-800">📊 Workshop 12: Sales Outlier Analysis</h1>
-                <p class="text-slate-500 text-sm mt-1">วิเคราะห์หาค่าผิดปกติ (Outliers) ของยอดขายด้วยวิธี IQR (Interquartile Range)</p>
+                <h1 class="text-2xl font-bold text-indigo-600">📊 Workshop 12: Outlier Analysis</h1>
+                <p class="text-slate-500 text-sm">วิเคราะห์หาค่าผิดปกติ (Outliers) ของยอดขาย (Sales_Amount) โดยใช้วิธี IQR</p>
             </div>
             <div class="mt-4 md:mt-0 text-right">
-                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">METHODOLOGY</div>
-                <div class="text-indigo-600 font-bold">Interquartile Range (IQR)</div>
+                <p class="text-sm text-slate-400">วิธี IQR (Interquartile Range)</p>
+                <p class="text-xs text-slate-300">สร้างกราฟ Boxplot และระบุ Transaction ที่ผิดปกติ</p>
             </div>
         </header>
 
-        <!-- Requirements Grid -->
+        <!-- Process Flow Section (3 Columns) -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Col 1: To Do -->
-            <div class="bg-white p-6 rounded-xl shadow-sm">
-                <div class="flex items-center space-x-3 mb-4">
-                    <div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
-                        <i class="fas fa-list-check"></i>
-                    </div>
-                    <h2 class="font-bold text-slate-700">สิ่งที่ต้องทำ (To Do)</h2>
-                </div>
-                <ul class="space-y-3 text-sm text-slate-600">
-                    <li class="flex items-start">
-                        <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
-                        <span>เตรียมข้อมูล Transaction และ Sales Amount</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
-                        <span>คำนวณหาค่า Q1, Q3 และ IQR</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
-                        <span>กำหนดขอบเขต (Lower & Upper Bounds)</span>
-                    </li>
+            <!-- สิ่งที่ต้องทำ -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-400">
+                <h3 class="font-bold text-lg mb-2 text-indigo-700">📋 สิ่งที่ต้องทำ</h3>
+                <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
+                    <li>เตรียมข้อมูล Transaction และ Sales Amount</li>
+                    <li>ตรวจสอบความสมบูรณ์ของข้อมูล (Data Cleansing)</li>
+                    <li>เรียงลำดับข้อมูลยอดขายจากน้อยไปมาก</li>
+                    <li>คำนวณค่าทางสถิติพื้นฐาน</li>
                 </ul>
             </div>
 
-            <!-- Col 2: Analysis -->
-            <div class="bg-white p-6 rounded-xl shadow-sm">
-                <div class="flex items-center space-x-3 mb-4">
-                    <div class="p-2 bg-purple-100 text-purple-600 rounded-lg">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h2 class="font-bold text-slate-700">การวิเคราะห์ (Analysis)</h2>
-                </div>
-                <ul class="space-y-3 text-sm text-slate-600">
-                    <li class="flex items-start">
-                        <i class="fas fa-search text-purple-500 mt-1 mr-2"></i>
-                        <span>ระบุ Transaction ที่เป็น Outlier</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="fas fa-calculator text-purple-500 mt-1 mr-2"></i>
-                        <span>Rule: Sales < Q1 - 1.5*IQR หรือ Sales > Q3 + 1.5*IQR</span>
-                    </li>
+            <!-- การวิเคราะห์ -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-400">
+                <h3 class="font-bold text-lg mb-2 text-indigo-700">🔍 การวิเคราะห์ (IQR)</h3>
+                <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
+                    <li>หาค่า Quartile ที่ 1 (Q1) และ 3 (Q3)</li>
+                    <li>คำนวณ IQR = Q3 - Q1</li>
+                    <li>คำนวณขอบเขตล่าง (Lower Bound) = Q1 - 1.5*IQR</li>
+                    <li>คำนวณขอบเขตบน (Upper Bound) = Q3 + 1.5*IQR</li>
                 </ul>
             </div>
 
-            <!-- Col 3: Deliverables -->
-            <div class="bg-white p-6 rounded-xl shadow-sm">
-                <div class="flex items-center space-x-3 mb-4">
-                    <div class="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
-                        <i class="fas fa-file-export"></i>
-                    </div>
-                    <h2 class="font-bold text-slate-700">ผลลัพธ์ (Deliverables)</h2>
-                </div>
-                <ul class="space-y-3 text-sm text-slate-600">
-                    <li class="flex items-start">
-                        <i class="fas fa-chart-bar text-emerald-500 mt-1 mr-2"></i>
-                        <span>แผนภาพ Boxplot ไฮไลท์จุด Outlier</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="fas fa-table text-emerald-500 mt-1 mr-2"></i>
-                        <span>ตารางรายการ Outlier Transactions</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="fas fa-lightbulb text-emerald-500 mt-1 mr-2"></i>
-                        <span>สรุปผล Key Findings</span>
-                    </li>
+            <!-- ผลลัพธ์ -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-400">
+                <h3 class="font-bold text-lg mb-2 text-indigo-700">🚀 ผลลัพธ์ที่ต้องส่งมอบ</h3>
+                <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
+                    <li>กราฟ Boxplot แสดงการกระจายตัว</li>
+                    <li>ไฮไลท์จุดที่เป็น Outlier ให้ชัดเจน</li>
+                    <li>ตารางรายชื่อ Transaction ที่เป็น Outlier</li>
+                    <li>สรุป Key Findings</li>
                 </ul>
             </div>
         </div>
 
-        <!-- Controls Section -->
+        <!-- File Upload Section -->
         <div class="bg-white p-6 rounded-xl shadow-sm no-print">
-            <h2 class="text-lg font-bold text-slate-700 mb-4 flex items-center">
-                <i class="fas fa-database mr-2 text-indigo-500"></i> จัดการข้อมูล (Data Source)
+            <h2 class="text-lg font-semibold mb-4 text-indigo-600 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                วิธีที่ 2: อัปโหลดไฟล์ CSV
             </h2>
+            <div class="flex items-center gap-4">
+                <input type="file" id="csvFileInput" accept=".csv" class="block w-full text-sm text-slate-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-indigo-50 file:text-indigo-700
+                    hover:file:bg-indigo-100 transition-colors
+                ">
+            </div>
+            <p class="mt-2 text-xs text-slate-400">รองรับไฟล์ที่มีคอลัมน์: Transaction_ID, Sales_Amount (และอื่นๆ)</p>
+        </div>
+
+        <!-- Main Analysis Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Method 2: Upload CSV -->
-                <div class="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-indigo-400 transition-colors bg-slate-50">
-                    <div class="mb-3">
-                        <i class="fas fa-cloud-upload-alt text-3xl text-slate-400"></i>
+            <!-- Chart Section -->
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-slate-700">📉 Boxplot Distribution</h2>
+                    <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full" id="dataCountLabel">รอข้อมูล...</span>
+                </div>
+                <div class="relative h-80 w-full">
+                    <canvas id="outlierChart"></canvas>
+                </div>
+                <div class="mt-4 flex justify-center gap-4 text-xs text-slate-500">
+                    <div class="flex items-center"><span class="w-3 h-3 bg-indigo-200 inline-block mr-1"></span> ช่วงปกติ (Q1-Q3)</div>
+                    <div class="flex items-center"><span class="w-3 h-3 bg-red-500 rounded-full inline-block mr-1"></span> Outliers</div>
+                </div>
+            </div>
+
+            <!-- Summary & Insights Section -->
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <h2 class="text-lg font-bold text-slate-700 mb-4">💡 สรุปผลการวิเคราะห์ (Summary & Insights)</h2>
+                
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="p-3 bg-slate-50 rounded-lg">
+                        <p class="text-xs text-slate-500">Lower Bound</p>
+                        <p class="text-lg font-bold text-slate-700" id="statLower">-</p>
                     </div>
-                    <h3 class="font-semibold text-slate-700">อัปโหลดไฟล์ CSV</h3>
-                    <p class="text-xs text-slate-500 mb-4">ต้องมีคอลัมน์ Sales_Amount</p>
-                    <input type="file" id="csvInput" accept=".csv" class="hidden" onchange="handleFileUpload(event)">
-                    <button onclick="document.getElementById('csvInput').click()" 
-                        class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
-                        เลือกไฟล์
-                    </button>
-                    <p id="fileNameDisplay" class="text-xs text-slate-500 mt-2 h-4"></p>
+                    <div class="p-3 bg-slate-50 rounded-lg">
+                        <p class="text-xs text-slate-500">Upper Bound</p>
+                        <p class="text-lg font-bold text-slate-700" id="statUpper">-</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-lg">
+                        <p class="text-xs text-slate-500">Median</p>
+                        <p class="text-lg font-bold text-indigo-600" id="statMedian">-</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-lg">
+                        <p class="text-xs text-slate-500">Total Outliers</p>
+                        <p class="text-lg font-bold text-red-600" id="statOutlierCount">-</p>
+                    </div>
                 </div>
 
-                <!-- Info Box -->
-                <div class="bg-blue-50 rounded-xl p-6 border border-blue-100">
-                    <h3 class="font-semibold text-blue-800 mb-2">คำแนะนำ</h3>
-                    <p class="text-sm text-blue-600 mb-2">ระบบจะใช้ข้อมูล Mock Data 10 แถวเป็นค่าเริ่มต้น เพื่อแสดงผล Layout</p>
-                    <div class="text-xs text-blue-500 font-mono bg-white p-2 rounded border border-blue-100">
-                        Format: TXN-ID, Date, Customer_ID, Category, Sales, Region
-                    </div>
+                <div class="border-t pt-4">
+                    <h3 class="font-bold text-indigo-700 text-sm mb-2">📌 ข้อค้นพบหลัก (Key Findings)</h3>
+                    <ul id="keyFindingsList" class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                        <li>รอการประมวลผลข้อมูล...</li>
+                    </ul>
                 </div>
             </div>
         </div>
 
-        <!-- Summary & Key Findings -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Stats Cards -->
-            <div class="lg:col-span-1 space-y-4">
-                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500">
-                    <p class="text-xs text-slate-500 uppercase">Total Transactions</p>
-                    <h3 class="text-2xl font-bold text-slate-800" id="totalCount">-</h3>
-                </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-500">
-                    <p class="text-xs text-slate-500 uppercase">Outliers Found</p>
-                    <div class="flex items-end space-x-2">
-                        <h3 class="text-2xl font-bold text-red-600" id="outlierCount">-</h3>
-                        <span class="text-sm text-slate-400 mb-1" id="outlierPercent">(-%)</span>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-500">
-                    <p class="text-xs text-slate-500 uppercase">IQR Thresholds</p>
-                    <div class="space-y-1 mt-2">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-slate-500">Lower Bound:</span>
-                            <span class="font-mono font-bold text-slate-700" id="lowerBoundVal">-</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-slate-500">Upper Bound:</span>
-                            <span class="font-mono font-bold text-slate-700" id="upperBoundVal">-</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Key Findings Text -->
-            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm">
-                <h3 class="font-bold text-slate-700 mb-4 border-b pb-2">
-                    <i class="fas fa-search-plus text-indigo-500 mr-2"></i> ข้อค้นพบหลัก (Key Findings)
-                </h3>
-                <div id="keyFindings" class="text-slate-600 space-y-3 text-sm leading-relaxed">
-                    <p class="text-slate-400 italic">รอการประมวลผลข้อมูล...</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Visualization -->
+        <!-- Outlier Table Section -->
         <div class="bg-white p-6 rounded-xl shadow-sm">
-            <h3 class="font-bold text-slate-700 mb-6 flex justify-between items-center">
-                <span><i class="fas fa-chart-scatter text-indigo-500 mr-2"></i> การกระจายตัวของข้อมูลและค่าผิดปกติ (Outlier Visualization)</span>
-                <span class="text-xs font-normal bg-slate-100 px-3 py-1 rounded-full text-slate-500">Unit: THB</span>
-            </h3>
-            <div class="h-96 w-full">
-                <canvas id="outlierChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Data Table -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-red-50">
-                <h3 class="font-bold text-red-700">
-                    <i class="fas fa-exclamation-triangle mr-2"></i> รายการที่พบว่าเป็น Outlier
-                </h3>
-            </div>
+            <h2 class="text-lg font-bold text-red-600 mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                รายการ Transaction ที่เป็น Outlier (ผิดปกติ)
+            </h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left text-slate-600">
-                    <thead class="bg-slate-50 text-slate-700 font-bold uppercase text-xs">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-50">
                         <tr>
                             <th class="px-6 py-3">Transaction ID</th>
                             <th class="px-6 py-3">Date</th>
-                            <th class="px-6 py-3">Customer ID</th>
-                            <th class="px-6 py-3">Category</th>
+                            <th class="px-6 py-3">Customer / Category</th>
                             <th class="px-6 py-3 text-right">Sales Amount</th>
-                            <th class="px-6 py-3">Status</th>
+                            <th class="px-6 py-3 text-center">Status</th>
                         </tr>
                     </thead>
-                    <tbody id="outlierTableBody" class="divide-y divide-slate-100">
-                        <!-- Rows generated via JS -->
+                    <tbody id="outlierTableBody" class="divide-y divide-slate-200">
+                        <!-- Rows will be populated here -->
                     </tbody>
                 </table>
             </div>
-            <div class="p-4 bg-slate-50 text-center text-xs text-slate-400" id="tableFooter">
-                Showing outliers only
-            </div>
         </div>
 
-        <!-- Actions Footer -->
-        <div class="flex justify-between items-center pt-6 pb-12 no-print">
-            <button onclick="window.print()" class="flex items-center space-x-2 text-slate-500 hover:text-slate-700 transition-colors px-4 py-2 rounded-lg hover:bg-slate-200">
-                <i class="fas fa-print"></i>
-                <span>Print Report</span>
+        <!-- Action Buttons -->
+        <div class="flex flex-col md:flex-row gap-4 justify-end items-center mt-8 pb-8 no-print">
+            <button onclick="window.print()" class="flex items-center px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg transition-colors font-semibold">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                Print Report
             </button>
-            <button onclick="exportOutliersCSV()" class="bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 transition-shadow shadow-lg shadow-emerald-200 flex items-center space-x-2 font-medium">
-                <i class="fas fa-file-csv"></i>
-                <span>Export Outliers CSV</span>
+            <button onclick="exportToCSV()" class="flex items-center px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-semibold shadow-md">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Export Outliers CSV
             </button>
         </div>
 
     </div>
 
     <script>
-        // --- 1. MOCK DATA (10 Rows for Layout Testing) ---
-        const mockCSV = `Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
+        // Mock Data (10 Rows for initial layout as requested)
+        const mockDataRaw = `Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
 TXN-00001,10/09/2024,C-0486,Fashion,38926.0,Phuket
 TXN-00002,08/09/2024,C-0356,Sports,14931.0,Chonburi
 TXN-00003,15/08/2024,C-0431,Electronics,17885.0,Bangkok
@@ -2242,201 +2182,177 @@ TXN-01998,17/11/2024,C-0019,Sports,42341.0,Bangkok
 TXN-01999,01/08/2024,C-0368,Electronics,29987.0,Bangkok
 TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
 
-        let currentOutliers = []; // Store for export
         let chartInstance = null;
+        let globalAnalysisResult = null;
 
-        // --- 2. LOGIC: PARSE CSV ---
+        // Utility to parse CSV
         function parseCSV(csvText) {
             const lines = csvText.trim().split('\n');
             const headers = lines[0].split(',').map(h => h.trim());
             
-            // Map columns
-            const idxID = headers.findIndex(h => h.includes('Transaction') || h.includes('TXN'));
-            const idxDate = headers.findIndex(h => h.includes('Date'));
-            const idxCust = headers.findIndex(h => h.includes('Customer'));
-            const idxCat = headers.findIndex(h => h.includes('Category'));
-            const idxSales = headers.findIndex(h => h.includes('Sales') || h.includes('Amount'));
-
-            if (idxSales === -1) {
-                alert("Error: ไม่พบคอลัมน์ Sales_Amount ในไฟล์ CSV");
-                return [];
-            }
-
-            const data = [];
-            for (let i = 1; i < lines.length; i++) {
-                const cols = lines[i].split(',').map(c => c.trim());
-                if (cols.length < headers.length) continue;
-
-                const sales = parseFloat(cols[idxSales]);
-                if (!isNaN(sales)) {
-                    data.push({
-                        id: cols[idxID] || `Row-${i}`,
-                        date: cols[idxDate] || '-',
-                        cust: cols[idxCust] || '-',
-                        cat: cols[idxCat] || '-',
-                        sales: sales
-                    });
-                }
-            }
-            return data;
+            return lines.slice(1).map(line => {
+                const values = line.split(',');
+                const entry = {};
+                headers.forEach((header, index) => {
+                    entry[header] = values[index] ? values[index].trim() : '';
+                });
+                return entry;
+            }).filter(row => row.Transaction_ID && row.Sales_Amount);
         }
 
-        // --- 3. LOGIC: IQR CALCULATION ---
-        function calculateOutliers(data) {
-            // Sort by sales
-            const sorted = [...data].sort((a, b) => a.sales - b.sales);
-            const values = sorted.map(d => d.sales);
+        // Main Processing Function
+        function processData(data, label = '') {
+            if (!data || data.length === 0) return;
+
+            // 1. Extract Sales Amount and sort
+            const salesData = data.map(d => parseFloat(d.Sales_Amount)).sort((a, b) => a - b);
             
-            // Helper for quartiles
-            const q1 = d3_quantile(values, 0.25);
-            const q3 = d3_quantile(values, 0.75);
+            // 2. Calculate IQR
+            const q1 = quantile(salesData, 0.25);
+            const q3 = quantile(salesData, 0.75);
             const iqr = q3 - q1;
-            
+            const median = quantile(salesData, 0.50);
             const lowerBound = q1 - (1.5 * iqr);
             const upperBound = q3 + (1.5 * iqr);
-
-            // Mark outliers
-            const analyzedData = data.map(d => {
-                const isLow = d.sales < lowerBound;
-                const isHigh = d.sales > upperBound;
-                return {
-                    ...d,
-                    isOutlier: isLow || isHigh,
-                    outlierType: isLow ? 'Low' : (isHigh ? 'High' : 'Normal')
-                };
+            
+            // 3. Identify Outliers
+            const outliers = [];
+            const normalData = [];
+            
+            data.forEach(d => {
+                const amount = parseFloat(d.Sales_Amount);
+                const isOutlier = amount < lowerBound || amount > upperBound;
+                const enrichedData = { ...d, amount, isOutlier };
+                
+                if (isOutlier) {
+                    outliers.push(enrichedData);
+                } else {
+                    normalData.push(enrichedData);
+                }
             });
 
-            return {
-                data: analyzedData,
-                stats: { q1, q3, iqr, lowerBound, upperBound }
-            };
+            // Store for export
+            globalAnalysisResult = { outliers, lowerBound, upperBound };
+
+            // 4. Update UI
+            document.getElementById('dataCountLabel').textContent = `ข้อมูล ${data.length.toLocaleString()} รายการ`;
+            document.getElementById('statLower').textContent = lowerBound.toLocaleString(undefined, {maximumFractionDigits: 0});
+            document.getElementById('statUpper').textContent = upperBound.toLocaleString(undefined, {maximumFractionDigits: 0});
+            document.getElementById('statMedian').textContent = median.toLocaleString(undefined, {maximumFractionDigits: 0});
+            document.getElementById('statOutlierCount').textContent = `${outliers.length} รายการ`;
+
+            updateKeyFindings(outliers, data.length, upperBound);
+            renderTable(outliers);
+            renderBoxPlot(salesData, q1, median, q3, lowerBound, upperBound, outliers);
         }
 
-        // Simple Quartile Implementation (Linear interpolation)
-        function d3_quantile(sortedArr, q) {
-            const pos = (sortedArr.length - 1) * q;
+        function quantile(sortedData, q) {
+            const pos = (sortedData.length - 1) * q;
             const base = Math.floor(pos);
             const rest = pos - base;
-            if (sortedArr[base + 1] !== undefined) {
-                return sortedArr[base] + rest * (sortedArr[base + 1] - sortedArr[base]);
+            if (sortedData[base + 1] !== undefined) {
+                return sortedData[base] + rest * (sortedData[base + 1] - sortedData[base]);
             } else {
-                return sortedArr[base];
+                return sortedData[base];
             }
         }
 
-        // --- 4. RENDER UI ---
-        function processData(csvString, sourceName) {
-            const rawData = parseCSV(csvString);
-            const result = calculateOutliers(rawData);
+        function updateKeyFindings(outliers, total, threshold) {
+            const list = document.getElementById('keyFindingsList');
+            list.innerHTML = '';
             
-            currentOutliers = result.data.filter(d => d.isOutlier);
-
-            updateStats(result.data, result.stats);
-            renderChart(result.data, result.stats);
-            renderTable(currentOutliers);
-            generateKeyFindings(result.data.length, currentOutliers, result.stats);
-        }
-
-        function updateStats(allData, stats) {
-            document.getElementById('totalCount').innerText = allData.length.toLocaleString();
+            const percent = ((outliers.length / total) * 100).toFixed(2);
             
-            const outlierCount = allData.filter(d => d.isOutlier).length;
-            document.getElementById('outlierCount').innerText = outlierCount.toLocaleString();
-            
-            const pct = ((outlierCount / allData.length) * 100).toFixed(1);
-            document.getElementById('outlierPercent').innerText = `(${pct}%)`;
+            const findings = [
+                `พบ Outlier จำนวน <b>${outliers.length}</b> รายการ คิดเป็น <b>${percent}%</b> ของ Transaction ทั้งหมด`,
+                `ยอดขายที่สูงเกินกว่า <b>${threshold.toLocaleString()} บาท</b> ถือเป็นความผิดปกติ`,
+            ];
 
-            document.getElementById('lowerBoundVal').innerText = stats.lowerBound.toLocaleString(undefined, {maximumFractionDigits: 0});
-            document.getElementById('upperBoundVal').innerText = stats.upperBound.toLocaleString(undefined, {maximumFractionDigits: 0});
-        }
-
-        function generateKeyFindings(total, outliers, stats) {
-            const container = document.getElementById('keyFindings');
-            const highOutliers = outliers.filter(o => o.outlierType === 'High');
-            const lowOutliers = outliers.filter(o => o.outlierType === 'Low');
-            
-            let html = `
-                <p>จากการวิเคราะห์ข้อมูลจำนวน <strong>${total.toLocaleString()} รายการ</strong> ด้วยวิธี IQR พบประเด็นสำคัญดังนี้:</p>
-                <ul class="list-disc pl-5 mt-2 space-y-1">
-                    <li>
-                        พบข้อมูลผิดปกติ (Outliers) ทั้งหมด <strong>${outliers.length} รายการ</strong> 
-                        คิดเป็น <strong>${((outliers.length/total)*100).toFixed(2)}%</strong> ของข้อมูลทั้งหมด
-                    </li>
-                    <li>
-                        <strong>เกณฑ์ปกติ (Normal Range):</strong> ยอดขายระหว่าง 
-                        ${stats.lowerBound.toLocaleString()} ถึง ${stats.upperBound.toLocaleString()} บาท
-                    </li>
-            `;
-
-            if (highOutliers.length > 0) {
-                const maxVal = Math.max(...highOutliers.map(o => o.sales));
-                html += `<li><span class="text-red-600 font-semibold">High Outliers:</span> พบ ${highOutliers.length} รายการ ที่มียอดขายสูงผิดปกติ โดยรายการสูงสุดอยู่ที่ ${maxVal.toLocaleString()} บาท อาจเกิดจากการขายสินค้า Project ใหญ่ หรือข้อมูลผิดพลาด</li>`;
+            if (outliers.length > 0) {
+                // Find max outlier
+                const maxOutlier = outliers.reduce((prev, current) => (prev.amount > current.amount) ? prev : current);
+                findings.push(`ยอดขายสูงสุดที่ผิดปกติคือ <b>${maxOutlier.amount.toLocaleString()} บาท</b> (TXN: ${maxOutlier.Transaction_ID})`);
+            } else {
+                findings.push(`ไม่พบยอดขายที่ผิดปกติในช่วงนี้`);
             }
 
-            if (lowOutliers.length > 0) {
-                 html += `<li><span class="text-amber-600 font-semibold">Low Outliers:</span> พบ ${lowOutliers.length} รายการ ที่มียอดขายต่ำผิดปกติ</li>`;
-            }
-
-            html += `</ul>`;
-            container.innerHTML = html;
+            findings.forEach(f => {
+                const li = document.createElement('li');
+                li.innerHTML = f;
+                list.appendChild(li);
+            });
         }
 
         function renderTable(outliers) {
             const tbody = document.getElementById('outlierTableBody');
             tbody.innerHTML = '';
-            
+
             if (outliers.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-slate-400">ไม่พบข้อมูล Outlier</td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-slate-400">ไม่พบข้อมูล Outlier</td></tr>';
                 return;
             }
 
-            outliers.forEach(row => {
+            outliers.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.className = "bg-white border-b hover:bg-slate-50";
+                // Determine Customer or Category to show
+                const info = item.Customer_ID ? item.Customer_ID : (item.Product_Category || '-');
+                
                 tr.innerHTML = `
-                    <td class="px-6 py-3 font-mono text-xs text-slate-500">${row.id}</td>
-                    <td class="px-6 py-3">${row.date}</td>
-                    <td class="px-6 py-3 font-mono text-xs">${row.cust}</td>
-                    <td class="px-6 py-3"><span class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md text-xs font-semibold">${row.cat}</span></td>
-                    <td class="px-6 py-3 text-right font-bold text-slate-700">${row.sales.toLocaleString()}</td>
-                    <td class="px-6 py-3">
-                        <span class="${row.outlierType === 'High' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'} px-2 py-1 rounded-full text-xs font-bold">
-                            ${row.outlierType} Outlier
-                        </span>
+                    <td class="px-6 py-4 font-medium text-slate-900">${item.Transaction_ID}</td>
+                    <td class="px-6 py-4">${item.Date || '-'}</td>
+                    <td class="px-6 py-4">${info}</td>
+                    <td class="px-6 py-4 text-right font-bold text-slate-700">${item.amount.toLocaleString()}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded border border-red-400">Outlier</span>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // --- 5. CHART JS: SCATTER PLOT WITH LINES ---
-        function renderChart(data, stats) {
+        function renderBoxPlot(allSales, q1, median, q3, lower, upper, outliers) {
             const ctx = document.getElementById('outlierChart').getContext('2d');
+            
             if (chartInstance) chartInstance.destroy();
 
-            // Prepare Data Points (Jitter X to reduce overlap)
-            const normalPoints = data.filter(d => !d.isOutlier).map(d => ({ x: Math.random() * 0.8 + 0.1, y: d.sales }));
-            const outlierPoints = data.filter(d => d.isOutlier).map(d => ({ x: Math.random() * 0.8 + 0.1, y: d.sales, raw: d }));
+            // Prepare data for "Box" (Floating Bar)
+            // We use 'index' 0 for the single category
+            
+            // Outlier points for Scatter
+            const outlierPoints = outliers.map(o => ({ x: 'Distribution', y: o.amount }));
 
             chartInstance = new Chart(ctx, {
-                type: 'scatter',
+                type: 'bar',
                 data: {
+                    labels: ['Distribution'],
                     datasets: [
                         {
-                            label: 'Outliers',
-                            data: outlierPoints,
-                            backgroundColor: '#ef4444', // Red-500
-                            borderColor: '#b91c1c',
-                            borderWidth: 1,
-                            pointRadius: 6,
-                            pointHoverRadius: 8
+                            label: 'IQR Box (Q1-Q3)',
+                            data: [[q1, q3]], // Floating bar from Q1 to Q3
+                            backgroundColor: 'rgba(79, 70, 229, 0.2)', // Indigo 200 equivalent
+                            borderColor: 'rgba(79, 70, 229, 1)',
+                            borderWidth: 2,
+                            barPercentage: 0.5,
+                            order: 2
                         },
                         {
-                            label: 'Normal Data',
-                            data: normalPoints,
-                            backgroundColor: '#94a3b8', // Slate-400
-                            pointRadius: 3,
-                            pointHoverRadius: 5
+                            type: 'scatter',
+                            label: 'Median',
+                            data: [{x: 'Distribution', y: median}],
+                            backgroundColor: 'red',
+                            pointStyle: 'rectRot', // Distinct shape
+                            pointRadius: 8,
+                            order: 1
+                        },
+                        {
+                            type: 'scatter',
+                            label: 'Outliers',
+                            data: outlierPoints,
+                            backgroundColor: '#dc2626', // Red 600
+                            pointStyle: 'circle',
+                            pointRadius: 5,
+                            order: 0
                         }
                     ]
                 },
@@ -2444,136 +2360,62 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        legend: { display: true, position: 'top' },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    const raw = context.raw.raw;
-                                    if(raw) {
-                                        return `${raw.id}: ${raw.sales.toLocaleString()} (${raw.cat})`;
+                                    if (context.dataset.label === 'Outliers') {
+                                        return `Outlier: ${context.raw.y.toLocaleString()} บาท`;
                                     }
-                                    return `Sales: ${context.raw.y.toLocaleString()}`;
+                                    if (context.dataset.label === 'Median') {
+                                        return `Median: ${context.raw.y.toLocaleString()} บาท`;
+                                    }
+                                    return `Range: ${context.raw[0].toLocaleString()} - ${context.raw[1].toLocaleString()}`;
                                 }
                             }
                         },
                         annotation: {
-                            annotations: {
-                                line1: {
-                                    type: 'line',
-                                    yMin: stats.upperBound,
-                                    yMax: stats.upperBound,
-                                    borderColor: '#f59e0b', // Amber
-                                    borderWidth: 2,
-                                    borderDash: [5, 5],
-                                    label: {
-                                        content: `Upper Bound: ${stats.upperBound.toLocaleString()}`,
-                                        display: true,
-                                        position: 'end',
-                                        backgroundColor: '#f59e0b',
-                                        color: 'white'
-                                    }
-                                },
-                                line2: {
-                                    type: 'line',
-                                    yMin: stats.lowerBound,
-                                    yMax: stats.lowerBound,
-                                    borderColor: '#f59e0b',
-                                    borderWidth: 2,
-                                    borderDash: [5, 5],
-                                    label: {
-                                        content: `Lower Bound: ${stats.lowerBound.toLocaleString()}`,
-                                        display: true,
-                                        position: 'end',
-                                        backgroundColor: '#f59e0b',
-                                        color: 'white'
-                                    }
-                                }
-                            }
+                            // Note: Annotation plugin might not be loaded, so we use datasets to simulate box.
+                            // If we needed lines for Whiskers, we could use a custom plugin or just accept the Box+Outlier view which is standard.
                         }
                     },
                     scales: {
-                        x: {
-                            display: false, // Hide X axis (simulated categorical)
-                            min: 0,
-                            max: 1
-                        },
                         y: {
-                            title: {
-                                display: true,
-                                text: 'Sales Amount (THB)',
-                                font: { family: "'Sarabun', sans-serif" }
-                            },
+                            beginAtZero: true,
+                            title: { display: true, text: 'Sales Amount (Baht)', font: { family: "'Sarabun', sans-serif" } },
                             ticks: {
-                                callback: function(value) { return value.toLocaleString(); }
+                                callback: function(value) { return value.toLocaleString(); },
+                                font: { family: "'Sarabun', sans-serif" }
                             }
+                        },
+                        x: {
+                            display: false // Hide X axis as it's just a placeholder
                         }
                     }
-                },
-                plugins: [{
-                    // Custom plugin to draw lines manually if annotation plugin fails or simplifies dependency
-                    id: 'customLines',
-                    beforeDraw: (chart) => {
-                        const { ctx, scales: { y, x } } = chart;
-                        const w = chart.width;
-                        
-                        // Draw Upper Bound
-                        const yHigh = y.getPixelForValue(stats.upperBound);
-                        if (yHigh > 0 && yHigh < chart.height) {
-                            ctx.save();
-                            ctx.beginPath();
-                            ctx.strokeStyle = '#f59e0b'; // Amber-500
-                            ctx.setLineDash([5, 5]);
-                            ctx.lineWidth = 2;
-                            ctx.moveTo(x.left, yHigh);
-                            ctx.lineTo(x.right, yHigh);
-                            ctx.stroke();
-                            ctx.restore();
-                        }
-
-                         // Draw Lower Bound
-                        const yLow = y.getPixelForValue(stats.lowerBound);
-                        if (yLow > 0 && yLow < chart.height) {
-                            ctx.save();
-                            ctx.beginPath();
-                            ctx.strokeStyle = '#f59e0b'; 
-                            ctx.setLineDash([5, 5]);
-                            ctx.lineWidth = 2;
-                            ctx.moveTo(x.left, yLow);
-                            ctx.lineTo(x.right, yLow);
-                            ctx.stroke();
-                            ctx.restore();
-                        }
-                    }
-                }]
+                }
             });
         }
 
-        // --- 6. FILE HANDLING ---
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            document.getElementById('fileNameDisplay').innerText = `Selected: ${file.name}`;
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                processData(e.target.result, file.name);
-            };
-            reader.readAsText(file);
-        }
-
-        function exportOutliersCSV() {
-            if (currentOutliers.length === 0) {
-                alert("ไม่มีข้อมูล Outlier ให้ Export");
+        function exportToCSV() {
+            if (!globalAnalysisResult || globalAnalysisResult.outliers.length === 0) {
+                alert('ไม่มีข้อมูล Outlier ให้ Export');
                 return;
             }
 
-            // Create CSV Content
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region,Outlier_Type\n";
-            
-            currentOutliers.forEach(row => {
-                csvContent += `${row.id},${row.date},${row.cust},${row.cat},${row.sales},${row.region || '-'},${row.outlierType}\n`;
-            });
+            const headers = ['Transaction_ID', 'Date', 'Customer_ID', 'Product_Category', 'Sales_Amount', 'Region', 'Note'];
+            const rows = globalAnalysisResult.outliers.map(o => [
+                o.Transaction_ID,
+                o.Date,
+                o.Customer_ID || '',
+                o.Product_Category || '',
+                o.Sales_Amount,
+                o.Region || '',
+                'Outlier (High)'
+            ]);
+
+            let csvContent = "data:text/csv;charset=utf-8," 
+                + headers.join(",") + "\n" 
+                + rows.map(e => e.join(",")).join("\n");
 
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
@@ -2584,9 +2426,26 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
             document.body.removeChild(link);
         }
 
-        // Initialize with Mock Data
+        // --- Event Listeners ---
+
+        // 1. Initial Load (Mock Data)
         window.addEventListener('DOMContentLoaded', () => {
-            processData(mockCSV, 'Mock Data (10 Rows)');
+            const parsed = parseCSV(mockDataRaw);
+            processData(parsed, 'ข้อมูลตัวอย่าง (Mock Data)');
+        });
+
+        // 2. File Upload
+        document.getElementById('csvFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const data = parseCSV(text);
+                processData(data, `ไฟล์: ${file.name}`);
+            };
+            reader.readAsText(file);
         });
 
     </script>
