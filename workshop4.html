@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workshop 4: Customer Analytics</title>
+    <title>Workshop 4: Correlation & Segmentation Analysis</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <!-- Icon (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { font-family: 'Sarabun', sans-serif; }
         @media print {
             .no-print { display: none !important; }
-            body { background: white; }
-            .shadow-sm, .shadow-md { box-shadow: none !important; border: 1px solid #ddd; }
+            .page-break { page-break-before: always; }
+            body { background-color: white; }
+            .shadow-sm, .shadow-md { box-shadow: none !important; border: 1px solid #ccc; }
         }
     </style>
 </head>
@@ -25,182 +26,201 @@
 
     <div class="max-w-7xl mx-auto space-y-6">
         
-        <!-- Header (Layout like Workshop 3) -->
-        <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm">
-            <div>
-                <h1 class="text-2xl font-bold text-indigo-600">📊 Workshop 4: Customer Analytics</h1>
+        <!-- Header Section -->
+        <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <div class="mb-4 md:mb-0">
+                <h1 class="text-2xl font-bold text-indigo-700 flex items-center gap-2">
+                    <i data-lucide="pie-chart" class="w-8 h-8"></i>
+                    Workshop 4: Customer Analytics
+                </h1>
                 <p class="text-slate-500 text-sm mt-1">วิเคราะห์ความสัมพันธ์ยอดขาย และจัดกลุ่มลูกค้า (Segmentation)</p>
             </div>
-            <div class="mt-4 md:mt-0 no-print">
-                <!-- Method 2: Upload CSV Only -->
-                <div class="flex items-center gap-2">
-                    <label for="csvInput" class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow transition flex items-center gap-2">
-                        <i class="fas fa-upload"></i> อัปโหลดไฟล์ CSV
-                    </label>
-                    <input type="file" id="csvInput" accept=".csv" class="hidden" onchange="handleFileUpload(this)">
+            <div class="text-right">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">STATUS</div>
+                <div id="statusIndicator" class="text-green-600 font-bold flex items-center justify-end gap-1">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> พร้อมใช้งาน
                 </div>
-                <div class="text-xs text-slate-400 text-right mt-1">รองรับไฟล์ .csv</div>
             </div>
         </header>
 
-        <!-- Section 1: Project Objectives -->
-        <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-            <h2 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">
-                <i class="fas fa-tasks text-indigo-500 mr-2"></i>รายละเอียดโจทย์และเป้าหมาย
-            </h2>
-            <div class="overflow-x-auto rounded-lg border border-slate-200">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50 text-slate-700 text-sm font-semibold">
-                            <th class="p-4 border-b border-slate-200 w-1/3">สิ่งที่ต้องทำ (Task)</th>
-                            <th class="p-4 border-b border-slate-200 w-1/3">การวิเคราะห์ (Analysis)</th>
-                            <th class="p-4 border-b border-slate-200 w-1/3">ผลลัพธ์ที่ต้องส่งมอบ (Deliverables)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-sm divide-y divide-slate-100">
-                        <tr>
-                            <td class="p-4 align-top">
-                                1. วิเคราะห์ความสัมพันธ์ยอดขายและวัน
-                            </td>
-                            <td class="p-4 align-top text-slate-600">
-                                - หา Correlation ระหว่างยอดขาย กับ ประเภทวัน (Weekday/Weekend)<br>
-                                - ตรวจสอบค่าผิดปกติ (Outliers)
-                            </td>
-                            <td class="p-4 align-top">
-                                <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-bold mr-1">Graph</span> Scatter Plot แสดง Outliers
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 align-top">
-                                2. จัดกลุ่มลูกค้า (Segmentation)
-                            </td>
-                            <td class="p-4 align-top text-slate-600">
-                                - ใช้เกณฑ์ RFM (Spending & Frequency)<br>
-                                - แบ่ง 3 กลุ่ม: Gold, Silver, Bronze
-                            </td>
-                            <td class="p-4 align-top">
-                                <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-xs font-bold mr-1">Chart</span> Pie Chart สัดส่วนลูกค้า<br>
-                                <span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-bold mr-1">Table</span> Top 10 Customers
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Section 2: Key Findings & Top 3 -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <!-- Key Findings Card -->
-            <div class="md:col-span-1 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white p-6 rounded-xl shadow-md flex flex-col justify-center">
-                <h3 class="text-lg font-bold mb-4 border-b border-indigo-400 pb-2">
-                    <i class="fas fa-lightbulb mr-2"></i>ข้อค้นพบหลัก
+        <!-- Goals & Objectives Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Col 1 -->
+            <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-indigo-500">
+                <h3 class="font-bold text-slate-700 mb-2 flex items-center gap-2">
+                    <i data-lucide="list-todo" class="w-4 h-4"></i> สิ่งที่ต้องทำ
                 </h3>
-                <div id="keyFindings" class="space-y-3 text-sm text-indigo-50 leading-relaxed">
-                    <!-- Dynamic Findings -->
-                    <p class="animate-pulse">Waiting for data...</p>
-                </div>
+                <ul class="text-sm text-slate-600 space-y-2 list-disc pl-4">
+                    <li>วิเคราะห์ความสัมพันธ์ (Correlation) ยอดขาย vs ประเภทวัน</li>
+                    <li>หาค่าผิดปกติ (Outliers) ของยอดขาย</li>
+                    <li>จัดกลุ่มลูกค้า (Segmentation) ตามยอดซื้อและความถี่</li>
+                </ul>
             </div>
-
-            <!-- Top 3 Customers -->
-            <div class="md:col-span-3">
-                 <h3 class="text-lg font-bold text-slate-700 mb-3 ml-1">🏆 Top 3 Customers (High Spending)</h3>
-                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="top3Container">
-                    <!-- Dynamic Cards -->
-                 </div>
+            <!-- Col 2 -->
+            <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-amber-500">
+                <h3 class="font-bold text-slate-700 mb-2 flex items-center gap-2">
+                    <i data-lucide="search" class="w-4 h-4"></i> การวิเคราะห์
+                </h3>
+                <ul class="text-sm text-slate-600 space-y-2 list-disc pl-4">
+                    <li>ใช้ Scatter Plot ดูการกระจายตัวและ Outliers</li>
+                    <li>แบ่งกลุ่มลูกค้า 3 ระดับ: Gold, Silver, Bronze</li>
+                    <li>หา Top 3 หมวดสินค้าขายดี</li>
+                </ul>
+            </div>
+            <!-- Col 3 -->
+            <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-emerald-500">
+                <h3 class="font-bold text-slate-700 mb-2 flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> ผลลัพธ์ที่ต้องส่งมอบ
+                </h3>
+                <ul class="text-sm text-slate-600 space-y-2 list-disc pl-4">
+                    <li>กราฟ Scatter Plot (ยอดขาย vs วัน)</li>
+                    <li>กราฟแสดงจำนวนลูกค้าแต่ละกลุ่ม (Segmentation)</li>
+                    <li>ตาราง Top 10 ลูกค้าที่มียอดซื้อสูงสุด</li>
+                    <li>รายงานสรุปผล (Key Findings)</li>
+                </ul>
             </div>
         </div>
 
-        <!-- Section 3: Summary & Insights -->
-        <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-            <h3 class="text-lg font-bold text-slate-700 mb-3 flex items-center">
-                <i class="fas fa-clipboard-list text-indigo-500 mr-2"></i> สรุปผลการวิเคราะห์ (Summary & Insights)
-            </h3>
-            <div id="summaryText" class="p-4 bg-slate-50 rounded-lg text-slate-600 text-sm leading-7 border-l-4 border-indigo-400">
-                <!-- Dynamic Summary -->
-                <p class="text-slate-400">กำลังรอข้อมูลเพื่อประมวลผลสรุป...</p>
-            </div>
-        </section>
-
-        <!-- Section 4: Charts Area -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Left: Scatter Plot -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="font-bold text-slate-700">📉 ความสัมพันธ์ยอดขาย (Correlation)</h3>
-                        <p class="text-xs text-slate-500">Sales Amount vs. Day of Week</p>
-                    </div>
-                    <span class="text-xs bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100">Check Outliers</span>
+        <!-- Upload Section -->
+        <div class="bg-white p-8 rounded-xl shadow-sm border border-dashed border-slate-300 text-center no-print">
+            <div class="flex flex-col items-center justify-center space-y-4">
+                <div class="p-4 bg-indigo-50 rounded-full">
+                    <i data-lucide="upload-cloud" class="w-8 h-8 text-indigo-600"></i>
                 </div>
-                <div class="flex-grow relative h-72">
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-700">อัปโหลดไฟล์ CSV</h3>
+                </div>
+                <input type="file" id="csvInput" accept=".csv" class="hidden">
+                <label for="csvInput" class="cursor-pointer px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm">
+                    เลือกไฟล์ CSV
+                </label>
+                <p id="fileNameDisplay" class="text-sm text-indigo-600 font-medium hidden"></p>
+            </div>
+        </div>
+
+        <!-- Summary & Insights Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Key Findings -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm">
+                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="lightbulb" class="w-5 h-5 text-amber-500"></i>
+                    ข้อค้นพบหลัก (Key Findings) & Outliers
+                </h3>
+                <div id="insightsContent" class="space-y-3 text-sm text-slate-600">
+                    <p class="animate-pulse">กำลังรอข้อมูล...</p>
+                </div>
+            </div>
+            
+            <!-- Top 3 Categories -->
+            <div class="bg-indigo-600 text-white p-6 rounded-xl shadow-sm">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i data-lucide="trophy" class="w-5 h-5 text-yellow-300"></i>
+                    Top 3 หมวดสินค้าขายดี
+                </h3>
+                <div id="topCategories" class="space-y-4">
+                    <!-- Dynamic Content -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Chart 1: Scatter Plot -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <h3 class="font-bold text-slate-700 mb-4 text-center">ความสัมพันธ์: ยอดขาย vs ประเภทวัน (หา Outliers)</h3>
+                <div class="relative h-72">
                     <canvas id="scatterChart"></canvas>
                 </div>
-                <div id="outlierAlert" class="mt-3 hidden p-2 bg-red-50 text-red-700 text-xs rounded border border-red-100"></div>
+                <p class="text-xs text-center text-slate-400 mt-2">*แกน X: 1=Weekday, 2=Weekend (มีการกระจายจุดเล็กน้อยเพื่อความชัดเจน)</p>
             </div>
 
-            <!-- Right: Segmentation Pie Chart -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="font-bold text-slate-700">👥 สัดส่วนกลุ่มลูกค้า (Segmentation)</h3>
-                        <p class="text-xs text-slate-500">แบ่งกลุ่มตาม Spending & Frequency</p>
-                    </div>
-                </div>
-                <div class="flex-grow relative h-64 flex justify-center">
+            <!-- Chart 2: Customer Segmentation -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <h3 class="font-bold text-slate-700 mb-4 text-center">สัดส่วนกลุ่มลูกค้า (Segmentation)</h3>
+                <div class="relative h-72 flex justify-center">
                     <canvas id="segmentChart"></canvas>
                 </div>
-                <!-- Legend Badges -->
                 <div class="mt-4 flex justify-center gap-4 text-xs">
-                    <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-400"></span> Gold</div>
-                    <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-slate-400"></span> Silver</div>
-                    <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-orange-400"></span> Bronze</div>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-500"></span> Gold (Top 20%)</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-slate-400"></span> Silver (Next 30%)</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-orange-700"></span> Bronze (Bottom 50%)</span>
                 </div>
             </div>
         </div>
 
-        <!-- Section 5: Top 10 Table -->
-        <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100">
-            <div class="bg-indigo-50 p-4 border-b border-indigo-100 flex justify-between items-center">
-                <h3 class="text-lg font-bold text-indigo-900">
-                    <i class="fas fa-list-ol mr-2"></i>ตารางลูกค้าที่มีการซื้อสูงสุด (Top 10 Customers)
+        <!-- Top 10 Customers Table -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <i data-lucide="users" class="w-5 h-5 text-indigo-500"></i>
+                    Top 10 ลูกค้าที่มีการซื้อสูงสุด
                 </h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left">
-                    <thead class="bg-white text-slate-500 font-semibold border-b border-slate-200">
+                    <thead class="bg-slate-50 text-slate-600 font-semibold">
                         <tr>
-                            <th class="p-4 w-16">Rank</th>
-                            <th class="p-4">Customer ID</th>
-                            <th class="p-4">Segment</th>
-                            <th class="p-4 text-center">Frequency (ครั้ง)</th>
-                            <th class="p-4 text-right">Total Spending (บาท)</th>
-                            <th class="p-4 text-right">Avg/Bill (บาท)</th>
+                            <th class="px-6 py-4">Rank</th>
+                            <th class="px-6 py-4">Customer ID</th>
+                            <th class="px-6 py-4">Segment</th>
+                            <th class="px-6 py-4 text-center">Frequency (ครั้ง)</th>
+                            <th class="px-6 py-4 text-right">Total Spending (บาท)</th>
                         </tr>
                     </thead>
-                    <tbody id="topCustomersTable" class="divide-y divide-slate-100 bg-white">
-                        <!-- Rows -->
+                    <tbody id="topCustomersTable" class="divide-y divide-slate-100">
+                        <!-- Rows will be populated here -->
                     </tbody>
                 </table>
             </div>
-        </section>
+        </div>
 
-        <!-- Footer Buttons -->
-        <div class="flex justify-end gap-4 mt-4 pb-8 no-print">
-            <button onclick="window.print()" class="bg-slate-500 hover:bg-slate-600 text-white px-6 py-3 rounded-lg shadow transition flex items-center gap-2 font-medium">
-                <i class="fas fa-print"></i> Print Report
+        <!-- Preview Data Table -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden no-print">
+            <div class="p-6 border-b border-slate-100">
+                <h3 class="font-bold text-slate-800">ตัวอย่างข้อมูลดิบ (10 รายการแรก)</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="bg-slate-50 text-slate-700 uppercase font-semibold">
+                        <tr>
+                            <th class="px-6 py-3">Transaction ID</th>
+                            <th class="px-6 py-3">Date</th>
+                            <th class="px-6 py-3">Customer ID</th>
+                            <th class="px-6 py-3">Product</th>
+                            <th class="px-6 py-3 text-right">Sales</th>
+                            <th class="px-6 py-3">Region</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody" class="divide-y divide-slate-100">
+                        <!-- Raw Data -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Action Buttons Footer -->
+        <div class="flex flex-col md:flex-row justify-end gap-4 mt-8 pb-8 no-print">
+            <button onclick="window.print()" class="flex items-center justify-center gap-2 px-6 py-3 bg-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-300 transition">
+                <i data-lucide="printer" class="w-5 h-5"></i> พิมพ์รายงาน
             </button>
-            <button onclick="exportToCSV()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow transition flex items-center gap-2 font-medium">
-                <i class="fas fa-file-csv"></i> Export CSV
+            <button id="exportBtn" class="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition shadow-md">
+                <i data-lucide="download" class="w-5 h-5"></i> Export Result CSV
             </button>
         </div>
 
     </div>
 
-    <!-- Script -->
     <script>
-        // Mock Data: 10 Rows for Layout Testing
-        const mockDataRaw = `Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
-TXN-00001,10/09/2024,C-0486,Fashion,38926.0,Phuket
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Global Variables
+        let charts = {};
+        let processedData = [];
+        let customerSegments = [];
+
+        // Mock Data (10 Rows as requested)
+        const mockData = `TXN-00001,10/09/2024,C-0486,Fashion,38926.0,Phuket
 TXN-00002,08/09/2024,C-0356,Sports,14931.0,Chonburi
 TXN-00003,15/08/2024,C-0431,Electronics,17885.0,Bangkok
 TXN-00004,12/02/2024,C-0455,Electronics,32252.0,Khon Kaen
@@ -2201,247 +2221,324 @@ TXN-01998,17/11/2024,C-0019,Sports,42341.0,Bangkok
 TXN-01999,01/08/2024,C-0368,Electronics,29987.0,Bangkok
 TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
 
-        let chartInstances = {};
-        let processedCustomerData = [];
+        // Helper: Format Number
+        const formatCurrency = (num) => new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(num);
+        const formatNumber = (num) => new Intl.NumberFormat('th-TH').format(num);
 
-        // Helper: Parse Date DD/MM/YYYY
-        function parseDate(dateStr) {
-            if (!dateStr) return null;
+        // Helper: Check Weekend (Input DD/MM/YYYY)
+        const isWeekend = (dateStr) => {
             const parts = dateStr.split('/');
-            return parts.length === 3 ? new Date(`${parts[2]}-${parts[1]}-${parts[0]}`) : new Date(dateStr);
-        }
+            // new Date(year, monthIndex, day)
+            const date = new Date(parts[2], parts[1] - 1, parts[0]);
+            const day = date.getDay();
+            return day === 0 || day === 6; // 0=Sun, 6=Sat
+        };
 
-        // Helper: Format Money
-        function formatMoney(amount) {
-            return amount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
-        // Main Process Function
-        function processData(csvText) {
-            const lines = csvText.trim().split('\n');
+        // Main Data Processing Function
+        function processData(csvText, sourceName) {
+            const rows = csvText.trim().split('\n');
             const data = [];
+            const customerMap = new Map();
+            const categoryMap = new Map();
 
-            // Skip Header (row 0)
-            for (let i = 1; i < lines.length; i++) {
-                const cols = lines[i].split(',');
-                if (cols.length < 5) continue;
-
-                const dateObj = parseDate(cols[1]);
-                const day = dateObj ? dateObj.getDay() : 0;
-                const isWeekend = (day === 0 || day === 6);
-
-                data.push({
-                    txnId: cols[0],
-                    date: dateObj,
-                    dayIndex: day,
-                    customerId: cols[2],
-                    sales: parseFloat(cols[4] || 0),
-                    isWeekend: isWeekend
-                });
+            // Detect if header exists (Check if first row has "Sales" or "Amount")
+            let startIndex = 0;
+            if (rows[0].toLowerCase().includes('sales') || rows[0].toLowerCase().includes('date')) {
+                startIndex = 1; // Skip header
             }
 
-            // 1. Segmentation Logic
-            const customerMap = {};
-            data.forEach(d => {
-                if (!customerMap[d.customerId]) {
-                    customerMap[d.customerId] = { id: d.customerId, total: 0, count: 0 };
+            for (let i = startIndex; i < rows.length; i++) {
+                const cols = rows[i].split(',');
+                if (cols.length < 5) continue;
+
+                const txnId = cols[0].trim();
+                const dateStr = cols[1].trim();
+                const custId = cols[2].trim();
+                const category = cols[3].trim();
+                const amount = parseFloat(cols[4].trim());
+                const region = cols[5] ? cols[5].trim() : '-';
+                const weekend = isWeekend(dateStr);
+
+                // 1. Transaction Data
+                data.push({
+                    txnId, date: dateStr, custId, category, amount, region, isWeekend: weekend
+                });
+
+                // 2. Customer Aggregation
+                if (!customerMap.has(custId)) {
+                    customerMap.set(custId, { id: custId, total: 0, count: 0 });
                 }
-                customerMap[d.customerId].total += d.sales;
-                customerMap[d.customerId].count += 1;
-            });
+                const cust = customerMap.get(custId);
+                cust.total += amount;
+                cust.count += 1;
 
-            const customers = Object.values(customerMap).sort((a, b) => b.total - a.total);
+                // 3. Category Aggregation
+                categoryMap.set(category, (categoryMap.get(category) || 0) + amount);
+            }
 
-            // Assign Segments (Example Logic)
-            const count = customers.length;
-            const goldLimit = Math.ceil(count * 0.2); // Top 20%
-            const silverLimit = Math.ceil(count * 0.5); // Next 30%
-
-            customers.forEach((c, idx) => {
-                if (idx < goldLimit) c.segment = 'Gold';
-                else if (idx < silverLimit) c.segment = 'Silver';
-                else c.segment = 'Bronze';
-            });
-
-            processedCustomerData = customers; // Store for export
-
-            // 2. Scatter Data
-            const scatterData = data.map(d => ({
-                x: d.dayIndex + (Math.random() - 0.5) * 0.5, // Jitter
-                y: d.sales,
-                dayName: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.dayIndex],
-                isWeekend: d.isWeekend
-            }));
-
-            // Update UI
-            updateDashboard(customers, scatterData, data);
+            processedData = data;
+            analyzeAndRender(data, customerMap, categoryMap, sourceName);
         }
 
-        function updateDashboard(customers, scatterData, allTxn) {
-            // A. Key Findings
-            const totalSales = allTxn.reduce((sum, d) => sum + d.sales, 0);
-            const weekendSales = allTxn.filter(d => d.isWeekend).reduce((s,d)=>s+d.sales,0);
-            const weekdaySales = allTxn.filter(d => !d.isWeekend).reduce((s,d)=>s+d.sales,0);
+        function analyzeAndRender(data, customerMap, categoryMap, sourceName) {
+            // Update Status
+            document.getElementById('statusIndicator').innerHTML = `<span class="w-2 h-2 bg-green-500 rounded-full"></span> แสดงผล: ${sourceName}`;
+
+            // --- 1. Customer Segmentation Logic ---
+            const customers = Array.from(customerMap.values()).sort((a, b) => b.total - a.total);
+            const totalCust = customers.length;
             
-            // Avoid division by zero
-            const wEndCount = allTxn.filter(d => d.isWeekend).length || 1;
-            const wDayCount = allTxn.filter(d => !d.isWeekend).length || 1;
-            const wEndAvg = weekendSales / wEndCount;
-            const wDayAvg = weekdaySales / wDayCount;
+            // Define thresholds (Gold: Top 20%, Silver: Next 30%, Bronze: Rest)
+            // Or use simplified logic for small data
+            const goldCount = Math.ceil(totalCust * 0.2);
+            const silverCount = Math.ceil(totalCust * 0.3);
+            
+            customers.forEach((c, index) => {
+                if (index < goldCount) c.segment = 'Gold';
+                else if (index < goldCount + silverCount) c.segment = 'Silver';
+                else c.segment = 'Bronze';
+            });
+            customerSegments = customers;
 
-            document.getElementById('keyFindings').innerHTML = `
-                <p>• ยอดขายรวมทั้งหมด: <strong>${formatMoney(totalSales)}</strong> บาท</p>
-                <p>• ลูกค้าทั้งหมด: <strong>${customers.length}</strong> ราย</p>
-                <p>• Avg Weekend: <strong>${formatMoney(wEndAvg)}</strong></p>
-                <p>• Avg Weekday: <strong>${formatMoney(wDayAvg)}</strong></p>
-            `;
+            // --- 2. Outlier Detection (IQR Method on Sales Amount) ---
+            const sales = data.map(d => d.amount).sort((a, b) => a - b);
+            const q1 = sales[Math.floor((sales.length / 4))];
+            const q3 = sales[Math.floor((sales.length * (3 / 4)))];
+            const iqr = q3 - q1;
+            const lowerBound = q1 - (1.5 * iqr);
+            const upperBound = q3 + (1.5 * iqr);
+            const outliers = data.filter(d => d.amount > upperBound || d.amount < lowerBound);
 
-            // B. Summary Text
-            const topCust = customers[0];
-            const outlierCount = scatterData.filter(d => d.y > 80000).length; // Assumption > 80k is outlier
-            document.getElementById('summaryText').innerHTML = `
-                จากการวิเคราะห์ข้อมูลพบว่า <strong>ลูกค้า ID: ${topCust.id}</strong> มียอดซื้อสะสมสูงสุดถึง <strong>${formatMoney(topCust.total)} บาท</strong> 
-                จัดอยู่ในกลุ่ม <strong>Gold</strong> ส่วนการวิเคราะห์ความสัมพันธ์ (Correlation) พบว่ามีข้อมูลที่มีค่าผิดปกติ (Outliers) จำนวน <strong>${outlierCount} รายการ</strong> 
-                ซึ่งมียอดขายสูงกว่า 80,000 บาท
-            `;
-
-            // C. Top 3 Cards
-            const top3Container = document.getElementById('top3Container');
-            top3Container.innerHTML = '';
-            customers.slice(0, 3).forEach((c, i) => {
-                const colors = [
-                    'bg-yellow-50 border-yellow-200 text-yellow-700',
-                    'bg-slate-50 border-slate-200 text-slate-600',
-                    'bg-orange-50 border-orange-200 text-orange-700'
-                ];
-                const badge = ['🥇 Gold', '🥈 Silver', '🥉 Bronze'][i]; // Just ranking icons
+            // --- 3. Render Top 10 Customers Table ---
+            const topCustTable = document.getElementById('topCustomersTable');
+            topCustTable.innerHTML = '';
+            customers.slice(0, 10).forEach((c, i) => {
+                let badgeColor = c.segment === 'Gold' ? 'bg-yellow-100 text-yellow-800' : 
+                                 c.segment === 'Silver' ? 'bg-slate-100 text-slate-700' : 'bg-orange-100 text-orange-800';
                 
-                top3Container.innerHTML += `
-                    <div class="border rounded-xl p-4 shadow-sm flex justify-between items-center ${colors[i]}">
-                        <div>
-                            <div class="text-xs font-bold uppercase mb-1 opacity-70">Rank #${i+1}</div>
-                            <div class="font-bold text-lg">${c.id}</div>
-                            <div class="text-xs mt-1 opacity-80">${c.count} Transactions</div>
+                const row = `<tr class="hover:bg-slate-50 transition">
+                    <td class="px-6 py-4 font-medium text-slate-500">#${i + 1}</td>
+                    <td class="px-6 py-4 font-bold text-indigo-600">${c.id}</td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 rounded-full text-xs font-bold ${badgeColor}">${c.segment}</span></td>
+                    <td class="px-6 py-4 text-center">${c.count}</td>
+                    <td class="px-6 py-4 text-right font-mono">${formatNumber(c.total)}</td>
+                </tr>`;
+                topCustTable.innerHTML += row;
+            });
+
+            // --- 4. Render Insights ---
+            const insightsDiv = document.getElementById('insightsContent');
+            const outlierText = outliers.length > 0 
+                ? `<span class="text-red-600 font-bold">พบ ${outliers.length} รายการผิดปกติ</span> (เช่น ${outliers[0].txnId}: ${formatNumber(outliers[0].amount)} บาท)`
+                : `<span class="text-green-600">ไม่พบรายการผิดปกติอย่างมีนัยสำคัญ</span>`;
+            
+            insightsDiv.innerHTML = `
+                <div class="flex items-start gap-2">
+                    <i data-lucide="check" class="w-4 h-4 text-green-500 mt-1"></i>
+                    <div>
+                        <strong>Segmentation:</strong> ลูกค้ากลุ่ม Gold มีจำนวน ${customers.filter(c=>c.segment==='Gold').length} ราย 
+                        (ยอดซื้อเฉลี่ย ${formatCurrency(customers.filter(c=>c.segment==='Gold').reduce((a,b)=>a+b.total,0)/customers.filter(c=>c.segment==='Gold').length || 0)})
+                    </div>
+                </div>
+                <div class="flex items-start gap-2">
+                    <i data-lucide="alert-circle" class="w-4 h-4 text-amber-500 mt-1"></i>
+                    <div>
+                        <strong>Outliers Analysis:</strong> ${outlierText} 
+                        <br><span class="text-xs text-slate-400">Upper Bound: ${formatNumber(upperBound)} บาท</span>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+
+            // --- 5. Render Top 3 Categories ---
+            const sortedCats = Array.from(categoryMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3);
+            const topCatDiv = document.getElementById('topCategories');
+            topCatDiv.innerHTML = '';
+            sortedCats.forEach((cat, idx) => {
+                topCatDiv.innerHTML += `
+                    <div class="flex justify-between items-center border-b border-indigo-500/30 pb-2 last:border-0">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl font-bold opacity-50">${idx + 1}</span>
+                            <span class="font-medium">${cat[0]}</span>
                         </div>
-                        <div class="text-right">
-                            <div class="text-xl font-bold">${(c.total/1000).toFixed(1)}k</div>
-                            <div class="text-xs bg-white bg-opacity-50 px-2 py-1 rounded inline-block mt-1">${c.segment}</div>
-                        </div>
+                        <span class="font-mono bg-white/10 px-2 py-1 rounded text-sm">${formatNumber(cat[1])} บ.</span>
                     </div>
                 `;
             });
 
-            // D. Top 10 Table
-            const tbody = document.getElementById('topCustomersTable');
+            // --- 6. Render Raw Data Preview ---
+            const tbody = document.getElementById('dataTableBody');
             tbody.innerHTML = '';
-            customers.slice(0, 10).forEach((c, i) => {
-                const segmentColor = c.segment === 'Gold' ? 'text-yellow-600 bg-yellow-50' : 
-                                     c.segment === 'Silver' ? 'text-slate-600 bg-slate-100' : 'text-orange-600 bg-orange-50';
+            data.slice(0, 10).forEach(row => {
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-4 font-bold text-slate-400">#${i+1}</td>
-                        <td class="p-4 font-medium">${c.id}</td>
-                        <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold ${segmentColor}">${c.segment}</span></td>
-                        <td class="p-4 text-center">${c.count}</td>
-                        <td class="p-4 text-right font-bold text-indigo-700">${formatMoney(c.total)}</td>
-                        <td class="p-4 text-right text-slate-500">${formatMoney(c.total/c.count)}</td>
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-6 py-3 font-mono text-xs">${row.txnId}</td>
+                        <td class="px-6 py-3">${row.date}</td>
+                        <td class="px-6 py-3">${row.custId}</td>
+                        <td class="px-6 py-3"><span class="px-2 py-1 bg-slate-100 rounded text-xs">${row.category}</span></td>
+                        <td class="px-6 py-3 text-right font-mono text-emerald-600">${formatNumber(row.amount)}</td>
+                        <td class="px-6 py-3">${row.region}</td>
                     </tr>
                 `;
             });
 
-            // E. Charts
-            renderCharts(scatterData, customers);
+            // --- 7. Charts ---
+            renderCharts(data, customers, upperBound);
         }
 
-        function renderCharts(scatterData, customers) {
-            // Scatter
+        function renderCharts(data, customers, outlierLimit) {
+            // Destroy old charts
+            if (charts.scatter) charts.scatter.destroy();
+            if (charts.segment) charts.segment.destroy();
+
+            // --- Scatter Plot (Sales vs DayType) ---
+            const weekdayData = data.filter(d => !d.isWeekend).map(d => ({ x: 1 + (Math.random() - 0.5) * 0.3, y: d.amount, raw: d }));
+            const weekendData = data.filter(d => d.isWeekend).map(d => ({ x: 2 + (Math.random() - 0.5) * 0.3, y: d.amount, raw: d }));
+
             const ctxScatter = document.getElementById('scatterChart').getContext('2d');
-            if(chartInstances.scatter) chartInstances.scatter.destroy();
-
-            // Check Outliers for Alert
-            const outliers = scatterData.filter(d => d.y > 80000);
-            if(outliers.length > 0) {
-                document.getElementById('outlierAlert').innerHTML = `<i class="fas fa-exclamation-triangle"></i> พบ Outliers: ${outliers.length} จุด (ยอดขาย > 80,000)`;
-                document.getElementById('outlierAlert').classList.remove('hidden');
-            } else {
-                document.getElementById('outlierAlert').classList.add('hidden');
-            }
-
-            chartInstances.scatter = new Chart(ctxScatter, {
+            charts.scatter = new Chart(ctxScatter, {
                 type: 'scatter',
                 data: {
                     datasets: [
                         {
                             label: 'Weekday',
-                            data: scatterData.filter(d => !d.isWeekend),
-                            backgroundColor: '#6366f1' // Indigo 500
+                            data: weekdayData,
+                            backgroundColor: 'rgba(79, 70, 229, 0.6)', // Indigo
+                            borderColor: 'rgba(79, 70, 229, 1)',
+                            borderWidth: 1,
+                            pointRadius: 6
                         },
                         {
                             label: 'Weekend',
-                            data: scatterData.filter(d => d.isWeekend),
-                            backgroundColor: '#f97316' // Orange 500
+                            data: weekendData,
+                            backgroundColor: 'rgba(236, 72, 153, 0.6)', // Pink
+                            borderColor: 'rgba(236, 72, 153, 1)',
+                            borderWidth: 1,
+                            pointRadius: 6
+                        },
+                        {
+                            label: 'Outlier Threshold',
+                            data: [{x: 0.5, y: outlierLimit}, {x: 2.5, y: outlierLimit}],
+                            type: 'line',
+                            borderColor: 'rgba(239, 68, 68, 0.5)',
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const d = context.raw.raw;
+                                    if(!d) return 'Threshold: ' + context.parsed.y;
+                                    return `${d.txnId}: ${formatNumber(d.amount)} (${d.category})`;
+                                }
+                            }
+                        }
+                    },
                     scales: {
-                        x: { 
-                            type: 'linear', position: 'bottom',
-                            ticks: { callback: v => ['S','M','T','W','T','F','S'][Math.round(v)] || '' }
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            min: 0.5,
+                            max: 2.5,
+                            ticks: {
+                                callback: function(value) {
+                                    if(value === 1) return 'Weekday';
+                                    if(value === 2) return 'Weekend';
+                                    return '';
+                                },
+                                font: { family: "'Sarabun', sans-serif", weight: 'bold', size: 14 }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Sales Amount (THB)' }
                         }
                     }
                 }
             });
 
-            // Segmentation Pie
-            const ctxPie = document.getElementById('segmentChart').getContext('2d');
-            if(chartInstances.pie) chartInstances.pie.destroy();
+            // --- Segmentation Chart (Doughnut) ---
+            const gold = customers.filter(c => c.segment === 'Gold').length;
+            const silver = customers.filter(c => c.segment === 'Silver').length;
+            const bronze = customers.filter(c => c.segment === 'Bronze').length;
 
-            const segCounts = { Gold: 0, Silver: 0, Bronze: 0 };
-            customers.forEach(c => segCounts[c.segment]++);
-
-            chartInstances.pie = new Chart(ctxPie, {
+            const ctxSegment = document.getElementById('segmentChart').getContext('2d');
+            charts.segment = new Chart(ctxSegment, {
                 type: 'doughnut',
                 data: {
                     labels: ['Gold', 'Silver', 'Bronze'],
                     datasets: [{
-                        data: [segCounts.Gold, segCounts.Silver, segCounts.Bronze],
-                        backgroundColor: ['#fbbf24', '#94a3b8', '#fb923c'], // Yellow, Slate, Orange
+                        data: [gold, silver, bronze],
+                        backgroundColor: [
+                            '#eab308', // Yellow-500
+                            '#94a3b8', // Slate-400
+                            '#c2410c'  // Orange-700
+                        ],
                         borderWidth: 0
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    cutout: '70%'
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
                 }
             });
         }
 
-        function handleFileUpload(input) {
-            const file = input.files[0];
-            if (!file) return;
+        // CSV Export Logic
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            if (!customerSegments.length) return alert('ไม่มีข้อมูลให้ Export');
+            
+            // Define CSV Header
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Customer_ID,Total_Spending,Frequency,Segment\n"; // Header
+
+            // Add Data
+            customerSegments.forEach(row => {
+                csvContent += `${row.id},${row.total},${row.count},${row.segment}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "customer_segmentation_results.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // File Upload Listeners
+        const csvInput = document.getElementById('csvInput');
+        
+        csvInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+
+        function handleFile(file) {
+            document.getElementById('fileNameDisplay').innerText = `ไฟล์ที่เลือก: ${file.name}`;
+            document.getElementById('fileNameDisplay').classList.remove('hidden');
+            
             const reader = new FileReader();
-            reader.onload = e => processData(e.target.result);
+            reader.onload = function(e) {
+                processData(e.target.result, file.name);
+            };
             reader.readAsText(file);
         }
 
-        function exportToCSV() {
-            if(processedCustomerData.length === 0) return alert('ไม่มีข้อมูล');
-            const csv = "Customer_ID,Total_Spending,Frequency,Segment\n" + 
-                        processedCustomerData.map(c => `${c.id},${c.total},${c.count},${c.segment}`).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "customer_segmentation.csv";
-            link.click();
-        }
-
-        // Init with Mock
-        document.addEventListener('DOMContentLoaded', () => processData(mockDataRaw));
+        // Initial Load
+        window.addEventListener('DOMContentLoaded', () => {
+            processData(mockData, 'Mock Data (10 รายการ)');
+        });
 
     </script>
 </body>
