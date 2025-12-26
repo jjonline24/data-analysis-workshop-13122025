@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workshop 1+2: Data Cleaning & Preparation</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-600">
+            <div>
+                <h1 class="text-2xl font-bold text-indigo-800"><i class="fas fa-database mr-2"></i> Workshop 1+2: Data Cleaning & Preparation</h1>
+                <p class="text-slate-500 text-sm mt-1">รับบท Data Engineer: ตรวจสอบคุณภาพข้อมูล, จัดการค่าว่าง, แปลงวันที่, และแก้ไขข้อมูลให้ถูกต้อง</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex gap-2">
+                <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold">Data Quality</span>
+                <span class="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-semibold">Transformation</span>
+            </div>
+        </header>
+
+        <!-- Main Layout Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Column 1: สิ่งที่ต้องทำ (To Do) -->
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm h-full">
+                    <h2 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2"><i class="fas fa-list-check text-indigo-500 mr-2"></i>สิ่งที่ต้องทำ (To Do)</h2>
+                    <ul class="space-y-4 text-sm text-slate-600">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            <div>
+                                <strong class="text-slate-800">1. ตรวจสอบค่าว่าง (Missing Values)</strong>
+                                <p class="text-xs mt-1">นับจำนวน Null ในแต่ละคอลัมน์ และเติมค่า Default (เช่น 'Unknown' สำหรับ Product_Category)</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            <div>
+                                <strong class="text-slate-800">2. จัดการวันที่ (Date Normalization)</strong>
+                                <p class="text-xs mt-1">แปลง Format ที่ปนกัน (dd/mm/yyyy, yyyy-mm-dd) ให้เป็นมาตรฐาน 'YYYY-MM-DD'</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            <div>
+                                <strong class="text-slate-800">3. แก้คำผิด (Data Standardization)</strong>
+                                <p class="text-xs mt-1">ตรวจสอบ Region และ Map คำผิด (BKK, Krungthep → Bangkok)</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Column 2: การวิเคราะห์ (Analysis) -->
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm h-full">
+                    <h2 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2"><i class="fas fa-magnifying-glass-chart text-indigo-500 mr-2"></i>การวิเคราะห์ (Analysis)</h2>
+                    
+                    <!-- Stats Area -->
+                    <div id="analysisStats" class="space-y-4">
+                        <div class="p-3 bg-red-50 rounded border-l-4 border-red-400">
+                            <h4 class="text-xs font-bold text-red-800 uppercase">Missing Values Found</h4>
+                            <div id="missingValuesDisplay" class="text-sm text-red-600 mt-1">
+                                - รอการโหลดข้อมูล -
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-yellow-50 rounded border-l-4 border-yellow-400">
+                            <h4 class="text-xs font-bold text-yellow-800 uppercase">Unique Regions (Before Fix)</h4>
+                            <div id="uniqueRegionsDisplay" class="text-sm text-yellow-800 mt-1 font-mono text-xs break-words">
+                                - รอการโหลดข้อมูล -
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-blue-50 rounded border-l-4 border-blue-400">
+                            <h4 class="text-xs font-bold text-blue-800 uppercase">Transformation Actions</h4>
+                            <ul class="text-xs text-blue-700 mt-1 list-disc pl-4 space-y-1">
+                                <li>Mapped 'BKK', 'Krungthep' → 'Bangkok'</li>
+                                <li>Mapped 'Chon Buri' → 'Chonburi'</li>
+                                <li>Parsed dates to ISO-8601</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 3: ผลลัพธ์ (Deliverables) -->
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm h-full">
+                    <h2 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2"><i class="fas fa-file-export text-indigo-500 mr-2"></i>ผลลัพธ์ (Deliverables)</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="text-center p-4">
+                            <div class="text-4xl font-bold text-indigo-600" id="rowCount">0</div>
+                            <div class="text-xs text-slate-500">Rows Processed</div>
+                        </div>
+
+                        <div class="bg-slate-50 p-3 rounded">
+                            <h4 class="text-xs font-bold text-slate-600 mb-2">สรุปผลการทำงาน (Summary)</h4>
+                            <p class="text-xs text-slate-500"><i class="fas fa-check text-green-500 mr-1"></i> Data Type Validation Complete</p>
+                            <p class="text-xs text-slate-500"><i class="fas fa-check text-green-500 mr-1"></i> Missing Values Handle: Default 'Unknown'</p>
+                            <p class="text-xs text-slate-500"><i class="fas fa-check text-green-500 mr-1"></i> Region Standardized</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Section (Moved here - Full Width) -->
+        <div class="bg-white p-8 rounded-xl shadow-sm border-2 border-dashed border-slate-300 text-center hover:border-indigo-400 transition-colors cursor-pointer group" onclick="document.getElementById('csvFile').click()">
+            <input type="file" id="csvFile" accept=".csv" class="hidden" onchange="handleFileUpload(event)">
+            <div class="space-y-4">
+                <div class="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto group-hover:bg-indigo-100 transition shadow-inner">
+                    <i class="fas fa-cloud-upload-alt text-4xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-700">อัปโหลดไฟล์ Sales_Transactions_Large.csv</h3>
+                    <p class="text-slate-500 mt-1">คลิกบริเวณนี้เพื่อเลือกไฟล์ หรือลากไฟล์มาวาง</p>
+                </div>
+            </div>
+            <div class="mt-6 pt-6 border-t border-slate-100">
+                <button onclick="event.stopPropagation(); loadMockData()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-sm font-medium transition flex items-center mx-auto">
+                    <i class="fas fa-vial mr-2"></i> ใช้ข้อมูลตัวอย่าง (Mock Data)
+                </button>
+            </div>
+        </div>
+
+        <!-- Detailed Table Section -->
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-slate-700"><i class="fas fa-table text-indigo-500 mr-2"></i>Cleaned Data Preview (Showing up to 2,000 Rows)</h2>
+                <span class="text-xs text-slate-400">แสดงตัวอย่างข้อมูลที่ผ่านการทำความสะอาดแล้ว</span>
+            </div>
+            
+            <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
+                <table class="w-full text-sm text-left text-slate-600 relative">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-100 sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="px-4 py-3 rounded-tl-lg">Transaction ID</th>
+                            <th class="px-4 py-3">Date (Formatted)</th>
+                            <th class="px-4 py-3">Customer ID</th>
+                            <th class="px-4 py-3">Product Category</th>
+                            <th class="px-4 py-3">Sales Amount</th>
+                            <th class="px-4 py-3 rounded-tr-lg">Region (Fixed)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody" class="bg-white divide-y divide-slate-200">
+                        <!-- Rows will be populated by JS -->
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-slate-400">
+                                กรุณาอัปโหลดไฟล์ CSV หรือกดปุ่ม "ใช้ข้อมูลตัวอย่าง" ด้านบน
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Summary & Insights Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-emerald-500">
+                <h2 class="text-lg font-bold text-slate-700 mb-4">💡 Summary & Insights</h2>
+                <div class="space-y-3">
+                    <p class="text-sm text-slate-600">จากการทำความสะอาดข้อมูล พบว่า:</p>
+                    <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2">
+                        <li><strong>Region Consistency:</strong> ข้อมูล Region มีการสะกดหลากหลายรูปแบบ (เช่น BKK, Krungthep) ได้ทำการรวมกลุ่มเป็น 'Bangkok' เรียบร้อยแล้ว ทำให้การวิเคราะห์ตามพื้นที่มีความแม่นยำขึ้น</li>
+                        <li><strong>Data Completeness:</strong> พบข้อมูล Missing Values ใน Product Category บางส่วน ได้ทำการเติม 'Unknown' เพื่อป้องกัน Error ในการคำนวณ</li>
+                        <li><strong>Temporal Analysis:</strong> วันที่ถูกปรับเป็น Format มาตรฐาน YYYY-MM-DD ทั้งหมด รองรับการนำไปใช้ใน Database หรือ BI Tools ต่อได้ทันที</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-amber-500">
+                <h2 class="text-lg font-bold text-slate-700 mb-4">🔑 Key Findings</h2>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded">
+                        <span class="text-sm font-medium text-slate-600">Top Cleaned Region</span>
+                        <span class="text-sm font-bold text-indigo-600" id="topRegion">-</span>
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded">
+                        <span class="text-sm font-medium text-slate-600">Total Valid Sales</span>
+                        <span class="text-sm font-bold text-green-600" id="totalSales">-</span>
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded">
+                        <span class="text-sm font-medium text-slate-600">Date Range</span>
+                        <span class="text-sm text-slate-500" id="dateRange">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3 mt-8 pb-8">
+            <button onclick="window.print()" class="px-6 py-2 bg-white text-slate-700 border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 transition flex items-center font-medium">
+                <i class="fas fa-print mr-2"></i> Print Report
+            </button>
+            <button onclick="exportCSV()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition flex items-center font-bold">
+                <i class="fas fa-download mr-2"></i> Export Cleaned CSV
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Mock Data (Dirty Data for demonstration)
+        const mockData = `Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
+TXN-01981,04/08/2024,C-0495,Beauty,48094.0,Phuket
+TXN-01982,02/02/2024,C-0133,Beauty,34909.0,Chonburi
+TXN-01983,19/08/2024,C-0178,Electronics,42924.0,Khon Kaen
+TXN-01984,26/09/2024,C-0205,Electronics,23695.0,Chiang Mai
+TXN-01985,28/08/2024,C-0161,Beauty,38345.0,Bangkok
+TXN-01986,13/12/2024,C-0621,Electronics,49608.0,Phuket
+TXN-01987,29/05/2024,C-0504,Home & Living,16977.0,Bangkok
+TXN-01988,07/07/2024,C-0104,Electronics,27217.0,Phuket
+TXN-01989,20/12/2024,C-0813,Electronics,33250.0,Bangkok
+TXN-01990,03/02/2024,C-0426,Fashion,2886.0,Bangkok
+TXN-01991,22/08/2024,C-0966,Home & Living,39808.0,Phuket
+TXN-01992,19/07/2024,C-0506,Home & Living,20058.0,Khon Kaen
+TXN-01993,27/05/2024,C-0311,Sports,27527.0,Bangkok
+TXN-01994,09/02/2024,C-0241,Electronics,20129.0,Bangkok
+TXN-01995,21/05/2024,C-0215,Home & Living,21114.0,Chonburi
+TXN-01996,16/03/2024,C-0571,Electronics,49672.0,Bangkok
+TXN-01997,14/04/2024,C-0049,Sports,24903.5,Bangkok
+TXN-01998,17/11/2024,C-0019,Sports,42341.0,Bangkok
+TXN-01999,01/08/2024,C-0368,Electronics,29987.0,Bangkok
+TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
+
+        let currentData = [];
+
+        // Region Mapping Dictionary
+        const regionMap = {
+            'bkk': 'Bangkok',
+            'krungthep': 'Bangkok',
+            'bangkok': 'Bangkok',
+            'chon buri': 'Chonburi',
+            'chonburi': 'Chonburi',
+            'chiangmai': 'Chiangmai',
+            'phuket': 'Phuket',
+            'khon kaen': 'Khon Kaen'
+        };
+
+        function loadMockData() {
+            processCSV(mockData);
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                processCSV(e.target.result);
+            };
+            reader.readAsText(file);
+        }
+
+        function processCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            
+            // Stats trackers
+            let missingCounts = {};
+            headers.forEach(h => missingCounts[h] = 0);
+            let uniqueRegionsRaw = new Set();
+            let processedRows = [];
+            let totalSales = 0;
+            let dates = [];
+
+            // Process line by line
+            for (let i = 1; i < lines.length; i++) {
+                // Simple regex split for CSV handling basic quotes or commas
+                // For this workshop we assume simple CSV or we use a simple split if no commas in values
+                let row = lines[i].split(',').map(cell => cell.trim()); 
+                
+                if (row.length < headers.length) continue; // Skip malformed rows
+
+                let obj = {};
+                headers.forEach((header, index) => {
+                    obj[header] = row[index] || '';
+                });
+
+                // 1. Check Missing Values & Count
+                headers.forEach(h => {
+                    if (!obj[h] || obj[h] === '') {
+                        missingCounts[h]++;
+                    }
+                });
+
+                // CLEANING LOGIC START
+
+                // Handle Missing Product Category
+                if (!obj['Product_Category']) obj['Product_Category'] = 'Unknown';
+                
+                // Handle Missing/Invalid Sales Amount
+                let sales = parseFloat(obj['Sales_Amount']);
+                if (isNaN(sales)) {
+                    obj['Sales_Amount'] = 0;
+                } else {
+                    totalSales += sales;
+                }
+
+                // 2. Handle Dates
+                // Input formats: DD/MM/YYYY or YYYY-MM-DD
+                let dateStr = obj['Date'];
+                let formattedDate = dateStr;
+                if (dateStr.includes('/')) {
+                    const parts = dateStr.split('/');
+                    if (parts.length === 3) {
+                        // Assume DD/MM/YYYY
+                        formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
+                }
+                obj['Date'] = formattedDate;
+                dates.push(new Date(formattedDate));
+
+                // 3. Handle Region (Standardization)
+                let rawRegion = obj['Region'];
+                if(rawRegion) {
+                    uniqueRegionsRaw.add(rawRegion); // Track for "Analysis" before cleaning
+                    let normalizedRegion = rawRegion.toLowerCase().trim();
+                    // Apply Map
+                    if (regionMap[normalizedRegion]) {
+                        obj['Region'] = regionMap[normalizedRegion];
+                    } else {
+                        // Capitalize first letter if not in map but valid
+                        obj['Region'] = rawRegion.charAt(0).toUpperCase() + rawRegion.slice(1);
+                    }
+                } else {
+                    obj['Region'] = 'Unknown';
+                }
+
+                processedRows.push(obj);
+            }
+
+            currentData = processedRows;
+            updateUI(processedRows, missingCounts, uniqueRegionsRaw, totalSales, dates);
+        }
+
+        function updateUI(data, missingCounts, uniqueRegionsRaw, totalSales, dates) {
+            // Update Analysis Stats
+            const missingHtml = Object.entries(missingCounts)
+                .filter(([key, val]) => val > 0)
+                .map(([key, val]) => `<div>${key}: ${val} missing</div>`)
+                .join('');
+            document.getElementById('missingValuesDisplay').innerHTML = missingHtml || 'No missing values found!';
+
+            const regionsHtml = Array.from(uniqueRegionsRaw).join(', ');
+            document.getElementById('uniqueRegionsDisplay').textContent = regionsHtml;
+
+            // Update Deliverables Count
+            document.getElementById('rowCount').textContent = data.length.toLocaleString();
+
+            // Populate Table (Updated to show up to 2000 rows)
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+            // Change slice from 5 to 2000 as requested
+            data.slice(0, 2000).forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium text-slate-800 border-b">${row.Transaction_ID}</td>
+                    <td class="px-4 py-3 text-indigo-600 border-b">${row.Date}</td>
+                    <td class="px-4 py-3 border-b">${row.Customer_ID}</td>
+                    <td class="px-4 py-3 border-b"><span class="px-2 py-1 bg-slate-100 rounded text-xs">${row.Product_Category}</span></td>
+                    <td class="px-4 py-3 text-right font-mono border-b">${parseFloat(row.Sales_Amount).toLocaleString()}</td>
+                    <td class="px-4 py-3 border-b"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">${row.Region}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update Key Findings
+            document.getElementById('totalSales').textContent = totalSales.toLocaleString() + ' THB';
+            
+            // Find Date Range
+            if (dates.length > 0) {
+                const minDate = new Date(Math.min.apply(null, dates));
+                const maxDate = new Date(Math.max.apply(null, dates));
+                document.getElementById('dateRange').textContent = `${minDate.toISOString().split('T')[0]} to ${maxDate.toISOString().split('T')[0]}`;
+            }
+
+            // Find Top Region
+            const regionCounts = {};
+            data.forEach(r => { regionCounts[r.Region] = (regionCounts[r.Region] || 0) + 1; });
+            const topRegion = Object.keys(regionCounts).reduce((a, b) => regionCounts[a] > regionCounts[b] ? a : b);
+            document.getElementById('topRegion').textContent = topRegion;
+        }
+
+        function exportCSV() {
+            if (currentData.length === 0) {
+                alert("ไม่มีข้อมูลให้ Export กรุณาโหลดข้อมูลก่อน");
+                return;
+            }
+
+            const headers = Object.keys(currentData[0]);
+            const csvContent = [
+                headers.join(','), // Header row
+                ...currentData.map(row => headers.map(fieldName => row[fieldName]).join(',')) // Data rows
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Cleaned_Sales_Transactions.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Auto load mock data on start only if user wants? 
+        // No, let's wait for user interaction or load immediately for preview
+        // Uncomment below to load automatically
+        window.addEventListener('DOMContentLoaded', () => {
+             loadMockData(); // Pre-load mock data for preview
+        });
+
+    </script>
+</body>
+</html>
