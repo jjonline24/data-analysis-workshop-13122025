@@ -60,7 +60,7 @@
                             <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
                             <div>
                                 <strong class="text-slate-800">3. แก้คำผิด (Data Standardization)</strong>
-                                <p class="text-xs mt-1">ตรวจสอบ Region และ Map คำผิด (BKK, Krungthep → Bangkok)</p>
+                                <p class="text-xs mt-1">ตรวจสอบ Region และ Map คำผิด (BKK, Krungthep → Bangkok) และแทนค่า Sales ที่เป็น 0/Null ด้วย Median</p>
                             </div>
                         </li>
                     </ul>
@@ -94,6 +94,7 @@
                                 <li>Mapped 'BKK', 'Krungthep' → 'Bangkok'</li>
                                 <li>Mapped 'Chon Buri' → 'Chonburi'</li>
                                 <li>Parsed dates to ISO-8601</li>
+                                <li><strong>Filled 0/Null Sales with Median</strong></li>
                             </ul>
                         </div>
                     </div>
@@ -116,6 +117,7 @@
                             <p class="text-xs text-slate-500"><i class="fas fa-check text-green-500 mr-1"></i> Data Type Validation Complete</p>
                             <p class="text-xs text-slate-500"><i class="fas fa-check text-green-500 mr-1"></i> Missing Values Handle: Default 'Unknown'</p>
                             <p class="text-xs text-slate-500"><i class="fas fa-check text-green-500 mr-1"></i> Region Standardized</p>
+                            <p class="text-xs text-slate-500"><i class="fas fa-check text-green-500 mr-1"></i> Sales Imputed with Median</p>
                         </div>
                     </div>
                 </div>
@@ -143,9 +145,17 @@
 
         <!-- Detailed Table Section -->
         <div class="bg-white p-6 rounded-xl shadow-sm">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold text-slate-700"><i class="fas fa-table text-indigo-500 mr-2"></i>Cleaned Data Preview (Showing up to 2,000 Rows)</h2>
-                <span class="text-xs text-slate-400">แสดงตัวอย่างข้อมูลที่ผ่านการทำความสะอาดแล้ว</span>
+            <!-- Header and Search -->
+            <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                <div class="flex items-center">
+                    <h2 class="text-lg font-bold text-slate-700"><i class="fas fa-table text-indigo-500 mr-2"></i>Cleaned Data Preview (Showing up to 2,000 Rows)</h2>
+                </div>
+                <!-- Search Input -->
+                <div class="relative w-full md:w-72">
+                    <input type="text" id="searchInput" placeholder="ค้นหา (เช่น ID, Region, Product)..." 
+                           class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow">
+                    <i class="fas fa-search absolute left-3 top-2.5 text-slate-400"></i>
+                </div>
             </div>
             
             <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
@@ -181,6 +191,7 @@
                     <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2">
                         <li><strong>Region Consistency:</strong> ข้อมูล Region มีการสะกดหลากหลายรูปแบบ (เช่น BKK, Krungthep) ได้ทำการรวมกลุ่มเป็น 'Bangkok' เรียบร้อยแล้ว ทำให้การวิเคราะห์ตามพื้นที่มีความแม่นยำขึ้น</li>
                         <li><strong>Data Completeness:</strong> พบข้อมูล Missing Values ใน Product Category บางส่วน ได้ทำการเติม 'Unknown' เพื่อป้องกัน Error ในการคำนวณ</li>
+                        <li><strong>Imputation Strategy:</strong> ข้อมูล Sales Amount ที่สูญหายหรือเป็น 0 ถูกแทนที่ด้วยค่า Median เพื่อรักษาการกระจายตัวของข้อมูลให้สมจริงกว่าการใช้ค่าเฉลี่ย (Mean)</li>
                         <li><strong>Temporal Analysis:</strong> วันที่ถูกปรับเป็น Format มาตรฐาน YYYY-MM-DD ทั้งหมด รองรับการนำไปใช้ใน Database หรือ BI Tools ต่อได้ทันที</li>
                     </ul>
                 </div>
@@ -196,6 +207,10 @@
                     <div class="flex items-center justify-between p-2 bg-slate-50 rounded">
                         <span class="text-sm font-medium text-slate-600">Total Valid Sales</span>
                         <span class="text-sm font-bold text-green-600" id="totalSales">-</span>
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded">
+                        <span class="text-sm font-medium text-slate-600">Median Sales Applied</span>
+                        <span class="text-sm font-bold text-blue-600" id="medianSalesDisplay">-</span>
                     </div>
                     <div class="flex items-center justify-between p-2 bg-slate-50 rounded">
                         <span class="text-sm font-medium text-slate-600">Date Range</span>
@@ -220,26 +235,17 @@
     <script>
         // Mock Data (Dirty Data for demonstration)
         const mockData = `Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
-TXN-01981,04/08/2024,C-0495,Beauty,48094.0,Phuket
-TXN-01982,02/02/2024,C-0133,Beauty,34909.0,Chonburi
-TXN-01983,19/08/2024,C-0178,Electronics,42924.0,Khon Kaen
-TXN-01984,26/09/2024,C-0205,Electronics,23695.0,Chiang Mai
-TXN-01985,28/08/2024,C-0161,Beauty,38345.0,Bangkok
-TXN-01986,13/12/2024,C-0621,Electronics,49608.0,Phuket
-TXN-01987,29/05/2024,C-0504,Home & Living,16977.0,Bangkok
-TXN-01988,07/07/2024,C-0104,Electronics,27217.0,Phuket
-TXN-01989,20/12/2024,C-0813,Electronics,33250.0,Bangkok
-TXN-01990,03/02/2024,C-0426,Fashion,2886.0,Bangkok
-TXN-01991,22/08/2024,C-0966,Home & Living,39808.0,Phuket
-TXN-01992,19/07/2024,C-0506,Home & Living,20058.0,Khon Kaen
-TXN-01993,27/05/2024,C-0311,Sports,27527.0,Bangkok
-TXN-01994,09/02/2024,C-0241,Electronics,20129.0,Bangkok
-TXN-01995,21/05/2024,C-0215,Home & Living,21114.0,Chonburi
-TXN-01996,16/03/2024,C-0571,Electronics,49672.0,Bangkok
 TXN-01997,14/04/2024,C-0049,Sports,24903.5,Bangkok
-TXN-01998,17/11/2024,C-0019,Sports,42341.0,Bangkok
-TXN-01999,01/08/2024,C-0368,Electronics,29987.0,Bangkok
-TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
+TXN-01998,17/11/2024,C-0019,Sports,42341.0,BKK
+TXN-01999,01/08/2024,C-0368,,29987.0,Krungthep
+TXN-02000,2024-10-04,C-0903,Electronics,49601.0,Chonburi
+TXN-02001,25/12/2024,C-0112,Fashion,12500.0,Phuket
+TXN-02002,2024-01-15,C-0444,Beauty,8900.0,Chiangmai
+TXN-02003,14/02/2024,C-0555,Sports,,BKK
+TXN-02004,2024-03-30,C-0666,Home & Living,5600.0,Chon Buri
+TXN-02005,05/05/2024,C-0777,Electronics,34200.0,Khon Kaen
+TXN-02006,12/08/2024,C-0888,,15000.0,Bangkok
+TXN-02007,10/06/2024,C-0999,Fashion,0,Bangkok`;
 
         let currentData = [];
 
@@ -270,6 +276,19 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
             reader.readAsText(file);
         }
 
+        function calculateMedian(values) {
+            if (values.length === 0) return 0;
+            
+            values.sort((a, b) => a - b);
+            
+            const half = Math.floor(values.length / 2);
+            
+            if (values.length % 2)
+                return values[half];
+            
+            return (values[half - 1] + values[half]) / 2.0;
+        }
+
         function processCSV(csvText) {
             const lines = csvText.trim().split('\n');
             const headers = lines[0].split(',').map(h => h.trim());
@@ -278,16 +297,15 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
             let missingCounts = {};
             headers.forEach(h => missingCounts[h] = 0);
             let uniqueRegionsRaw = new Set();
-            let processedRows = [];
             let totalSales = 0;
             let dates = [];
 
-            // Process line by line
+            // Step 1: Pre-process to collect valid sales for Median Calculation
+            let tempRows = [];
+            let validSalesValues = [];
+
             for (let i = 1; i < lines.length; i++) {
-                // Simple regex split for CSV handling basic quotes or commas
-                // For this workshop we assume simple CSV or we use a simple split if no commas in values
                 let row = lines[i].split(',').map(cell => cell.trim()); 
-                
                 if (row.length < headers.length) continue; // Skip malformed rows
 
                 let obj = {};
@@ -295,27 +313,43 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
                     obj[header] = row[index] || '';
                 });
 
-                // 1. Check Missing Values & Count
+                // Track initial missing values stats
                 headers.forEach(h => {
                     if (!obj[h] || obj[h] === '') {
                         missingCounts[h]++;
                     }
                 });
 
-                // CLEANING LOGIC START
-
-                // Handle Missing Product Category
-                if (!obj['Product_Category']) obj['Product_Category'] = 'Unknown';
-                
-                // Handle Missing/Invalid Sales Amount
-                let sales = parseFloat(obj['Sales_Amount']);
-                if (isNaN(sales)) {
-                    obj['Sales_Amount'] = 0;
-                } else {
-                    totalSales += sales;
+                // Collect valid sales (Not NaN and Not 0)
+                let rawSales = parseFloat(obj['Sales_Amount']);
+                if (!isNaN(rawSales) && rawSales !== 0) {
+                    validSalesValues.push(rawSales);
                 }
 
-                // 2. Handle Dates
+                tempRows.push(obj);
+            }
+
+            // Calculate Median
+            const medianSales = calculateMedian(validSalesValues);
+
+            // Step 2: Final Processing & Cleaning
+            let processedRows = [];
+            
+            for (let obj of tempRows) {
+                // CLEANING LOGIC START
+
+                // 1. Handle Missing Product Category
+                if (!obj['Product_Category']) obj['Product_Category'] = 'Unknown';
+                
+                // 2. Handle Sales Amount (Replace 0 or NaN with Median)
+                let sales = parseFloat(obj['Sales_Amount']);
+                if (isNaN(sales) || sales === 0) {
+                    sales = medianSales;
+                    obj['Sales_Amount'] = sales; // Update value in object
+                }
+                totalSales += sales;
+
+                // 3. Handle Dates
                 // Input formats: DD/MM/YYYY or YYYY-MM-DD
                 let dateStr = obj['Date'];
                 let formattedDate = dateStr;
@@ -329,7 +363,7 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
                 obj['Date'] = formattedDate;
                 dates.push(new Date(formattedDate));
 
-                // 3. Handle Region (Standardization)
+                // 4. Handle Region (Standardization)
                 let rawRegion = obj['Region'];
                 if(rawRegion) {
                     uniqueRegionsRaw.add(rawRegion); // Track for "Analysis" before cleaning
@@ -349,27 +383,36 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
             }
 
             currentData = processedRows;
-            updateUI(processedRows, missingCounts, uniqueRegionsRaw, totalSales, dates);
+            
+            // Clear search input on new data load
+            const searchInput = document.getElementById('searchInput');
+            if(searchInput) searchInput.value = '';
+
+            updateUI(processedRows, missingCounts, uniqueRegionsRaw, totalSales, dates, medianSales);
         }
 
-        function updateUI(data, missingCounts, uniqueRegionsRaw, totalSales, dates) {
-            // Update Analysis Stats
-            const missingHtml = Object.entries(missingCounts)
-                .filter(([key, val]) => val > 0)
-                .map(([key, val]) => `<div>${key}: ${val} missing</div>`)
-                .join('');
-            document.getElementById('missingValuesDisplay').innerHTML = missingHtml || 'No missing values found!';
+        // Helper check function to prevent null pointer errors
+        function setText(id, text) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = text;
+            } else {
+                console.warn(`Element with ID '${id}' not found in the document.`);
+            }
+        }
 
-            const regionsHtml = Array.from(uniqueRegionsRaw).join(', ');
-            document.getElementById('uniqueRegionsDisplay').textContent = regionsHtml;
-
-            // Update Deliverables Count
-            document.getElementById('rowCount').textContent = data.length.toLocaleString();
-
-            // Populate Table (Updated to show up to 2000 rows)
+        function renderTable(data) {
             const tbody = document.getElementById('dataTableBody');
+            if (!tbody) return;
+
             tbody.innerHTML = '';
-            // Change slice from 5 to 2000 as requested
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">ไม่พบข้อมูลที่ค้นหา</td></tr>`;
+                return;
+            }
+
+            // Limit display to 2000 rows for performance
             data.slice(0, 2000).forEach(row => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 transition-colors";
@@ -378,27 +421,56 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
                     <td class="px-4 py-3 text-indigo-600 border-b">${row.Date}</td>
                     <td class="px-4 py-3 border-b">${row.Customer_ID}</td>
                     <td class="px-4 py-3 border-b"><span class="px-2 py-1 bg-slate-100 rounded text-xs">${row.Product_Category}</span></td>
-                    <td class="px-4 py-3 text-right font-mono border-b">${parseFloat(row.Sales_Amount).toLocaleString()}</td>
+                    <td class="px-4 py-3 text-right font-mono border-b">${parseFloat(row.Sales_Amount).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})}</td>
                     <td class="px-4 py-3 border-b"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">${row.Region}</span></td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function updateUI(data, missingCounts, uniqueRegionsRaw, totalSales, dates, medianSales) {
+            // Update Analysis Stats
+            const missingHtml = Object.entries(missingCounts)
+                .filter(([key, val]) => val > 0)
+                .map(([key, val]) => `<div>${key}: ${val} missing</div>`)
+                .join('');
+            
+            const missingEl = document.getElementById('missingValuesDisplay');
+            if (missingEl) {
+                missingEl.innerHTML = missingHtml || 'No missing values found!';
+            }
+
+            setText('uniqueRegionsDisplay', Array.from(uniqueRegionsRaw).join(', '));
+
+            // Update Deliverables Count
+            setText('rowCount', data.length.toLocaleString());
+
+            // Initial Render of Table
+            renderTable(data);
 
             // Update Key Findings
-            document.getElementById('totalSales').textContent = totalSales.toLocaleString() + ' THB';
+            setText('totalSales', totalSales.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}) + ' THB');
+            setText('medianSalesDisplay', medianSales.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1}) + ' THB');
             
             // Find Date Range
             if (dates.length > 0) {
                 const minDate = new Date(Math.min.apply(null, dates));
                 const maxDate = new Date(Math.max.apply(null, dates));
-                document.getElementById('dateRange').textContent = `${minDate.toISOString().split('T')[0]} to ${maxDate.toISOString().split('T')[0]}`;
+                setText('dateRange', `${minDate.toISOString().split('T')[0]} to ${maxDate.toISOString().split('T')[0]}`);
+            } else {
+                setText('dateRange', '-');
             }
 
             // Find Top Region
             const regionCounts = {};
             data.forEach(r => { regionCounts[r.Region] = (regionCounts[r.Region] || 0) + 1; });
-            const topRegion = Object.keys(regionCounts).reduce((a, b) => regionCounts[a] > regionCounts[b] ? a : b);
-            document.getElementById('topRegion').textContent = topRegion;
+            
+            if (Object.keys(regionCounts).length > 0) {
+                const topRegion = Object.keys(regionCounts).reduce((a, b) => regionCounts[a] > regionCounts[b] ? a : b);
+                setText('topRegion', topRegion);
+            } else {
+                setText('topRegion', '-');
+            }
         }
 
         function exportCSV() {
@@ -424,11 +496,34 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
             document.body.removeChild(link);
         }
 
-        // Auto load mock data on start only if user wants? 
-        // No, let's wait for user interaction or load immediately for preview
-        // Uncomment below to load automatically
-        window.addEventListener('DOMContentLoaded', () => {
-             loadMockData(); // Pre-load mock data for preview
+        // Search Functionality
+        document.addEventListener('DOMContentLoaded', () => {
+             // Load Mock Data
+             loadMockData(); 
+             
+             // Setup Search
+             const searchInput = document.getElementById('searchInput');
+             if(searchInput) {
+                 searchInput.addEventListener('input', function(e) {
+                     const searchTerm = e.target.value.toLowerCase();
+                     
+                     if (currentData.length === 0) return;
+
+                     if (searchTerm === '') {
+                         renderTable(currentData);
+                         return;
+                     }
+
+                     const filteredData = currentData.filter(row => {
+                         // Search in all values of the row
+                         return Object.values(row).some(val => 
+                             String(val).toLowerCase().includes(searchTerm)
+                         );
+                     });
+                     
+                     renderTable(filteredData);
+                 });
+             }
         });
 
     </script>
