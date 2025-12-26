@@ -3,15 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Forecasting (Linear Regression)</title>
+    <title>Workshop 13: Sales Forecasting</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: 'Sarabun', sans-serif; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .shadow-sm, .shadow-md { box-shadow: none !important; }
+            .bg-slate-100 { background: white !important; }
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen p-6">
@@ -19,142 +27,163 @@
     <div class="max-w-7xl mx-auto space-y-6">
         
         <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm">
+        <header class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-500">
             <div>
-                <h1 class="text-2xl font-bold text-indigo-600">📈 Sales Forecasting System</h1>
-                <p class="text-slate-500 text-sm">พยากรณ์ยอดขายล่วงหน้า 3 เดือน ด้วยวิธี Linear Regression</p>
-            </div>
-            <div class="mt-4 md:mt-0">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    <span class="w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
-                    พร้อมใช้งาน (Auto-loaded)
-                </span>
+                <h1 class="text-2xl font-bold text-indigo-700">📈 Workshop 13: Sales Forecasting</h1>
+                <p class="text-slate-500 text-sm mt-1">ทำนายยอดขายล่วงหน้า 3 เดือน ด้วย Linear Regression</p>
             </div>
         </header>
 
-        <!-- Input Section -->
-        <section class="bg-white p-6 rounded-xl shadow-sm border border-indigo-100">
-            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                📥 นำเข้าข้อมูล (Sales Data)
-                <span class="text-xs font-normal text-gray-400">(รองรับ Date format: DD/MM/YYYY, YYYY-MM-DD)</span>
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Option 1: Paste Text -->
+        <!-- Instruction Cards (Workshop Info) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Card 1: สิ่งที่ต้องทำ -->
+            <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">สิ่งที่ต้องทำ</h3>
+                </div>
+                <ul class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                    <li>รวบรวมข้อมูลยอดขายรายเดือน</li>
+                    <li>สร้างกราฟเส้นแสดงแนวโน้ม</li>
+                    <li>คำนวณ Linear Regression</li>
+                    <li>พยากรณ์ยอดขาย 3 เดือนหน้า</li>
+                </ul>
+            </div>
+
+            <!-- Card 2: การวิเคราะห์ -->
+            <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">การวิเคราะห์</h3>
+                </div>
+                <p class="text-sm text-slate-600">
+                    ใช้วิธี <strong>Linear Regression</strong> (สมการถดถอยเชิงเส้น) เพื่อหาความสัมพันธ์ระหว่าง "เวลา (เดือน)" และ "ยอดขาย" เพื่อสร้างเส้นแนวโน้ม (Trend Line)
+                </p>
+            </div>
+
+            <!-- Card 3: ผลลัพธ์ -->
+            <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                        <i class="fa-solid fa-flag-checkered"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">ผลลัพธ์ที่ต้องส่งมอบ</h3>
+                </div>
+                <ul class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                    <li>กราฟเส้นแสดงยอดขายจริง</li>
+                    <li>เส้นประแสดงยอดขายทำนาย</li>
+                    <li>ตารางสรุปค่าพยากรณ์</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Input Section: Method 2 Upload CSV (Moved here) -->
+        <div class="bg-white p-6 rounded-xl shadow-sm no-print">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                    <i class="fa-solid fa-file-csv"></i>
+                </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">วิธีที่ 1: วางข้อมูล CSV ที่นี่</label>
-                    <textarea id="csvTextInput" rows="3" class="w-full p-3 text-xs border rounded-lg focus:ring-2 focus:ring-indigo-500 font-mono bg-slate-50" placeholder="Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region..."></textarea>
-                    <button onclick="processFromText()" class="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full md:w-auto">
-                        คำนวณการพยากรณ์
-                    </button>
-                </div>
-
-                <!-- Option 2: Upload File -->
-                <div class="border-l pl-0 md:pl-6 md:border-slate-200">
-                    <label class="block text-sm font-medium text-slate-700 mb-2">วิธีที่ 2: อัปโหลดไฟล์ CSV</label>
-                    <div class="flex items-center justify-center w-full">
-                        <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                                </svg>
-                                <p class="text-sm text-gray-500"><span class="font-semibold">คลิกเพื่ออัปโหลด</span></p>
-                                <p class="text-xs text-gray-500">.CSV File Only</p>
-                            </div>
-                            <input id="dropzone-file" type="file" class="hidden" accept=".csv" onchange="processFromFile(this)" />
-                        </label>
-                    </div>
+                    <h2 class="text-lg font-bold text-slate-700">วิธีที่ 2: อัปโหลดไฟล์ CSV</h2>
+                    <p class="text-sm text-slate-500">หากมีไฟล์ข้อมูลอยู่แล้ว สามารถอัปโหลดเพื่อประมวลผลได้ทันที</p>
                 </div>
             </div>
-        </section>
-
-        <!-- Dashboard Content -->
-        <div id="dashboard" class="hidden space-y-6">
             
-            <!-- Forecast Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Month +1 -->
-                <div class="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl shadow-sm border border-blue-200 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10">
-                        <svg class="w-16 h-16 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path></svg>
+            <label class="block w-full cursor-pointer">
+                <input type="file" id="csvUpload" accept=".csv" class="hidden">
+                <div class="w-full border-2 border-dashed border-indigo-200 rounded-lg p-8 flex flex-col items-center justify-center text-center hover:bg-indigo-50 transition group bg-slate-50">
+                    <div class="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-cloud-arrow-up text-2xl text-indigo-500"></i>
                     </div>
-                    <p class="text-sm text-blue-600 font-semibold uppercase mb-1" id="label-m1">Next Month</p>
-                    <p class="text-3xl font-bold text-slate-800" id="val-m1">-</p>
-                    <p class="text-xs text-slate-500 mt-2">คาดการณ์ยอดขาย</p>
+                    <span class="text-indigo-600 font-bold text-lg group-hover:underline">คลิกเพื่อเลือกไฟล์ CSV</span>
+                    <span class="text-slate-400 text-sm mt-1">หรือลากไฟล์มาวางที่นี่ (รองรับไฟล์ .csv)</span>
                 </div>
+            </label>
+        </div>
 
-                <!-- Month +2 -->
-                <div class="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-xl shadow-sm border border-indigo-200 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10">
-                        <svg class="w-16 h-16 text-indigo-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
-                    </div>
-                    <p class="text-sm text-indigo-600 font-semibold uppercase mb-1" id="label-m2">Month +2</p>
-                    <p class="text-3xl font-bold text-slate-800" id="val-m2">-</p>
-                    <p class="text-xs text-slate-500 mt-2">คาดการณ์ยอดขาย</p>
-                </div>
-
-                <!-- Month +3 -->
-                <div class="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl shadow-sm border border-purple-200 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10">
-                        <svg class="w-16 h-16 text-purple-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                    </div>
-                    <p class="text-sm text-purple-600 font-semibold uppercase mb-1" id="label-m3">Month +3</p>
-                    <p class="text-3xl font-bold text-slate-800" id="val-m3">-</p>
-                    <p class="text-xs text-slate-500 mt-2">คาดการณ์ยอดขาย</p>
-                </div>
+        <!-- Main Chart Section -->
+        <div class="bg-white p-6 rounded-xl shadow-md">
+            <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-chart-line text-indigo-500"></i>
+                การวิเคราะห์แนวโน้มและการพยากรณ์ (Trend Analysis & Forecast)
+            </h2>
+            <div class="relative h-96 w-full">
+                <canvas id="forecastChart"></canvas>
             </div>
+            <div id="loading" class="hidden absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            </div>
+        </div>
 
-            <!-- Chart Section -->
+        <!-- Analysis & Insights Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Summary Table -->
             <div class="bg-white p-6 rounded-xl shadow-sm">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-slate-700">แนวโน้มยอดขายจริง & การพยากรณ์ (Actual vs Forecast)</h3>
-                    <div class="text-xs flex gap-3">
-                        <span class="flex items-center gap-1"><span class="w-3 h-1 bg-blue-500"></span> Actual</span>
-                        <span class="flex items-center gap-1"><span class="w-3 h-1 border-t-2 border-dashed border-red-500"></span> Forecast</span>
-                    </div>
-                </div>
-                <div class="h-96 w-full">
-                    <canvas id="forecastChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Historical Data Table -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h3 class="font-bold text-slate-700 mb-4">ข้อมูลยอดขายรายเดือนย้อนหลัง (Historical Monthly Sales)</h3>
-                <div class="overflow-x-auto max-h-96 rounded border border-gray-200">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-slate-50 sticky top-0 z-10">
+                <h3 class="font-bold text-lg text-slate-700 mb-4 border-b pb-2">
+                    <i class="fa-solid fa-table me-2 text-indigo-500"></i>สรุปผลการวิเคราะห์ (Summary & Insights)
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 text-slate-600 font-semibold">
                             <tr>
-                                <th class="px-4 py-3 text-left font-semibold text-slate-600 text-xs">Month (YYYY-MM)</th>
-                                <th class="px-4 py-3 text-right font-semibold text-slate-600 text-xs">Total Sales (THB)</th>
-                                <th class="px-4 py-3 text-right font-semibold text-slate-600 text-xs">Growth Rate (%)</th>
+                                <th class="px-4 py-3 rounded-tl-lg">เดือน</th>
+                                <th class="px-4 py-3">สถานะ</th>
+                                <th class="px-4 py-3 text-right rounded-tr-lg">ยอดขาย (บาท)</th>
                             </tr>
                         </thead>
-                        <tbody id="historyTableBody" class="divide-y divide-slate-200 bg-white"></tbody>
+                        <tbody id="forecastTableBody" class="divide-y divide-slate-100">
+                            <!-- Rows will be injected here -->
+                        </tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- Key Findings -->
+            <div class="bg-white p-6 rounded-xl shadow-sm flex flex-col">
+                <h3 class="font-bold text-lg text-slate-700 mb-4 border-b pb-2">
+                    <i class="fa-solid fa-lightbulb me-2 text-amber-500"></i>ข้อค้นพบหลัก (Key Findings)
+                </h3>
+                <div class="space-y-4 flex-grow">
+                    <div class="bg-indigo-50 p-4 rounded-lg border-l-4 border-indigo-500">
+                        <p class="text-xs text-indigo-500 font-bold uppercase mb-1">Trend Direction</p>
+                        <p id="trendText" class="text-slate-700 font-medium">-</p>
+                    </div>
+                    <div class="bg-emerald-50 p-4 rounded-lg border-l-4 border-emerald-500">
+                        <p class="text-xs text-emerald-500 font-bold uppercase mb-1">Growth Rate</p>
+                        <p id="growthText" class="text-slate-700 font-medium">-</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <p class="text-sm text-slate-600">
+                            การพยากรณ์นี้คำนวณโดยใช้ <strong>Linear Regression (Least Squares Method)</strong> 
+                            โดย $y = mx + c$ ซึ่งเหมาะสมกับข้อมูลที่มีแนวโน้มเติบโตหรือลดลงอย่างสม่ำเสมอ
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3 pb-8 no-print">
+            <button onclick="window.print()" class="bg-white border border-slate-300 text-slate-700 px-6 py-3 rounded-lg hover:bg-slate-50 transition font-medium flex items-center gap-2 shadow-sm">
+                <i class="fa-solid fa-print"></i>
+                Print Report
+            </button>
+            <button onclick="exportToCSV()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition font-medium flex items-center gap-2 shadow-lg shadow-indigo-200">
+                <i class="fa-solid fa-file-csv"></i>
+                Export CSV
+            </button>
+        </div>
+
     </div>
 
     <script>
-        let forecastChart = null;
-
-        // --- HELPER: Parse Date ---
-        function parseDate(dateStr) {
-            if (!dateStr) return null;
-            const dmy = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-            if (dmy) return new Date(dmy[3], dmy[2] - 1, dmy[1]);
-            const d = new Date(dateStr);
-            if (!isNaN(d.getTime())) return d;
-            return null;
-        }
-
-        // --- SAMPLE DATA ---
-        const integratedData = `
-Transaction_ID,Date,Customer_ID,Product_Category,Sales_Amount,Region
-TXN-00001,10/09/2024,C-0486,Fashion,38926.0,Phuket
+        // 1. Initial Mock Data (10 rows as requested)
+        const mockData = `TXN-00001,10/09/2024,C-0486,Fashion,38926.0,Phuket
 TXN-00002,08/09/2024,C-0356,Sports,14931.0,Chonburi
 TXN-00003,15/08/2024,C-0431,Electronics,17885.0,Bangkok
 TXN-00004,12/02/2024,C-0455,Electronics,32252.0,Khon Kaen
@@ -2153,183 +2182,202 @@ TXN-01996,16/03/2024,C-0571,Electronics,49672.0,Bangkok
 TXN-01997,14/04/2024,C-0049,Sports,24903.5,Bangkok
 TXN-01998,17/11/2024,C-0019,Sports,42341.0,Bangkok
 TXN-01999,01/08/2024,C-0368,Electronics,29987.0,Bangkok
-TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi
-`;
+TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi`;
 
-        function processFromText() {
-            const text = document.getElementById('csvTextInput').value;
-            if (!text.trim()) { alert("กรุณาวางข้อมูล CSV ก่อนครับ"); return; }
-            processData(text);
+        let chartInstance = null;
+        let globalProcessedData = []; // To store data for export
+
+        // 2. CSV Parsing Logic
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            const data = [];
+            
+            // Auto-detect if header exists (check if first row has numbers in sales column)
+            // Assuming 5th column (index 4) is Sales Amount based on mock data
+            // Format: TXN, Date, CustID, Cat, Sales, Region
+            
+            lines.forEach((line, index) => {
+                // Remove \r and split
+                const cols = line.replace('\r', '').split(',');
+                if (cols.length < 5) return;
+
+                // Simple heuristic to skip header: if sales column is not a number
+                const salesVal = parseFloat(cols[4]);
+                if (isNaN(salesVal) && index === 0) return; // Skip Header
+
+                // Parse Date (DD/MM/YYYY)
+                const dateParts = cols[1].split('/');
+                if (dateParts.length !== 3) return;
+                
+                // Create Date Object (Year, Month Index (0-11), Day)
+                // Note: JS Date Month is 0-indexed
+                const dateObj = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+
+                data.push({
+                    date: dateObj,
+                    sales: parseFloat(cols[4]) || 0
+                });
+            });
+            return data;
         }
 
-        function processFromFile(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) { processData(e.target.result); };
-            reader.readAsText(file);
-        }
-
-        function processData(csvData) {
-            const lines = csvData.split('\n').filter(line => line.trim() !== '');
-            if (lines.length < 2) return;
-
-            const headers = lines[0].split(',').map(h => h.trim());
-            const dateIndex = headers.findIndex(h => h.toLowerCase().includes('date'));
-            const salesIndex = headers.findIndex(h => h.toLowerCase().includes('sales') || h.toLowerCase().includes('amount'));
-
-            if (dateIndex === -1 || salesIndex === -1) {
-                alert("ไม่พบคอลัมน์ Date หรือ Sales_Amount");
-                return;
-            }
-
-            // 1. Aggregate Sales by Month
+        // 3. Data Aggregation (By Month)
+        function aggregateByMonth(data) {
             const monthlySales = {};
-            for (let i = 1; i < lines.length; i++) {
-                const cols = lines[i].split(',');
-                if (cols.length < headers.length) continue;
 
-                const dateStr = cols[dateIndex].trim();
-                const sales = parseFloat(cols[salesIndex].trim());
-                const dateObj = parseDate(dateStr);
-
-                if (!dateObj || isNaN(sales)) continue;
-
-                const monthKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
-                monthlySales[monthKey] = (monthlySales[monthKey] || 0) + sales;
-            }
+            data.forEach(item => {
+                const year = item.date.getFullYear();
+                const month = item.date.getMonth(); // 0-11
+                const key = `${year}-${String(month + 1).padStart(2, '0')}`;
+                
+                if (!monthlySales[key]) {
+                    monthlySales[key] = 0;
+                }
+                monthlySales[key] += item.sales;
+            });
 
             // Convert to array and sort
-            const sortedMonths = Object.keys(monthlySales).sort();
-            const historicalData = sortedMonths.map(m => ({ month: m, sales: monthlySales[m] }));
-
-            // 2. Perform Linear Regression
-            // X = 0, 1, 2... (Time Index)
-            // Y = Sales Amount
-            const n = historicalData.length;
-            const x = Array.from({length: n}, (_, i) => i);
-            const y = historicalData.map(d => d.sales);
-
-            const regression = linearRegression(y, x);
-
-            // 3. Forecast Next 3 Months
-            const forecastData = [];
-            const lastMonthStr = historicalData[n - 1].month;
-            const lastDate = new Date(lastMonthStr + "-01");
-
-            for (let i = 1; i <= 3; i++) {
-                const nextDate = new Date(lastDate.getFullYear(), lastDate.getMonth() + i, 1);
-                const nextMonthStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`;
-                const nextX = (n - 1) + i;
-                const predictedSales = regression.slope * nextX + regression.intercept;
-                
-                forecastData.push({
-                    month: nextMonthStr,
-                    sales: Math.max(0, predictedSales) // Prevent negative sales
-                });
-            }
-
-            updateUI({ historicalData, forecastData });
+            const sortedKeys = Object.keys(monthlySales).sort();
+            return sortedKeys.map((key, index) => {
+                const [y, m] = key.split('-');
+                const monthNames = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+                return {
+                    x: index, // For regression
+                    label: `${monthNames[parseInt(m)-1]} ${y.slice(2)}`, // e.g. เม.ย. 24
+                    fullLabel: `${monthNames[parseInt(m)-1]} ${y}`,
+                    sales: monthlySales[key],
+                    rawDateKey: key
+                };
+            });
         }
 
-        // Simple Linear Regression: y = mx + c
-        function linearRegression(y, x) {
-            const n = y.length;
-            let sum_x = 0;
-            let sum_y = 0;
-            let sum_xy = 0;
-            let sum_xx = 0;
+        // 4. Linear Regression Logic
+        function linearRegression(monthlyData) {
+            const n = monthlyData.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
 
-            for (let i = 0; i < n; i++) {
-                sum_x += x[i];
-                sum_y += y[i];
-                sum_xy += (x[i] * y[i]);
-                sum_xx += (x[i] * x[i]);
-            }
+            monthlyData.forEach(pt => {
+                sumX += pt.x;
+                sumY += pt.sales;
+                sumXY += (pt.x * pt.sales);
+                sumXX += (pt.x * pt.x);
+            });
 
-            const slope = (n * sum_xy - sum_x * sum_y) / (n * sum_xx - sum_x * sum_x);
-            const intercept = (sum_y - slope * sum_x) / n;
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
 
-            return { slope, intercept };
+            return { slope, intercept, lastX: monthlyData[monthlyData.length - 1].x };
         }
 
-        function updateUI(data) {
-            document.getElementById('dashboard').classList.remove('hidden');
-            const fmt = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 });
+        // 5. Main Processing Function
+        function processData(csvText, sourceName) {
+            // Show Loading
+            document.getElementById('loading').classList.remove('hidden');
 
-            const forecast = data.forecastData;
+            setTimeout(() => {
+                try {
+                    const parsedData = parseCSV(csvText);
+                    const monthlyData = aggregateByMonth(parsedData);
+                    
+                    if (monthlyData.length < 2) {
+                        alert("ข้อมูลไม่เพียงพอสำหรับการพยากรณ์ (ต้องการข้อมูลอย่างน้อย 2 เดือน)");
+                        document.getElementById('loading').classList.add('hidden');
+                        return;
+                    }
 
-            // Update Cards
-            if (forecast.length >= 1) {
-                document.getElementById('label-m1').innerText = forecast[0].month;
-                document.getElementById('val-m1').innerText = fmt.format(forecast[0].sales);
-            }
-            if (forecast.length >= 2) {
-                document.getElementById('label-m2').innerText = forecast[1].month;
-                document.getElementById('val-m2').innerText = fmt.format(forecast[1].sales);
-            }
-            if (forecast.length >= 3) {
-                document.getElementById('label-m3').innerText = forecast[2].month;
-                document.getElementById('val-m3').innerText = fmt.format(forecast[2].sales);
-            }
+                    // Calculate Regression
+                    const { slope, intercept, lastX } = linearRegression(monthlyData);
+                    
+                    // Generate Forecast for next 3 months
+                    const forecastData = [];
+                    const nextMonthNames = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+                    
+                    // Determine last date to figure out next month names
+                    let [lastYearStr, lastMonthStr] = monthlyData[monthlyData.length-1].rawDateKey.split('-');
+                    let currentYear = parseInt(lastYearStr);
+                    let currentMonth = parseInt(lastMonthStr) - 1; // 0-11
 
-            // Render Chart
-            renderForecastChart(data.historicalData, data.forecastData);
+                    for (let i = 1; i <= 3; i++) {
+                        const nextX = lastX + i;
+                        const predictedSales = (slope * nextX) + intercept;
+                        
+                        // Calculate Month Label
+                        currentMonth++;
+                        if (currentMonth > 11) {
+                            currentMonth = 0;
+                            currentYear++;
+                        }
+                        
+                        forecastData.push({
+                            label: `${nextMonthNames[currentMonth]} ${String(currentYear).slice(2)}`,
+                            sales: predictedSales,
+                            isForecast: true
+                        });
+                    }
 
-            // Render History Table
-            renderHistoryTable(data.historicalData, fmt);
+                    globalProcessedData = { monthlyData, forecastData, slope }; // Save for other functions
+                    updateUI(monthlyData, forecastData, slope);
+
+                } catch (error) {
+                    console.error(error);
+                    alert("เกิดข้อผิดพลาดในการประมวลผลข้อมูล: " + error.message);
+                } finally {
+                    document.getElementById('loading').classList.add('hidden');
+                }
+            }, 500);
         }
 
-        function renderForecastChart(historical, forecast) {
+        // 6. Update UI (Chart & Text)
+        function updateUI(actual, forecast, slope) {
             const ctx = document.getElementById('forecastChart').getContext('2d');
-            if (forecastChart) forecastChart.destroy();
-
-            // Prepare Labels
-            const historyLabels = historical.map(d => d.month);
-            const forecastLabels = forecast.map(d => d.month);
-            const allLabels = [...historyLabels, ...forecastLabels];
-
-            // Prepare Data for 2 Datasets
-            // Dataset 1: Historical (Solid Line) -> [v1, v2, ..., vn, null, null, null]
-            // Dataset 2: Forecast (Dashed Line) -> [null, ..., null, vn, f1, f2, f3] (Connect last point)
             
-            const historyValues = historical.map(d => d.sales);
-            const lastHistoryVal = historyValues[historyValues.length - 1];
+            // Prepare Chart Data
+            const labels = [...actual.map(d => d.label), ...forecast.map(d => d.label)];
             
-            // Pad history data with nulls for forecast period
-            const chartHistoryData = [...historyValues, ...Array(forecast.length).fill(null)];
+            // Actual Data Array (padded with nulls for forecast period)
+            const actualValues = actual.map(d => d.sales);
+            // Connect the last actual point to the first forecast point visually?
+            // Usually separate datasets. Let's make Forecast start from the last actual point for continuity.
+            
+            const lastActual = actual[actual.length - 1];
+            
+            // Forecast Data Array:
+            // Starts with nulls matching actual data length - 1, then the last actual value, then forecast values
+            const forecastValues = new Array(actual.length - 1).fill(null);
+            forecastValues.push(lastActual.sales); // Connection point
+            forecast.forEach(f => forecastValues.push(f.sales));
 
-            // Pad forecast data with nulls for history period (except last point to connect)
-            const forecastValues = [lastHistoryVal, ...forecast.map(d => d.sales)];
-            const padding = Array(historyValues.length - 1).fill(null);
-            const chartForecastData = [...padding, ...forecastValues];
+            // Destroy old chart
+            if (chartInstance) chartInstance.destroy();
 
-            forecastChart = new Chart(ctx, {
+            chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: allLabels,
+                    labels: labels,
                     datasets: [
                         {
-                            label: 'Actual Sales',
-                            data: chartHistoryData,
-                            borderColor: '#2563eb', // Blue
-                            backgroundColor: '#2563eb',
+                            label: 'ยอดขายจริง (Actual)',
+                            data: actualValues, // Standard actual data
+                            borderColor: '#4f46e5', // Indigo 600
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
                             borderWidth: 2,
-                            pointRadius: 4,
-                            fill: false,
-                            tension: 0.1
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#4f46e5',
+                            pointRadius: 5,
+                            fill: true,
+                            tension: 0.3
                         },
                         {
-                            label: 'Forecast (Trend)',
-                            data: chartForecastData,
-                            borderColor: '#ef4444', // Red
-                            backgroundColor: '#ef4444',
+                            label: 'พยากรณ์ (Forecast)',
+                            data: forecastValues, // Padded array
+                            borderColor: '#f59e0b', // Amber 500
                             borderWidth: 2,
-                            borderDash: [5, 5], // Dashed Line
-                            pointRadius: 4,
-                            pointStyle: 'rectRot',
+                            borderDash: [5, 5], // Dashed line
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#f59e0b',
+                            pointRadius: 5,
                             fill: false,
-                            tension: 0.1
+                            tension: 0.3
                         }
                     ]
                 },
@@ -2337,63 +2385,124 @@ TXN-02000,04/10/2024,C-0903,Electronics,49601.0,Chonburi
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        legend: { position: 'top', labels: { font: { family: "'Sarabun', sans-serif" } } },
                         tooltip: {
-                            mode: 'index',
-                            intersect: false,
                             callbacks: {
                                 label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) label += ': ';
-                                    if (context.parsed.y !== null) {
-                                        label += new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(context.parsed.y);
-                                    }
-                                    return label;
+                                    return context.dataset.label + ': ' + context.raw.toLocaleString('th-TH', { maximumFractionDigits: 0 }) + ' บาท';
                                 }
-                            }
+                            },
+                            titleFont: { family: "'Sarabun', sans-serif" },
+                            bodyFont: { family: "'Sarabun', sans-serif" }
                         }
                     },
                     scales: {
-                        y: { beginAtZero: true, title: { display: true, text: 'Sales Amount (THB)' } }
+                        y: {
+                            beginAtZero: true,
+                            grid: { borderDash: [2, 4], color: '#e5e7eb' },
+                            ticks: {
+                                callback: value => value.toLocaleString(),
+                                font: { family: "'Sarabun', sans-serif" }
+                            },
+                            title: { display: true, text: 'ยอดขาย (บาท)', font: { family: "'Sarabun', sans-serif" } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: "'Sarabun', sans-serif" } }
+                        }
                     }
                 }
             });
-        }
 
-        function renderHistoryTable(data, fmt) {
-            const tbody = document.getElementById('historyTableBody');
+            // Update Table
+            const tbody = document.getElementById('forecastTableBody');
             tbody.innerHTML = '';
+
+            // Combine for table display (Show last 3 actual + 3 forecast)
+            const showCount = 3;
+            const recentActual = actual.slice(-showCount);
             
-            // Show latest first
-            const reversedData = [...data].reverse();
-
-            reversedData.forEach((row, index) => {
-                const tr = document.createElement('tr');
-                
-                // Calculate MoM Growth
-                let growth = '-';
-                if (index < reversedData.length - 1) {
-                    const prev = reversedData[index + 1].sales;
-                    const curr = row.sales;
-                    if (prev > 0) {
-                        const pct = ((curr - prev) / prev) * 100;
-                        const colorClass = pct >= 0 ? 'text-green-600' : 'text-red-600';
-                        const sign = pct >= 0 ? '+' : '';
-                        growth = `<span class="${colorClass} font-bold">${sign}${pct.toFixed(1)}%</span>`;
-                    }
-                }
-
-                tr.innerHTML = `
-                    <td class="px-4 py-3 font-medium text-slate-700 text-xs">${row.month}</td>
-                    <td class="px-4 py-3 text-right font-mono text-slate-600 text-xs">${fmt.format(row.sales)}</td>
-                    <td class="px-4 py-3 text-right text-xs">${growth}</td>
+            recentActual.forEach(item => {
+                const tr = `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-4 py-3 text-slate-600">${item.fullLabel || item.label}</td>
+                        <td class="px-4 py-3"><span class="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs font-bold">Actual</span></td>
+                        <td class="px-4 py-3 text-right font-medium">${item.sales.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                    </tr>
                 `;
-                tbody.appendChild(tr);
+                tbody.innerHTML += tr;
             });
+
+            forecast.forEach(item => {
+                const tr = `
+                    <tr class="bg-amber-50/50 hover:bg-amber-50 transition border-l-4 border-amber-300">
+                        <td class="px-4 py-3 text-slate-800 font-bold">${item.label} (คาดการณ์)</td>
+                        <td class="px-4 py-3"><span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs font-bold">Forecast</span></td>
+                        <td class="px-4 py-3 text-right font-bold text-amber-700">${item.sales.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += tr;
+            });
+
+            // Update Insights
+            const trendText = document.getElementById('trendText');
+            const growthText = document.getElementById('growthText');
+            
+            if (slope > 0) {
+                trendText.innerHTML = `<span class="text-emerald-600"><i class="fa-solid fa-arrow-trend-up"></i> ขาขึ้น (Uptrend)</span> ยอดขายมีแนวโน้มเพิ่มขึ้นเฉลี่ยเดือนละ ${slope.toLocaleString('th-TH', {maximumFractionDigits:0})} บาท`;
+            } else {
+                trendText.innerHTML = `<span class="text-rose-600"><i class="fa-solid fa-arrow-trend-down"></i> ขาลง (Downtrend)</span> ยอดขายมีแนวโน้มลดลงเฉลี่ยเดือนละ ${Math.abs(slope).toLocaleString('th-TH', {maximumFractionDigits:0})} บาท`;
+            }
+
+            // Simple growth calc (Forecast Month 3 vs Last Actual)
+            const lastActualVal = actual[actual.length-1].sales;
+            const lastForecastVal = forecast[forecast.length-1].sales;
+            const growthPct = ((lastForecastVal - lastActualVal) / lastActualVal) * 100;
+            
+            growthText.textContent = `คาดการณ์ 3 เดือนข้างหน้าจะ${growthPct > 0 ? 'โตขึ้น' : 'ลดลง'}ประมาณ ${growthPct.toFixed(2)}% จากเดือนล่าสุด`;
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            processData(integratedData);
+        // 7. Export CSV
+        function exportToCSV() {
+            if (!globalProcessedData.monthlyData) return;
+
+            const { monthlyData, forecastData } = globalProcessedData;
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // Add BOM for Excel support
+            csvContent += "Month,Type,Sales Amount\n";
+
+            monthlyData.forEach(row => {
+                csvContent += `${row.label},Actual,${row.sales}\n`;
+            });
+            forecastData.forEach(row => {
+                csvContent += `${row.label},Forecast,${row.sales}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "sales_forecast_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 8. Event Listeners
+        document.getElementById('csvUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                processData(e.target.result, file.name);
+            };
+            reader.readAsText(file);
         });
+
+        // Initialize with Mock Data
+        window.addEventListener('DOMContentLoaded', () => {
+            processData(mockData, 'Mock Data (10 Rows)');
+        });
+
     </script>
 </body>
 </html>
